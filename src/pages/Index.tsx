@@ -7,11 +7,13 @@ import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
+import { Slider } from '@/components/ui/slider';
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [keywordCount, setKeywordCount] = useState(10);
 
   // Handle API Key change
   const handleApiKeyChange = (key: string) => {
@@ -31,6 +33,11 @@ const Index: React.FC = () => {
   // Clear all images
   const handleClearAll = () => {
     setImages([]);
+  };
+
+  // Handle keyword count change
+  const handleKeywordCountChange = (value: number[]) => {
+    setKeywordCount(value[0]);
   };
 
   // Process images with Gemini API
@@ -62,7 +69,7 @@ const Index: React.FC = () => {
       // Process images one by one to avoid overwhelming the API
       for (const image of pendingImages) {
         try {
-          const result = await analyzeImageWithGemini(image.file, apiKey);
+          const result = await analyzeImageWithGemini(image.file, apiKey, keywordCount);
           
           setImages(prev => 
             prev.map(img => 
@@ -122,6 +129,33 @@ const Index: React.FC = () => {
       <main className="flex-1">
         <div className="container py-8 space-y-8">
           <ApiKeyInput apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
+          
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Keyword Options</h2>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <label htmlFor="keyword-count" className="text-sm font-medium">
+                    Number of keywords to generate (max): {keywordCount}
+                  </label>
+                </div>
+                <Slider
+                  id="keyword-count"
+                  min={1}
+                  max={50}
+                  step={1}
+                  value={[keywordCount]}
+                  onValueChange={handleKeywordCountChange}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-gray-500">
+                  <span>1</span>
+                  <span>25</span>
+                  <span>50</span>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <ImageUploader 
             onImagesSelected={handleImagesSelected} 
