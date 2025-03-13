@@ -30,8 +30,9 @@ export async function analyzeImageWithGemini(
     // Remove the data URL prefix for the API request
     const base64Data = base64Image.split(",")[1];
     
+    // Updated API endpoint to use gemini-1.5-flash model instead of the deprecated gemini-pro-vision
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=" + apiKey,
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey,
       {
         method: "POST",
         headers: {
