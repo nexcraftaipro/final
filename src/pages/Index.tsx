@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import ApiKeyInput from '@/components/ApiKeyInput';
 import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
+import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Slider } from '@/components/ui/slider';
+import { Sparkles } from 'lucide-react';
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
@@ -118,10 +120,11 @@ const Index: React.FC = () => {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 dark:bg-gray-900/80 dark:border-gray-800">
+      <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
         <div className="container py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Photo Metadata Helper</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent">Photo Metadata Helper</h1>
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -130,9 +133,12 @@ const Index: React.FC = () => {
         <div className="container py-8 space-y-8">
           <ApiKeyInput apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
           
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <div className="glass-panel p-6 rounded-xl shadow-md glow">
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold">Keyword Options</h2>
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-amber-500 glow-amber" />
+                Keyword Options
+              </h2>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <label htmlFor="keyword-count" className="text-sm font-medium">
@@ -148,7 +154,7 @@ const Index: React.FC = () => {
                   onValueChange={handleKeywordCountChange}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-gray-500">
+                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                   <span>1</span>
                   <span>25</span>
                   <span>50</span>
@@ -167,7 +173,7 @@ const Index: React.FC = () => {
               <Button
                 onClick={handleProcessImages}
                 disabled={isProcessing || !apiKey}
-                className="bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg"
+                className="glow-button bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl transition-all duration-300"
               >
                 {isProcessing ? (
                   <>
@@ -175,7 +181,10 @@ const Index: React.FC = () => {
                     Processing...
                   </>
                 ) : (
-                  `Process ${pendingCount} Image${pendingCount !== 1 ? 's' : ''}`
+                  <>
+                    <Sparkles className="mr-2 h-5 w-5 glow-blue" />
+                    Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
+                  </>
                 )}
               </Button>
             </div>
