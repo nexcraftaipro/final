@@ -43,7 +43,7 @@ export async function analyzeImageWithGemini(
             {
               parts: [
                 {
-                  text: "Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). The title should be short and descriptive. The description should be 1-2 sentences. Keywords should be relevant tags for the image, with 5-10 keywords maximum. DO NOT include any explanations or text outside of the JSON object.",
+                  text: "Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). The title should be short and descriptive. The description should be 1-2 sentences. Keywords should be relevant tags for the image, with 1-50 keywords. DO NOT include any explanations or text outside of the JSON object.",
                 },
                 {
                   inline_data: {
