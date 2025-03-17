@@ -20,7 +20,7 @@ const StarCursor: React.FC = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { theme } = useTheme();
   
-  // Star colors
+  // Star colors - soft pastel versions for a bubble-like appearance
   const starColors = [
     '#8B5CF6', // Vivid Purple
     '#D946EF', // Magenta Pink
@@ -36,20 +36,22 @@ const StarCursor: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
       
-      // Create a new star with random properties
-      const newStar: Star = {
-        id: Date.now(),
-        x: e.clientX,
-        y: e.clientY,
-        size: Math.random() * 12 + 4, // Size between 4-16px
-        color: starColors[Math.floor(Math.random() * starColors.length)],
-        opacity: 1,
-        speedY: Math.random() * 3 + 1, // Falling speed
-        rotation: Math.random() * 360, // Initial rotation
-        speedRotation: (Math.random() - 0.5) * 10, // Rotation speed
-      };
-      
-      setStars(prevStars => [...prevStars, newStar]);
+      // Create new stars - create multiple smaller ones for a more delicate effect
+      for (let i = 0; i < 2; i++) {
+        const newStar: Star = {
+          id: Date.now() + i,
+          x: e.clientX + (Math.random() - 0.5) * 10,
+          y: e.clientY + (Math.random() - 0.5) * 10,
+          size: Math.random() * 6 + 2, // Size between 2-8px (smaller)
+          color: starColors[Math.floor(Math.random() * starColors.length)],
+          opacity: 0.8,
+          speedY: Math.random() * 2 + 0.5, // Gentler falling speed
+          rotation: Math.random() * 360, // Initial rotation
+          speedRotation: (Math.random() - 0.5) * 6, // Gentler rotation speed
+        };
+        
+        setStars(prevStars => [...prevStars, newStar]);
+      }
     };
     
     // Add mouse move event listener
@@ -62,7 +64,8 @@ const StarCursor: React.FC = () => {
           .map(star => ({
             ...star,
             y: star.y + star.speedY,
-            opacity: star.opacity - 0.015,
+            x: star.x + (Math.random() - 0.5) * 0.5, // Slight horizontal drift for bubble effect
+            opacity: star.opacity - 0.01, // Slower fade for longer trail
             rotation: star.rotation + star.speedRotation,
           }))
           .filter(star => star.opacity > 0) // Remove stars when they fade out completely
@@ -89,22 +92,20 @@ const StarCursor: React.FC = () => {
             height: `${star.size}px`,
             opacity: star.opacity,
             transform: `rotate(${star.rotation}deg)`,
-            transition: 'opacity 0.05s linear',
+            transition: 'opacity 0.1s linear, transform 0.1s ease-out',
             pointerEvents: 'none',
           }}
         >
-          <svg 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path 
-              d="M12 0L14.59 8.41L23 11L14.59 13.59L12 22L9.41 13.59L1 11L9.41 8.41L12 0Z" 
-              fill={star.color}
-              stroke={theme === 'dark' ? '#ffffff40' : '#00000020'} 
-              strokeWidth="0.5"
-            />
-          </svg>
+          {/* Use a circle for bubble-like appearance */}
+          <div
+            className="w-full h-full rounded-full"
+            style={{
+              backgroundColor: star.color,
+              boxShadow: `0 0 ${star.size/2}px ${star.color}`,
+              filter: `blur(${star.size/6}px)`,
+              border: theme === 'dark' ? '0.5px solid rgba(255,255,255,0.2)' : '0.5px solid rgba(0,0,0,0.1)'
+            }}
+          />
         </div>
       ))}
     </div>
