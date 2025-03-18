@@ -92,15 +92,34 @@ const StarCursor: React.FC = () => {
       );
     }, 16); // ~60fps
     
+    // Add custom cursor style
+    document.body.style.cursor = 'none';
+    
     // Clean up event listeners and intervals
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       clearInterval(intervalId);
+      document.body.style.cursor = 'auto';
     };
   }, []);
   
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+      {/* Custom cursor */}
+      <div 
+        className="fixed w-8 h-8 pointer-events-none z-[60] transform -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
+        style={{
+          left: `${mousePosition.x}px`,
+          top: `${mousePosition.y}px`,
+          transition: 'transform 0.1s ease-out',
+        }}
+      >
+        <div className="w-full h-full relative">
+          <div className="absolute inset-0 rounded-full border-2 border-white animate-pulse-subtle"></div>
+          <div className="absolute w-2 h-2 bg-white rounded-full left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+        </div>
+      </div>
+      
       {stars.map(star => (
         <div 
           key={star.id}

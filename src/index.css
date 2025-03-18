@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
 
@@ -85,15 +86,19 @@
 
   html, body {
     @apply antialiased scroll-smooth;
+    cursor: none;
   }
 
   body {
     @apply bg-gradient-to-b from-blue-50 to-blue-100 dark:from-slate-950 dark:to-slate-900 font-sans text-foreground min-h-screen;
-    cursor: default;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-display tracking-tight;
+  }
+  
+  a, button, [role="button"], input, select, textarea {
+    @apply cursor-none;
   }
 }
 
@@ -193,6 +198,10 @@
     }
   }
   
+  .animate-spin-slow {
+    animation: spin 12s linear infinite;
+  }
+  
   @keyframes pulse {
     0% {
       transform: scale(1);
@@ -206,6 +215,34 @@
       transform: scale(1);
       opacity: 1;
     }
+  }
+  
+  /* Enhanced button styles */
+  .btn-fancy {
+    @apply relative overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 
+           text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-300
+           hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  .btn-fancy::before {
+    @apply content-[''] absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500
+           opacity-0 transition-opacity duration-300;
+  }
+  
+  .btn-fancy:hover::before {
+    @apply opacity-100;
+  }
+  
+  /* Improve cards with depth and hover effects */
+  .card-3d {
+    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+  
+  /* Enhanced gradients */
+  .bg-gradient-blue-purple {
+    @apply bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600;
   }
 }
 
