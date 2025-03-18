@@ -20,6 +20,7 @@ interface Star {
 const StarCursor: React.FC = () => {
   const [stars, setStars] = useState<Star[]>([]);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [isVisible, setIsVisible] = useState(true);
   const { theme } = useTheme();
   
   // Enhanced color palette with more vibrant options
@@ -40,25 +41,26 @@ const StarCursor: React.FC = () => {
     // Track mouse movement
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
+      setIsVisible(true);
       
-      // Create new stars with enhanced properties
-      for (let i = 0; i < 4; i++) { // Increased number of stars for more density
+      // Create new stars with enhanced properties - reduce the number for better performance
+      for (let i = 0; i < 2; i++) { // Reduced from 4 to 2 for performance
         // Add randomization to make the effect more dynamic
         const randomSpeed = Math.random() * 2 + 0.3;
-        const randomSize = Math.random() * 5 + 1; // Smaller stars (1-6px)
+        const randomSize = Math.random() * 4 + 1; // Slightly smaller stars (1-5px)
         const isTrail = Math.random() > 0.7; // Some stars have trails
         
         const newStar: Star = {
           id: Date.now() + i,
-          x: e.clientX + (Math.random() - 0.5) * 25, // More spread
-          y: e.clientY + (Math.random() - 0.5) * 25,
+          x: e.clientX + (Math.random() - 0.5) * 20, // Slightly less spread
+          y: e.clientY + (Math.random() - 0.5) * 20,
           size: randomSize,
           color: starColors[Math.floor(Math.random() * starColors.length)],
           opacity: 0.9,
           speedY: randomSpeed, 
           rotation: Math.random() * 360,
-          speedRotation: (Math.random() - 0.5) * 12,
-          pulse: Math.random() > 0.7, // 30% chance of pulsing
+          speedRotation: (Math.random() - 0.5) * 8, // Reduced rotation speed
+          pulse: Math.random() > 0.8, // 20% chance of pulsing
           trail: isTrail,
         };
         
@@ -66,25 +68,48 @@ const StarCursor: React.FC = () => {
       }
     };
     
-    // Add mouse move event listener
+    // Track when cursor leaves window
+    const handleMouseLeave = () => {
+      setIsVisible(false);
+    };
+    
+    // Track when cursor enters window
+    const handleMouseEnter = () => {
+      setIsVisible(true);
+    };
+    
+    // Add mouse event listeners
     window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+    document.addEventListener('mouseenter', handleMouseEnter);
+    
+    // Optimize performance by limiting stars
+    const cleanupStarsInterval = setInterval(() => {
+      setStars(prevStars => {
+        // If there are too many stars, remove the oldest ones
+        if (prevStars.length > 100) {
+          return prevStars.slice(-100);
+        }
+        return prevStars;
+      });
+    }, 1000);
     
     // Set an interval to animate the stars
-    const intervalId = setInterval(() => {
+    const animationInterval = setInterval(() => {
       setStars(prevStars => 
         prevStars
           .map(star => {
             // Enhanced movement patterns
             const horizontalMovement = star.trail 
-              ? Math.sin(Date.now() / 800 + star.id) * 1.2 // Sinusoidal movement for trail stars
-              : (Math.random() - 0.5) * 0.8; // Random drift for regular stars
+              ? Math.sin(Date.now() / 1000 + star.id) * 0.8 // Simplified sinusoidal movement
+              : (Math.random() - 0.5) * 0.5; // Reduced random drift
             
             return {
               ...star,
               y: star.y + star.speedY,
               x: star.x + horizontalMovement,
-              // Slower fade for a more lasting effect
-              opacity: star.opacity - (star.trail ? 0.005 : 0.01),
+              // Faster fade for better performance
+              opacity: star.opacity - (star.trail ? 0.01 : 0.02),
               rotation: star.rotation + star.speedRotation,
             };
           })
@@ -98,7 +123,10 @@ const StarCursor: React.FC = () => {
     // Clean up event listeners and intervals
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
-      clearInterval(intervalId);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('mouseenter', handleMouseEnter);
+      clearInterval(animationInterval);
+      clearInterval(cleanupStarsInterval);
       document.body.style.cursor = 'auto';
     };
   }, []);
@@ -106,19 +134,21 @@ const StarCursor: React.FC = () => {
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
       {/* Custom cursor */}
-      <div 
-        className="fixed w-8 h-8 pointer-events-none z-[60] transform -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
-        style={{
-          left: `${mousePosition.x}px`,
-          top: `${mousePosition.y}px`,
-          transition: 'transform 0.1s ease-out',
-        }}
-      >
-        <div className="w-full h-full relative">
-          <div className="absolute inset-0 rounded-full border-2 border-white animate-pulse-subtle"></div>
-          <div className="absolute w-2 h-2 bg-white rounded-full left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+      {isVisible && (
+        <div 
+          className="fixed w-8 h-8 pointer-events-none z-[60] transform -translate-x-1/2 -translate-y-1/2 mix-blend-difference"
+          style={{
+            left: `${mousePosition.x}px`,
+            top: `${mousePosition.y}px`,
+            transition: 'transform 0.05s linear', // Faster transition for more responsive cursor
+          }}
+        >
+          <div className="w-full h-full relative">
+            <div className="absolute inset-0 rounded-full border-2 border-white animate-pulse-subtle"></div>
+            <div className="absolute w-2 h-2 bg-white rounded-full left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"></div>
+          </div>
         </div>
-      </div>
+      )}
       
       {stars.map(star => (
         <div 
@@ -131,7 +161,7 @@ const StarCursor: React.FC = () => {
             height: `${star.size}px`,
             opacity: star.opacity,
             transform: `rotate(${star.rotation}deg)`,
-            transition: 'opacity 0.1s linear, transform 0.1s ease-out',
+            willChange: 'transform, opacity', // Optimize rendering performance
             pointerEvents: 'none',
           }}
         >
@@ -140,8 +170,8 @@ const StarCursor: React.FC = () => {
             className="w-full h-full rounded-full"
             style={{
               backgroundColor: star.color,
-              boxShadow: `0 0 ${star.size * 1.5}px ${star.color}`,
-              filter: `blur(${star.size/7}px)`,
+              boxShadow: `0 0 ${star.size * 1.2}px ${star.color}`, // Reduced glow for performance
+              filter: `blur(${star.size/10}px)`, // Less blur for performance
               border: theme === 'dark' 
                 ? '0.5px solid rgba(255,255,255,0.4)' 
                 : '0.5px solid rgba(255,255,255,0.6)'
