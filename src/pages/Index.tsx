@@ -9,13 +9,27 @@ import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Slider } from '@/components/ui/slider';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Camera, Loader2 } from 'lucide-react';
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [keywordCount, setKeywordCount] = useState(10);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Handle scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      if (isScrolled !== scrolled) {
+        setScrolled(isScrolled);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [scrolled]);
 
   // Handle API Key change
   const handleApiKeyChange = (key: string) => {
@@ -120,10 +134,17 @@ const Index: React.FC = () => {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+      <header className={`sticky top-0 z-10 transition-all duration-300 border-b ${
+        scrolled 
+          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-gray-200 dark:border-gray-800' 
+          : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-transparent'
+      }`}>
         <div className="container py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent">Photo Metadata Helper</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent flex items-center">
+              <Camera className="h-6 w-6 mr-2 text-primary" />
+              Photo Metadata Helper
+            </h1>
             <ThemeToggle />
           </div>
         </div>
@@ -177,7 +198,7 @@ const Index: React.FC = () => {
               >
                 {isProcessing ? (
                   <>
-                    <div className="h-5 w-5 rounded-full border-2 border-primary-foreground/20 border-t-primary-foreground animate-spin mr-2"></div>
+                    <Loader2 className="h-5 w-5 animate-spin mr-2" />
                     Processing...
                   </>
                 ) : (

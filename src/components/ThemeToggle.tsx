@@ -18,12 +18,13 @@ const ThemeToggle: React.FC = () => {
         aria-label="Toggle theme"
         pressed={theme === 'dark'}
         onPressedChange={toggleTheme}
-        className="p-2 group transition-colors duration-200 hover:bg-primary/10 rounded-md data-[state=on]:bg-transparent"
+        className="p-2 group relative overflow-hidden transition-colors duration-300 hover:bg-primary/10 rounded-md data-[state=on]:bg-transparent"
       >
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-200 to-yellow-400 dark:from-blue-700 dark:to-indigo-900 opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-md" />
         {theme === 'dark' ? (
-          <Moon className="h-5 w-5 text-yellow-300 glow-yellow" />
+          <Moon className="h-5 w-5 text-yellow-300 glow-yellow transition-transform duration-300 hover:scale-110" />
         ) : (
-          <Sun className="h-5 w-5 text-amber-500 glow-amber" />
+          <Sun className="h-5 w-5 text-amber-500 glow-amber transition-transform duration-300 hover:scale-110" />
         )}
       </Toggle>
     </div>

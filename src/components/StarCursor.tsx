@@ -14,6 +14,7 @@ interface Star {
   rotation: number;
   speedRotation: number;
   pulse: boolean;
+  trail: boolean;
 }
 
 const StarCursor: React.FC = () => {
@@ -21,7 +22,7 @@ const StarCursor: React.FC = () => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const { theme } = useTheme();
   
-  // Star colors - vibrant colors with neon feel
+  // Enhanced color palette with more vibrant options
   const starColors = [
     '#8B5CF6', // Vivid Purple
     '#D946EF', // Magenta Pink
@@ -30,6 +31,9 @@ const StarCursor: React.FC = () => {
     '#FCD34D', // Yellow
     '#10B981', // Green
     '#F87171', // Red
+    '#06B6D4', // Cyan
+    '#3B82F6', // Blue
+    '#EC4899', // Pink
   ];
 
   useEffect(() => {
@@ -37,19 +41,25 @@ const StarCursor: React.FC = () => {
     const handleMouseMove = (e: MouseEvent) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
       
-      // Create new stars - create multiple smaller ones with varying properties
-      for (let i = 0; i < 3; i++) {
+      // Create new stars with enhanced properties
+      for (let i = 0; i < 4; i++) { // Increased number of stars for more density
+        // Add randomization to make the effect more dynamic
+        const randomSpeed = Math.random() * 2 + 0.3;
+        const randomSize = Math.random() * 5 + 1; // Smaller stars (1-6px)
+        const isTrail = Math.random() > 0.7; // Some stars have trails
+        
         const newStar: Star = {
           id: Date.now() + i,
-          x: e.clientX + (Math.random() - 0.5) * 20,
-          y: e.clientY + (Math.random() - 0.5) * 20,
-          size: Math.random() * 5 + 2, // Size between 2-7px
+          x: e.clientX + (Math.random() - 0.5) * 25, // More spread
+          y: e.clientY + (Math.random() - 0.5) * 25,
+          size: randomSize,
           color: starColors[Math.floor(Math.random() * starColors.length)],
           opacity: 0.9,
-          speedY: Math.random() * 2 + 0.5, // Varied falling speed
-          rotation: Math.random() * 360, // Initial rotation
-          speedRotation: (Math.random() - 0.5) * 10, // More varied rotation
-          pulse: Math.random() > 0.7, // Some stars will pulse
+          speedY: randomSpeed, 
+          rotation: Math.random() * 360,
+          speedRotation: (Math.random() - 0.5) * 12,
+          pulse: Math.random() > 0.7, // 30% chance of pulsing
+          trail: isTrail,
         };
         
         setStars(prevStars => [...prevStars, newStar]);
@@ -63,13 +73,21 @@ const StarCursor: React.FC = () => {
     const intervalId = setInterval(() => {
       setStars(prevStars => 
         prevStars
-          .map(star => ({
-            ...star,
-            y: star.y + star.speedY,
-            x: star.x + (Math.sin(Date.now() / 1000 + star.id) * 0.7), // Sinusoidal horizontal movement
-            opacity: star.opacity - 0.01, // Fade out
-            rotation: star.rotation + star.speedRotation,
-          }))
+          .map(star => {
+            // Enhanced movement patterns
+            const horizontalMovement = star.trail 
+              ? Math.sin(Date.now() / 800 + star.id) * 1.2 // Sinusoidal movement for trail stars
+              : (Math.random() - 0.5) * 0.8; // Random drift for regular stars
+            
+            return {
+              ...star,
+              y: star.y + star.speedY,
+              x: star.x + horizontalMovement,
+              // Slower fade for a more lasting effect
+              opacity: star.opacity - (star.trail ? 0.005 : 0.01),
+              rotation: star.rotation + star.speedRotation,
+            };
+          })
           .filter(star => star.opacity > 0) // Remove stars when they fade out
       );
     }, 16); // ~60fps
@@ -98,14 +116,16 @@ const StarCursor: React.FC = () => {
             pointerEvents: 'none',
           }}
         >
-          {/* Enhanced bubble appearance with glow */}
+          {/* Enhanced bubble appearance with improved glow */}
           <div
             className="w-full h-full rounded-full"
             style={{
               backgroundColor: star.color,
-              boxShadow: `0 0 ${star.size}px ${star.color}`,
-              filter: `blur(${star.size/8}px)`,
-              border: theme === 'dark' ? '0.5px solid rgba(255,255,255,0.3)' : '0.5px solid rgba(255,255,255,0.5)'
+              boxShadow: `0 0 ${star.size * 1.5}px ${star.color}`,
+              filter: `blur(${star.size/7}px)`,
+              border: theme === 'dark' 
+                ? '0.5px solid rgba(255,255,255,0.4)' 
+                : '0.5px solid rgba(255,255,255,0.6)'
             }}
           />
         </div>
