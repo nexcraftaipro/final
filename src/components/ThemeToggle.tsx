@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Toggle } from '@/components/ui/toggle';
@@ -7,22 +7,17 @@ import { Toggle } from '@/components/ui/toggle';
 const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
   
-  // Initialize theme based on system preference 
-  useEffect(() => {
-    const systemPreference = window.matchMedia('(prefers-color-scheme: dark)').matches
-      ? 'dark'
-      : 'light';
-    if (!theme || theme === 'system') {
-      setTheme(systemPreference);
-    }
-  }, [theme, setTheme]);
+  // Handle theme toggle
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <div className="flex items-center gap-2">
       <Toggle
         aria-label="Toggle theme"
         pressed={theme === 'dark'}
-        onPressedChange={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+        onPressedChange={toggleTheme}
         className="p-2 group transition-colors duration-200 hover:bg-primary/10 rounded-md data-[state=on]:bg-transparent"
       >
         {theme === 'dark' ? (
