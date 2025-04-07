@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      image_metadata_generations: {
+        Row: {
+          created_at: string
+          id: string
+          prompt: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prompt: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prompt?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       images: {
         Row: {
           created_at: string | null
@@ -45,6 +66,33 @@ export type Database = {
           style?: string | null
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          credits_used: number
+          email: string
+          id: string
+          is_premium: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          credits_used?: number
+          email: string
+          id: string
+          is_premium?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          credits_used?: number
+          email?: string
+          id?: string
+          is_premium?: boolean
+          updated_at?: string
         }
         Relationships: []
       }

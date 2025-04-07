@@ -1,15 +1,18 @@
 
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
 import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
+import UserProfile from '@/components/UserProfile';
 import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Slider } from '@/components/ui/slider';
-import { Sparkles, Camera, Loader2 } from 'lucide-react';
+import { Sparkles, Camera, Loader2, ShieldAlert } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
@@ -17,6 +20,12 @@ const Index: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [keywordCount, setKeywordCount] = useState(10);
   const [scrolled, setScrolled] = useState(false);
+  const { user, isLoading, canGenerateMetadata, incrementCreditsUsed } = useAuth();
+
+  // Redirect to login if not authenticated
+  if (!isLoading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   // Handle scroll effect
   useEffect(() => {
@@ -67,6 +76,18 @@ const Index: React.FC = () => {
     
     if (pendingImages.length === 0) {
       toast.info('No images to process');
+      return;
+    }
+
+    // Check if user has available credits
+    if (!canGenerateMetadata) {
+      toast.error('You have reached your free limit. Please upgrade to premium.');
+      return;
+    }
+
+    // Increment user's credits used
+    const canProceed = await incrementCreditsUsed();
+    if (!canProceed) {
       return;
     }
 
@@ -132,6 +153,14 @@ const Index: React.FC = () => {
   // Count pending images
   const pendingCount = images.filter(img => img.status === 'pending').length;
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <header className={`sticky top-0 z-10 transition-all duration-300 border-b ${
@@ -145,13 +174,17 @@ const Index: React.FC = () => {
               <Camera className="h-6 w-6 mr-2 text-primary" />
               Photo Metadata Helper
             </h1>
-            <ThemeToggle />
+            <div className="flex items-center space-x-2">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
       </header>
       
       <main className="flex-1">
         <div className="container py-8 space-y-8">
+          <UserProfile />
+          
           <ApiKeyInput apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
           
           <div className="glass-panel p-6 rounded-xl shadow-md glow">
@@ -189,7 +222,16 @@ const Index: React.FC = () => {
             isProcessing={isProcessing} 
           />
           
-          {pendingCount > 0 && (
+          {!canGenerateMetadata && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center">
+              <ShieldAlert className="h-5 w-5 text-yellow-500 mr-2" />
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                You've reached your free limit of 10 metadata generations. Contact admin for premium access.
+              </p>
+            </div>
+          )}
+          
+          {pendingCount > 0 && canGenerateMetadata && (
             <div className="flex justify-center">
               <Button
                 onClick={handleProcessImages}
