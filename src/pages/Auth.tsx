@@ -5,7 +5,7 @@ import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Camera } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -47,16 +47,24 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:from-slate-950 dark:to-slate-900">
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-transparent py-4">
         <div className="container">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent flex items-center justify-center">
+            <Camera className="h-6 w-6 mr-2 text-primary" />
             Photo Metadata Helper
           </h1>
         </div>
       </header>
 
-      <main className="flex-1 flex items-center justify-center py-8">
+      <div className="flex-1 flex flex-col items-center justify-center py-8">
+        <div className="mb-12 text-center">
+          <h1 className="hero-headline">Metadata Generator</h1>
+          <p className="hero-subheadline mt-4">
+            Generate SEO-friendly titles, descriptions, and keywords for your images with AI
+          </p>
+        </div>
+
         <div className="w-full max-w-md p-8 glass-panel rounded-xl shadow-md glow">
           <h2 className="text-2xl font-bold text-center mb-6">Welcome</h2>
           
@@ -165,7 +173,7 @@ const Auth: React.FC = () => {
             </TabsContent>
           </Tabs>
         </div>
-      </main>
+      </div>
     </div>
   );
 };

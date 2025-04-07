@@ -192,6 +192,13 @@ const Index: React.FC = () => {
       
       <main className="flex-1">
         <div className="container py-8 space-y-8">
+          <div className="text-center mb-12">
+            <h1 className="hero-headline">Metadata Generator</h1>
+            <p className="hero-subheadline">
+              Generate SEO-friendly titles, descriptions, and keywords for your images with AI
+            </p>
+          </div>
+
           <UserProfile />
           
           <ApiKeyInput apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />

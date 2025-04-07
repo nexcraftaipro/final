@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Moon, Sun, Stars } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Toggle } from '@/components/ui/toggle';
 
@@ -23,12 +23,9 @@ const ThemeToggle: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-amber-200 to-yellow-400 dark:from-blue-700 dark:to-indigo-900 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-full" />
         <div className="relative">
           {theme === 'dark' ? (
-            <div className="flex flex-col items-center">
-              <Stars className="h-5 w-5 text-yellow-300 glow-yellow transition-all duration-500 animate-pulse-subtle" />
-              <Moon className="h-6 w-6 -mt-1 text-yellow-300 glow-yellow transition-all duration-500 hover:scale-110" />
-            </div>
+            <Moon className="h-5 w-5 text-yellow-300 transition-all duration-500 hover:scale-110" />
           ) : (
-            <Sun className="h-6 w-6 text-amber-500 glow-amber transition-all duration-500 hover:scale-110 animate-spin-slow" />
+            <Sun className="h-5 w-5 text-amber-500 transition-all duration-500 hover:scale-110 animate-spin-slow" />
           )}
         </div>
       </Toggle>
