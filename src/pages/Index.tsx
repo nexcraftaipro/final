@@ -20,7 +20,15 @@ const Index: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [keywordCount, setKeywordCount] = useState(10);
   const [scrolled, setScrolled] = useState(false);
+  const [redirectToAuth, setRedirectToAuth] = useState(false);
   const { user, isLoading, canGenerateMetadata, incrementCreditsUsed } = useAuth();
+
+  // Check authentication and set redirect if needed
+  useEffect(() => {
+    if (!isLoading && !user) {
+      setRedirectToAuth(true);
+    }
+  }, [isLoading, user]);
 
   // Handle scroll effect
   useEffect(() => {
@@ -36,8 +44,17 @@ const Index: React.FC = () => {
   }, [scrolled]);
 
   // Redirect to login if not authenticated
-  if (!isLoading && !user) {
+  if (redirectToAuth) {
     return <Navigate to="/auth" replace />;
+  }
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   // Handle API Key change
@@ -152,14 +169,6 @@ const Index: React.FC = () => {
 
   // Count pending images
   const pendingCount = images.filter(img => img.status === 'pending').length;
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex min-h-screen flex-col">
