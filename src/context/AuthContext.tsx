@@ -176,7 +176,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Log the generation
       await supabase
         .from('image_metadata_generations')
-        .insert({ user_id: user.id, prompt: 'Image metadata generation' });
+        .insert({
+          user_id: user.id,
+          prompt: 'Image metadata generation'
+        });
       
       return true;
     } catch (error) {
@@ -186,20 +189,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const value = {
+    session,
+    user,
+    profile,
+    isLoading,
+    signIn,
+    signUp,
+    signOut,
+    incrementCreditsUsed,
+    canGenerateMetadata
+  };
+
   return (
-    <AuthContext.Provider
-      value={{
-        session,
-        user,
-        profile,
-        isLoading,
-        signIn,
-        signUp,
-        signOut,
-        incrementCreditsUsed,
-        canGenerateMetadata
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

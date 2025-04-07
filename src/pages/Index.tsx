@@ -22,11 +22,6 @@ const Index: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const { user, isLoading, canGenerateMetadata, incrementCreditsUsed } = useAuth();
 
-  // Redirect to login if not authenticated
-  if (!isLoading && !user) {
-    return <Navigate to="/auth" replace />;
-  }
-
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -39,6 +34,11 @@ const Index: React.FC = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
+
+  // Redirect to login if not authenticated
+  if (!isLoading && !user) {
+    return <Navigate to="/auth" replace />;
+  }
 
   // Handle API Key change
   const handleApiKeyChange = (key: string) => {
