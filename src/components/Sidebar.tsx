@@ -2,7 +2,7 @@
 import React from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
-import PlatformSelector, { Platform } from '@/components/PlatformSelector';
+import UserProfile from '@/components/UserProfile';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -59,6 +59,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           maxDescriptionWords={maxDescriptionWords}
           onMaxDescriptionWordsChange={onMaxDescriptionWordsChange}
         />
+      </div>
+      
+      <div className="mt-auto p-4">
+        <UserProfile />
       </div>
     </aside>
   );

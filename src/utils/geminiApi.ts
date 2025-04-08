@@ -21,10 +21,16 @@ interface MetadataOptions {
   maxTitleWords: number;
   minKeywords: number;
   maxKeywords: number;
+  minDescriptionWords: number;
+  maxDescriptionWords: number;
 }
 
 // Helper function to add delay between API calls
+// Adjusted to distribute requests to stay within Gemini's 15 RPM limit
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Variable to track the last request timestamp
+let lastRequestTime = 0;
 
 export async function analyzeImageWithGemini(
   file: File,
@@ -42,6 +48,20 @@ export async function analyzeImageWithGemini(
   }
 
   try {
+    // Calculate time since last request
+    const now = Date.now();
+    const timeSinceLastRequest = now - lastRequestTime;
+    
+    // If less than 2 seconds have passed since last request, add delay
+    // to ensure we stay within the 15 RPM limit (4 seconds between requests is safe)
+    if (timeSinceLastRequest < 2000) {
+      const delayTime = 2000 - timeSinceLastRequest;
+      await delay(delayTime);
+    }
+    
+    // Update last request time
+    lastRequestTime = Date.now();
+    
     // Convert the image to base64
     const base64Image = await fileToBase64(file);
     
@@ -54,7 +74,7 @@ export async function analyzeImageWithGemini(
       const keywordInstruction = `between ${options.minKeywords}-${options.maxKeywords} keywords`;
       
       const titleInstruction = `The title should be between ${options.minTitleWords}-${options.maxTitleWords} words`;
-      const descriptionInstruction = `The description should be ${options.descriptionLength <= 30 ? 'brief' : 'detailed'}, minimum ${options.descriptionLength} words`;
+      const descriptionInstruction = `The description should be between ${options.minDescriptionWords}-${options.maxDescriptionWords} words, minimum ${options.minDescriptionWords} words`;
       
       let platformInstruction = "";
       if (options.platform) {
@@ -66,10 +86,6 @@ export async function analyzeImageWithGemini(
       // Image to Prompt mode
       promptText = `Analyze this image and create a detailed text prompt that could be used to generate a similar image with an AI image generator. The prompt should be descriptive and capture the key elements, style, composition, colors, lighting, mood of the image. Return ONLY the prompt text without any JSON formatting or explanations. The prompt should be at least 100 words and highly descriptive.`;
     }
-    
-    // Add a delay of 2 seconds to respect API rate limits before making the request
-    // This is essential when processing multiple images to avoid hitting Gemini's 15 RPM limit
-    await delay(2000); 
     
     // Updated API endpoint to use gemini-1.5-flash model instead of the deprecated gemini-pro-vision
     const response = await fetch(
@@ -127,8 +143,8 @@ export async function analyzeImageWithGemini(
       let description = metadata.description || "";
       const wordCount = description.split(/\s+/).filter(Boolean).length;
       
-      if (wordCount < options.descriptionLength) {
-        throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${options.descriptionLength} words.`);
+      if (wordCount < options.minDescriptionWords) {
+        throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${options.minDescriptionWords} words.`);
       }
       
       return {
