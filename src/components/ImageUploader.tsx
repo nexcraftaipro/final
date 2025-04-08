@@ -1,36 +1,29 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, X, FileIcon, Image, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
-
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;
   isProcessing: boolean;
 }
-
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImagesSelected,
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(true);
   }, []);
-
   const handleDragLeave = useCallback(() => {
     setIsDragging(false);
   }, []);
-
   const processFiles = useCallback(async (files: FileList) => {
     const processedImages: ProcessedImage[] = [];
     const promises: Promise<ProcessedImage>[] = [];
     const filesToProcess = Array.from(files);
-
     for (const file of filesToProcess) {
       const promise = (async () => {
         // Validate file is an image
@@ -44,7 +37,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           toast.error(`${file.name} exceeds the 10MB size limit.`);
           return null;
         }
-
         try {
           const previewUrl = await createImagePreview(file);
           return {
@@ -61,7 +53,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       })();
       promises.push(promise as Promise<ProcessedImage>);
     }
-
     const results = await Promise.all(promises);
 
     // Filter out any null results from failed processing
@@ -73,7 +64,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       toast.error('No valid images were found to process.');
     }
   }, [onImagesSelected]);
-
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
@@ -81,7 +71,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       processFiles(e.dataTransfer.files);
     }
   }, [processFiles]);
-
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
@@ -91,25 +80,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       }
     }
   }, [processFiles]);
-
   const handleBrowseClick = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   }, []);
-
-  return (
-    <div className="bg-gray-800 border border-dashed border-gray-600 rounded-lg overflow-hidden">      
-      <div 
-        className={`drop-zone flex flex-col items-center justify-center p-10 transition-all duration-300 ${
-          isDragging 
-            ? 'border-blue-500 bg-blue-500/10' 
-            : 'bg-gray-800/50 hover:bg-gray-800/70'
-        }`} 
-        onDragOver={handleDragOver} 
-        onDragLeave={handleDragLeave} 
-        onDrop={handleDrop}
-      >
+  return <div className="bg-gray-800 border border-dashed border-gray-600 rounded-lg overflow-hidden">      
+      <div className={`drop-zone flex flex-col items-center justify-center p-10 transition-all duration-300 ${isDragging ? 'border-blue-500 bg-blue-500/10' : 'bg-gray-800/50 hover:bg-gray-800/70'}`} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
         <div className="mb-4 bg-blue-900/30 p-3 rounded-full">
           <Upload className="h-6 w-6 text-blue-400" />
         </div>
@@ -121,53 +98,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           </p>
         </div>
         
-        <Button 
-          onClick={handleBrowseClick} 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md border-none flex items-center" 
-          disabled={isProcessing}
-        >
+        <Button onClick={handleBrowseClick} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md border-none flex items-center" disabled={isProcessing}>
           <Image className="h-5 w-5 mr-2" />
           Browse Files
         </Button>
         
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleFileInputChange} 
-          accept="image/jpeg,image/png,image/jpg" 
-          multiple 
-          className="hidden" 
-          disabled={isProcessing} 
-        />
+        <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept="image/jpeg,image/png,image/jpg" multiple className="hidden" disabled={isProcessing} />
       </div>
       
-      <div className="p-3 bg-gray-900 border-t border-gray-700 flex justify-center space-x-2 flex-wrap">
-        <Button 
-          className="bg-red-600 hover:bg-red-700 text-white text-xs border-none" 
-          disabled={isProcessing}
-          size="sm"
-        >
-          Clear All
-        </Button>
-        
-        <Button 
-          className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs border-none" 
-          disabled={isProcessing}
-          size="sm"
-        >
-          Remove BG
-        </Button>
-        
-        <Button 
-          className="bg-purple-600 hover:bg-purple-700 text-white text-xs border-none" 
-          disabled={isProcessing}
-          size="sm"
-        >
-          Compress
-        </Button>
-      </div>
-    </div>
-  );
+      
+    </div>;
 };
-
 export default ImageUploader;
