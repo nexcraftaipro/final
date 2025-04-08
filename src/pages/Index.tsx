@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -196,7 +195,7 @@ const Index: React.FC = () => {
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent flex items-center">
               <Camera className="h-6 w-6 mr-2 text-primary" />
-              Meta Data Generator
+              Photo Metadata Helper
             </h1>
             <div className="flex items-center space-x-2">
               <ThemeToggle />
@@ -208,9 +207,7 @@ const Index: React.FC = () => {
       <main className="flex-1">
         <div className="container py-8 space-y-8">
           <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-center mb-6" style={{ color: '#f14010' }}>
-              Meta Data Generator
-            </h1>
+            <h1 className="hero-headline">Metadata Generator</h1>
             <p className="hero-subheadline">
               Generate SEO-friendly titles, descriptions, and keywords for your images with AI
             </p>
@@ -296,7 +293,7 @@ const Index: React.FC = () => {
       <footer className="border-t border-gray-200 dark:border-gray-800 py-6">
         <div className="container">
           <p className="text-center text-sm text-muted-foreground">
-            Meta Data Generator — Extract metadata from images with the power of Google Gemini AI
+            Photo Metadata Helper — Extract metadata from images with the power of Google Gemini AI
           </p>
         </div>
       </footer>
