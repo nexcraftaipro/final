@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -29,14 +28,12 @@ const Index: React.FC = () => {
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const { user, isLoading, canGenerateMetadata, incrementCreditsUsed } = useAuth();
 
-  // Check authentication and set redirect if needed
   useEffect(() => {
     if (!isLoading && !user) {
       setShouldRedirect(true);
     }
   }, [isLoading, user]);
 
-  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 20;
@@ -49,12 +46,10 @@ const Index: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
 
-  // Redirect to login if not authenticated
   if (shouldRedirect) {
     return <Navigate to="/auth" replace />;
   }
 
-  // Show loading while checking authentication
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -63,27 +58,22 @@ const Index: React.FC = () => {
     );
   }
 
-  // Handle API Key change
   const handleApiKeyChange = (key: string) => {
     setApiKey(key);
   };
 
-  // Handle new images selected
   const handleImagesSelected = (newImages: ProcessedImage[]) => {
     setImages(prev => [...prev, ...newImages]);
   };
 
-  // Remove an image from the list
   const handleRemoveImage = (id: string) => {
     setImages(prev => prev.filter(img => img.id !== id));
   };
 
-  // Clear all images
   const handleClearAll = () => {
     setImages([]);
   };
 
-  // Handle settings changes
   const handleTitleLengthChange = (value: number[]) => {
     setTitleLength(value[0]);
   };
@@ -104,7 +94,6 @@ const Index: React.FC = () => {
     setGenerationMode(mode);
   };
 
-  // Process images with Gemini API
   const handleProcessImages = async () => {
     if (!apiKey) {
       toast.error('Please enter your Gemini API key first');
@@ -118,13 +107,11 @@ const Index: React.FC = () => {
       return;
     }
 
-    // Check if user has available credits
     if (!canGenerateMetadata) {
       toast.error('You have reached your free limit. Please upgrade to premium.');
       return;
     }
 
-    // Increment user's credits used
     const canProceed = await incrementCreditsUsed();
     if (!canProceed) {
       return;
@@ -133,7 +120,6 @@ const Index: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      // Update status to processing for all pending images
       setImages(prev => 
         prev.map(img => 
           img.status === 'pending' 
@@ -142,7 +128,6 @@ const Index: React.FC = () => {
         )
       );
 
-      // Process images one by one to avoid overwhelming the API
       for (const image of pendingImages) {
         try {
           const result = await analyzeImageWithGemini(
@@ -197,7 +182,6 @@ const Index: React.FC = () => {
     }
   };
 
-  // Count pending images
   const pendingCount = images.filter(img => img.status === 'pending').length;
 
   return (
