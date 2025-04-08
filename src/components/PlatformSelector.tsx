@@ -53,36 +53,33 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange,
 }) => {
   return (
-    <div className="space-y-2">
-      <h3 className="text-sm font-medium text-white">Platform</h3>
-      <div className="grid grid-cols-3 gap-2">
-        {platforms.map((platform) => (
-          <TooltipProvider key={platform.id}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => onPlatformChange(platform.id)}
-                  className={cn(
-                    "flex flex-col items-center justify-center rounded px-2 py-1.5 text-xs transition-all",
-                    selectedPlatform === platform.id
-                      ? "ring-1 ring-blue-500 bg-blue-500/10"
-                      : "bg-gray-800 hover:bg-gray-700",
-                  )}
-                >
-                  <div className="flex h-8 w-8 items-center justify-center rounded bg-gray-700">
-                    <span className="text-sm">{platform.icon}</span>
-                  </div>
-                  <span className="mt-1 text-xs text-gray-300">{platform.name}</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">
-                <p>{platform.name}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        ))}
-      </div>
+    <div className="grid grid-cols-7 gap-2">
+      {platforms.map((platform) => (
+        <TooltipProvider key={platform.id}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => onPlatformChange(platform.id)}
+                className={cn(
+                  "flex flex-col items-center justify-center rounded px-2 py-1.5 text-xs transition-all",
+                  selectedPlatform === platform.id
+                    ? "ring-1 ring-blue-500 bg-blue-500/10"
+                    : "bg-gray-800 hover:bg-gray-700",
+                )}
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-gray-700">
+                  <span className="text-sm">{platform.icon}</span>
+                </div>
+                <span className="mt-1 text-xs text-gray-300">{platform.name}</span>
+              </button>
+            </TooltipTrigger>
+            <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">
+              <p>{platform.name}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ))}
     </div>
   );
 };

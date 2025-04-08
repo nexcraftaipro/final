@@ -42,6 +42,14 @@ const Index: React.FC = () => {
     profile
   } = useAuth();
 
+  // Load API key from localStorage when component mounts
+  useEffect(() => {
+    const savedKey = localStorage.getItem('gemini-api-key');
+    if (savedKey) {
+      setApiKey(savedKey);
+    }
+  }, []);
+  
   useEffect(() => {
     if (!isLoading && !user) {
       setShouldRedirect(true);
@@ -192,20 +200,18 @@ const Index: React.FC = () => {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <AppHeader remainingCredits={remainingCredits} />
+      <AppHeader 
+        remainingCredits={remainingCredits} 
+        apiKey={apiKey}
+        onApiKeyChange={handleApiKeyChange}
+        selectedPlatform={platform}
+        onPlatformChange={handlePlatformChange}
+      />
       
       <div className="flex flex-1">
         <Sidebar 
-          titleLength={titleLength}
-          onTitleLengthChange={handleTitleLengthChange}
-          descriptionLength={descriptionLength}
-          onDescriptionLengthChange={handleDescriptionLengthChange}
-          keywordsCount={keywordCount}
-          onKeywordsCountChange={handleKeywordCountChange}
           selectedMode={generationMode}
           onModeChange={handleModeChange}
-          selectedPlatform={platform}
-          onPlatformChange={handlePlatformChange}
           minTitleWords={minTitleWords}
           onMinTitleWordsChange={handleMinTitleWordsChange}
           maxTitleWords={maxTitleWords}
@@ -237,8 +243,6 @@ const Index: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
-              <ApiKeyInput apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
               
               <div className="mt-6">
                 <ImageUploader onImagesSelected={handleImagesSelected} isProcessing={isProcessing} />
