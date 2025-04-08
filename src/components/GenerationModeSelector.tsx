@@ -18,7 +18,7 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
   return (
     <div className="space-y-3">
       <h2 className="text-xl font-medium text-gray-200">Mode Selection</h2>
-      <div className="bg-gray-900/50 border border-gray-800 p-6 rounded-lg">
+      <div className="bg-gray-900 border border-gray-800 p-6 rounded-lg">
         <RadioGroup 
           value={selectedMode} 
           onValueChange={(value) => onModeChange(value as GenerationMode)}
