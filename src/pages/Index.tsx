@@ -10,23 +10,27 @@ import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
-import { Slider } from '@/components/ui/slider';
 import { Sparkles, Camera, Loader2, ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import ContentSettings from '@/components/ContentSettings';
+import PlatformSelector, { Platform } from '@/components/PlatformSelector';
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [keywordCount, setKeywordCount] = useState(10);
+  const [titleLength, setTitleLength] = useState(200);
+  const [descriptionLength, setDescriptionLength] = useState(200);
+  const [keywordCount, setKeywordCount] = useState(50);
+  const [platform, setPlatform] = useState<Platform | null>('Shutterstock');
   const [scrolled, setScrolled] = useState(false);
-  const [redirectToAuth, setRedirectToAuth] = useState(false);
+  const [shouldRedirect, setShouldRedirect] = useState(false);
   const { user, isLoading, canGenerateMetadata, incrementCreditsUsed } = useAuth();
 
   // Check authentication and set redirect if needed
   useEffect(() => {
     if (!isLoading && !user) {
-      setRedirectToAuth(true);
+      setShouldRedirect(true);
     }
   }, [isLoading, user]);
 
@@ -44,7 +48,7 @@ const Index: React.FC = () => {
   }, [scrolled]);
 
   // Redirect to login if not authenticated
-  if (redirectToAuth) {
+  if (shouldRedirect) {
     return <Navigate to="/auth" replace />;
   }
 
@@ -77,9 +81,21 @@ const Index: React.FC = () => {
     setImages([]);
   };
 
-  // Handle keyword count change
+  // Handle settings changes
+  const handleTitleLengthChange = (value: number[]) => {
+    setTitleLength(value[0]);
+  };
+
+  const handleDescriptionLengthChange = (value: number[]) => {
+    setDescriptionLength(value[0]);
+  };
+
   const handleKeywordCountChange = (value: number[]) => {
     setKeywordCount(value[0]);
+  };
+
+  const handlePlatformChange = (newPlatform: Platform) => {
+    setPlatform(newPlatform);
   };
 
   // Process images with Gemini API
@@ -123,7 +139,7 @@ const Index: React.FC = () => {
       // Process images one by one to avoid overwhelming the API
       for (const image of pendingImages) {
         try {
-          const result = await analyzeImageWithGemini(image.file, apiKey, keywordCount);
+          const result = await analyzeImageWithGemini(image.file, apiKey, keywordCount, titleLength, descriptionLength, platform);
           
           setImages(prev => 
             prev.map(img => 
@@ -204,32 +220,25 @@ const Index: React.FC = () => {
           <ApiKeyInput apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
           
           <div className="glass-panel p-6 rounded-xl shadow-md glow">
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-amber-500 glow-amber" />
-                Keyword Options
-              </h2>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <label htmlFor="keyword-count" className="text-sm font-medium">
-                    Number of keywords to generate (max): {keywordCount}
-                  </label>
-                </div>
-                <Slider
-                  id="keyword-count"
-                  min={1}
-                  max={50}
-                  step={1}
-                  value={[keywordCount]}
-                  onValueChange={handleKeywordCountChange}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                  <span>1</span>
-                  <span>25</span>
-                  <span>50</span>
-                </div>
-              </div>
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-amber-500 glow-amber" />
+              Processing Options
+            </h2>
+            
+            <div className="space-y-6">
+              <PlatformSelector 
+                selectedPlatform={platform} 
+                onPlatformChange={handlePlatformChange} 
+              />
+              
+              <ContentSettings 
+                titleLength={titleLength}
+                onTitleLengthChange={handleTitleLengthChange}
+                descriptionLength={descriptionLength}
+                onDescriptionLengthChange={handleDescriptionLengthChange}
+                keywordsCount={keywordCount}
+                onKeywordsCountChange={handleKeywordCountChange}
+              />
             </div>
           </div>
           

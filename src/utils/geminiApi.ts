@@ -1,5 +1,6 @@
 
 import { toast } from "sonner";
+import type { Platform } from "@/components/PlatformSelector";
 
 interface MetadataResult {
   filename: string;
@@ -12,7 +13,10 @@ interface MetadataResult {
 export async function analyzeImageWithGemini(
   file: File,
   apiKey: string,
-  keywordCount: number = 10
+  keywordCount: number = 10,
+  titleLength: number = 200,
+  descriptionLength: number = 200,
+  platform: Platform | null = null
 ): Promise<MetadataResult> {
   if (!apiKey) {
     return {
@@ -35,6 +39,14 @@ export async function analyzeImageWithGemini(
       ? "exactly 1 keyword" 
       : `between 1-${keywordCount} keywords`;
     
+    const titleInstruction = `The title should be short and descriptive, maximum ${titleLength} characters`;
+    const descriptionInstruction = `The description should be ${descriptionLength <= 100 ? 'brief' : 'detailed'}, maximum ${descriptionLength} characters`;
+    
+    let platformInstruction = "";
+    if (platform) {
+      platformInstruction = `Optimize the metadata specifically for ${platform} platform requirements and best practices.`;
+    }
+    
     // Updated API endpoint to use gemini-1.5-flash model instead of the deprecated gemini-pro-vision
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey,
@@ -48,7 +60,7 @@ export async function analyzeImageWithGemini(
             {
               parts: [
                 {
-                  text: `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). The title should be short and descriptive. The description should be 1-2 sentences. Keywords should be relevant tags for the image, with ${keywordInstruction}. DO NOT include any explanations or text outside of the JSON object.`,
+                  text: `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`,
                 },
                 {
                   inline_data: {
