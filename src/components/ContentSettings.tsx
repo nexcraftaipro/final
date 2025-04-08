@@ -14,62 +14,6 @@ interface ContentSettingsProps {
   onKeywordsCountChange: (value: number[]) => void;
 }
 
-interface SettingRowProps {
-  label: string;
-  tooltip: string;
-  value: number;
-  minValue: number;
-  maxValue: number;
-  suffix: string;
-  description: string;
-  onChange: (value: number[]) => void;
-}
-
-const SettingRow: React.FC<SettingRowProps> = ({
-  label,
-  tooltip,
-  value,
-  minValue,
-  maxValue,
-  suffix,
-  description,
-  onChange
-}) => {
-  return (
-    <div className="space-y-2 mb-6">
-      <div className="flex items-center gap-2">
-        <div className="text-gray-200">{label}</div>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-gray-400" />
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="max-w-xs text-sm">{tooltip}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <div className="ml-auto text-green-400 font-medium">
-          {value} {suffix} • {description}
-        </div>
-      </div>
-      <Slider 
-        value={[value]}
-        min={minValue}
-        max={maxValue}
-        step={1}
-        onValueChange={onChange}
-        className="w-full"
-      />
-      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-        <span>{minValue}</span>
-        <span>{Math.floor((maxValue + minValue) / 2)}</span>
-        <span>{maxValue}</span>
-      </div>
-    </div>
-  );
-};
-
 const ContentSettings: React.FC<ContentSettingsProps> = ({
   titleLength,
   onTitleLengthChange,
@@ -79,46 +23,160 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
   onKeywordsCountChange
 }) => {
   return (
-    <div className="space-y-4 p-6 rounded-xl bg-gray-900/50 border border-gray-800">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-medium text-white">Generation Settings</h2>
-        <Badge variant="outline" className="bg-green-900/30 text-green-400 border-green-800 px-3">
-          Using Gemini AI
-        </Badge>
+    <div className="bg-gradient-to-r from-blue-400 to-blue-600 p-6 rounded-xl shadow-lg text-white">
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-bold text-center w-full">Customize Metadata Settings</h2>
       </div>
       
-      <SettingRow
-        label="Title Length"
-        tooltip="Maximum length for the generated titles"
-        value={titleLength}
-        minValue={5}
-        maxValue={30}
-        suffix="words"
-        description={titleLength > 20 ? "Long" : "Short"}
-        onChange={onTitleLengthChange}
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-2">
+          <div className="text-lg font-medium">
+            Minimum Title Length (characters)
+          </div>
+          <div className="bg-blue-300/30 backdrop-blur rounded-lg p-4 flex items-center">
+            <div className="text-3xl font-bold mr-auto">
+              {titleLength}
+            </div>
+            <button className="bg-white/20 rounded p-2">
+              <Info className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="text-lg font-medium">
+            Maximum Title Length (characters)
+          </div>
+          <div className="bg-blue-300/30 backdrop-blur rounded-lg p-4 flex items-center">
+            <div className="text-3xl font-bold mr-auto">
+              30
+            </div>
+            <button className="bg-white/20 rounded p-2">
+              <Info className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="text-lg font-medium">
+            Minimum Number of Keywords
+          </div>
+          <div className="bg-blue-300/30 backdrop-blur rounded-lg p-4 flex items-center">
+            <div className="text-3xl font-bold mr-auto">
+              1
+            </div>
+            <button className="bg-white/20 rounded p-2">
+              <Info className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="text-lg font-medium">
+            Maximum Number of Keywords
+          </div>
+          <div className="bg-blue-300/30 backdrop-blur rounded-lg p-4 flex items-center">
+            <div className="text-3xl font-bold mr-auto">
+              {keywordsCount}
+            </div>
+            <button className="bg-white/20 rounded p-2">
+              <Info className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      </div>
       
-      <SettingRow
-        label="Keywords Count"
-        tooltip="Number of keywords to generate"
-        value={keywordsCount}
-        minValue={1}
-        maxValue={50}
-        suffix="keys"
-        description={keywordsCount > 25 ? "Comprehensive" : "Basic"}
-        onChange={onKeywordsCountChange}
-      />
-      
-      <SettingRow
-        label="Description Length"
-        tooltip="Minimum number of words for the generated description"
-        value={descriptionLength}
-        minValue={15}
-        maxValue={50}
-        suffix="words"
-        description={descriptionLength > 30 ? "Complete" : "Brief"}
-        onChange={onDescriptionLengthChange}
-      />
+      <div className="mt-8 space-y-6">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-medium">Title Length</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-5 w-5 text-white/70" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-sm">Adjust the length of generated titles</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <span className="text-white font-medium">{titleLength} words • {titleLength > 20 ? "Long" : "Short"}</span>
+          </div>
+          <Slider
+            value={[titleLength]}
+            min={5}
+            max={30}
+            step={1}
+            onValueChange={onTitleLengthChange}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-white/80">
+            <span>5</span>
+            <span>15</span>
+            <span>30</span>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-medium">Keywords Count</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-5 w-5 text-white/70" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-sm">Number of keywords to generate</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <span className="text-white font-medium">{keywordsCount} keys • {keywordsCount > 25 ? "Comprehensive" : "Basic"}</span>
+          </div>
+          <Slider
+            value={[keywordsCount]}
+            min={1}
+            max={50}
+            step={1}
+            onValueChange={onKeywordsCountChange}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-white/80">
+            <span>1</span>
+            <span>25</span>
+            <span>50</span>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-lg font-medium">Description Length</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-5 w-5 text-white/70" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs text-sm">Adjust the length of generated descriptions</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <span className="text-white font-medium">{descriptionLength} words • {descriptionLength > 30 ? "Complete" : "Brief"}</span>
+          </div>
+          <Slider
+            value={[descriptionLength]}
+            min={15}
+            max={50}
+            step={1}
+            onValueChange={onDescriptionLengthChange}
+            className="w-full"
+          />
+          <div className="flex justify-between text-xs text-white/80">
+            <span>15</span>
+            <span>32</span>
+            <span>50</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
