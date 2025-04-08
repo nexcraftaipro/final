@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.cdnfonts.com/css/sf-pro-display');
 
@@ -7,47 +8,6 @@
 
 @layer base {
   :root {
-    --background: 210 33% 99%;
-    --foreground: 222 47% 10%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 10%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 10%;
-
-    --primary: 210 100% 50%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 94%;
-    --accent-foreground: 222 47% 11%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 32% 91%;
-    --input: 214.3 32% 91%;
-    --ring: 222 47% 40%;
-
-    --radius: 0.75rem;
-
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
     --background: 222 47% 10%;
     --foreground: 210 40% 98%;
 
@@ -57,7 +17,7 @@
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 100% 50%;
+    --primary: 21 90% 48%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -74,7 +34,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --ring: 21 90% 48%;
   }
 }
 
@@ -88,7 +48,7 @@
   }
 
   body {
-    @apply bg-gradient-to-b from-blue-50 to-blue-100 dark:from-slate-950 dark:to-slate-900 font-sans text-foreground min-h-screen;
+    @apply bg-background text-foreground min-h-screen font-sans;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -97,48 +57,21 @@
 }
 
 @layer components {
-  
-  .glass-panel {
-    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-white/20 dark:border-slate-800/20 shadow-glass;
-  }
-  
-  .glass-panel-hover {
-    @apply hover:bg-white/90 dark:hover:bg-slate-800/90 hover:shadow-glass-hover transition-all duration-300;
-  }
-
-  .subtle-input {
-    @apply bg-white/50 dark:bg-slate-800/50 backdrop-blur border border-gray-200 dark:border-slate-700 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 ring-primary/20 transition-all duration-200;
-  }
-
   .drop-zone {
-    @apply border-2 border-dashed border-blue-200 dark:border-blue-900 rounded-xl transition-all duration-300;
+    @apply border-2 border-dashed rounded-xl transition-all duration-300;
   }
 
-  .drop-zone-active {
-    @apply border-primary bg-primary/5;
-  }
-  
   .glow {
     @apply relative z-0;
   }
   
   .glow::before {
     @apply content-[''] absolute top-0 left-0 w-full h-full -z-10 rounded-xl opacity-0 transition-opacity duration-300;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(59, 130, 246, 0) 70%);
+    background: radial-gradient(circle, rgba(246, 173, 85, 0.2) 0%, rgba(246, 173, 85, 0) 70%);
   }
   
   .glow:hover::before {
     @apply opacity-100;
-  }
-  
-  .glow-blue {
-    @apply relative;
-    filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.5));
-  }
-  
-  .glow-yellow {
-    @apply relative;
-    filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.5));
   }
   
   .glow-amber {
@@ -152,7 +85,7 @@
   
   .glow-button::before {
     @apply content-[''] absolute -z-10 inset-0 opacity-0 transition-opacity duration-300;
-    background: radial-gradient(circle at center, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0) 70%);
+    background: radial-gradient(circle at center, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0) 70%);
   }
   
   .glow-button:hover::before {
@@ -160,41 +93,15 @@
   }
   
   .keyword-tag {
-    @apply px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 transition-all duration-200;
+    @apply px-2.5 py-1 rounded-full text-xs font-medium bg-amber-900/40 text-amber-300 transition-all duration-200;
   }
   
   .keyword-tag:hover {
-    @apply bg-blue-200 dark:bg-blue-800/60 transform scale-105;
-  }
-  
-  .image-card {
-    @apply bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden transition-all duration-300 border border-gray-100 dark:border-gray-700;
-  }
-  
-  .image-card:hover {
-    @apply shadow-lg transform translate-y-[-3px];
+    @apply bg-amber-800/60 transform scale-105;
   }
 
-  /* Star animations */
-  .star-spin {
-    animation: spin 5s linear infinite;
-  }
-  
   .star-pulse {
     animation: pulse 2s ease-in-out infinite;
-  }
-  
-  @keyframes spin {
-    from {
-      transform: rotate(0deg);
-    }
-    to {
-      transform: rotate(360deg);
-    }
-  }
-  
-  .animate-spin-slow {
-    animation: spin 12s linear infinite;
   }
   
   @keyframes pulse {
@@ -212,46 +119,17 @@
     }
   }
   
-  /* Enhanced button styles */
-  .btn-fancy {
-    @apply relative overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 
-           text-white font-medium py-2.5 px-5 rounded-lg transition-all duration-300
-           hover:shadow-lg hover:scale-[1.02] active:scale-[0.98];
+  .animate-spin-slow {
+    animation: spin 12s linear infinite;
   }
   
-  .btn-fancy::before {
-    @apply content-[''] absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500
-           opacity-0 transition-opacity duration-300;
-  }
-  
-  .btn-fancy:hover::before {
-    @apply opacity-100;
-  }
-  
-  /* Improve cards with depth and hover effects */
-  .card-3d {
-    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
-    transform-style: preserve-3d;
-    perspective: 1000px;
-  }
-  
-  /* Enhanced gradients */
-  .bg-gradient-blue-purple {
-    @apply bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600;
-  }
-  
-  /* Hero headline styles */
-  .hero-headline {
-    @apply text-5xl md:text-6xl lg:text-7xl font-bold text-center mb-6;
-    background: linear-gradient(to right, #ff5f6d, #ffc371);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow: 0px 2px 8px rgba(255, 95, 109, 0.3);
-  }
-  
-  .hero-subheadline {
-    @apply text-lg md:text-xl text-center text-gray-700 dark:text-gray-300 max-w-3xl mx-auto;
+  @keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
   }
 }
 

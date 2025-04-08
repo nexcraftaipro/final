@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, X, FileIcon, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Upload, X, FileIcon, Image, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 
@@ -99,44 +99,52 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, []);
 
   return (
-    <div className="w-full space-y-2 animate-slide-up">
-      <h2 className="text-lg font-medium">02. Upload Images and Process</h2>
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg animate-slide-up">
+      <div className="p-4 border-b border-gray-800">
+        <h2 className="text-xl font-semibold text-white">Upload Images</h2>
+      </div>
       
-      <div 
-        className={`drop-zone flex flex-col items-center justify-center p-8 transition-all duration-300 ${isDragging ? 'drop-zone-active' : ''}`} 
-        onDragOver={handleDragOver} 
-        onDragLeave={handleDragLeave} 
-        onDrop={handleDrop}
-      >
-        <div className="mb-4 bg-blue-50 dark:bg-blue-950/30 p-4 rounded-full">
-          <Upload className="h-8 w-8 text-primary" />
-        </div>
-        
-        <div className="text-center mb-4">
-          <p className="text-lg font-medium mb-1">Drag and drop unlimited images here</p>
-          <p className="text-sm text-muted-foreground">
-            or click to upload (JPEG/PNG up to 10MB each)
-          </p>
-        </div>
-        
-        <Button 
-          onClick={handleBrowseClick} 
-          className="bg-white hover:bg-gray-50 text-primary border border-gray-200" 
-          disabled={isProcessing}
+      <div className="p-4">
+        <div 
+          className={`drop-zone flex flex-col items-center justify-center p-8 transition-all duration-300 rounded-lg ${
+            isDragging 
+              ? 'border-amber-500 bg-amber-500/10' 
+              : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
+          }`} 
+          onDragOver={handleDragOver} 
+          onDragLeave={handleDragLeave} 
+          onDrop={handleDrop}
         >
-          <ImageIcon className="mr-2 h-4 w-4" />
-          Browse Files
-        </Button>
-        
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleFileInputChange} 
-          accept="image/jpeg,image/png,image/jpg" 
-          multiple 
-          className="hidden" 
-          disabled={isProcessing} 
-        />
+          <div className="mb-4 bg-amber-900/30 p-4 rounded-full">
+            <Upload className="h-8 w-8 text-amber-400" />
+          </div>
+          
+          <div className="text-center mb-4">
+            <p className="text-lg font-medium text-white mb-1">Drag and drop unlimited images here</p>
+            <p className="text-sm text-gray-400">
+              or click to upload (JPEG/PNG up to 10MB each)
+            </p>
+          </div>
+          
+          <Button 
+            onClick={handleBrowseClick} 
+            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-none" 
+            disabled={isProcessing}
+          >
+            <Image className="mr-2 h-4 w-4" />
+            Browse Files
+          </Button>
+          
+          <input 
+            type="file" 
+            ref={fileInputRef} 
+            onChange={handleFileInputChange} 
+            accept="image/jpeg,image/png,image/jpg" 
+            multiple 
+            className="hidden" 
+            disabled={isProcessing} 
+          />
+        </div>
       </div>
     </div>
   );

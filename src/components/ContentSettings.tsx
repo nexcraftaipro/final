@@ -39,18 +39,18 @@ const SettingRow: React.FC<SettingRowProps> = ({
   return (
     <div className="space-y-2 mb-6">
       <div className="flex items-center gap-2">
-        <div className="text-gray-200 font-medium">{label}</div>
+        <div className="text-white font-medium">{label}</div>
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Info className="h-4 w-4 text-gray-400" />
+              <Info className="h-4 w-4 text-gray-400 cursor-pointer" />
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">
               <p className="max-w-xs text-sm">{tooltip}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <div className="ml-auto text-green-400 font-medium">
+        <div className="ml-auto text-amber-400 font-medium">
           {value} {suffix} • {description}
         </div>
       </div>
@@ -62,7 +62,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
         onValueChange={onChange}
         className="w-full"
       />
-      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+      <div className="flex justify-between text-xs text-gray-500">
         <span>{minValue}</span>
         <span>{getMidValue()}</span>
         <span>{maxValue}</span>
@@ -80,13 +80,8 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
   onKeywordsCountChange
 }) => {
   return (
-    <div className="space-y-4 p-6 rounded-xl bg-gray-900 border border-gray-800">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-medium text-white">Content Settings</h2>
-        <div className="px-4 py-1 bg-green-900/30 text-green-400 rounded-full text-sm font-medium">
-          Gemini AI
-        </div>
-      </div>
+    <div className="space-y-4">
+      <h3 className="text-lg font-medium text-white">Content Settings</h3>
       
       <SettingRow 
         label="Title Length" 

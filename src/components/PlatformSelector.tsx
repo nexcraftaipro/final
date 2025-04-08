@@ -53,8 +53,8 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange,
 }) => {
   return (
-    <div className="space-y-2">
-      <h2 className="text-xl font-medium text-gray-200">Platform</h2>
+    <div className="space-y-3">
+      <h3 className="text-lg font-medium text-white">Platform</h3>
       <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
         {platforms.map((platform) => (
           <TooltipProvider key={platform.id}>
@@ -66,7 +66,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                   className={cn(
                     "flex flex-col items-center justify-center rounded-lg px-3 py-2 text-xs transition-all",
                     selectedPlatform === platform.id
-                      ? "ring-2 ring-green-500 bg-green-500/10"
+                      ? "ring-2 ring-amber-500 bg-amber-500/10"
                       : "bg-gray-800 hover:bg-gray-700",
                   )}
                 >
@@ -76,7 +76,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                   <span className="mt-1 text-xs text-gray-300">{platform.name}</span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">
                 <p>{platform.name}</p>
               </TooltipContent>
             </Tooltip>
