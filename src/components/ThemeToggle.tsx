@@ -13,7 +13,7 @@ const ThemeToggle: React.FC = () => {
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="hidden">
       <Toggle
         aria-label="Toggle theme"
         pressed={theme === 'dark'}

@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Download, Copy, X, Clipboard, Check } from 'lucide-react';
+import { Download, Copy, X, Check } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
@@ -32,16 +31,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
   const hasCompletedImages = completedImages.length > 0;
 
   return (
-    <div className="w-full space-y-4 animate-slide-up">
+    <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-medium">03. Results</h2>
+        <h2 className="text-lg font-medium">Generated Data</h2>
         <div className="flex gap-2">
           {hasCompletedImages && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleDownloadCSV}
-              className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
+              className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none"
             >
               <Download className="h-4 w-4" />
               <span>Download CSV</span>
@@ -59,145 +58,64 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
         </div>
       </div>
 
-      {hasCompletedImages && completedImages.map((image) => (
-        <Card key={image.id} className="overflow-hidden bg-gray-800/50 border-gray-700">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Image Preview Column */}
-            <div className="p-6 border-b lg:border-b-0 lg:border-r border-gray-700">
-              <h3 className="text-xl font-medium text-orange-500 mb-4">Image Preview</h3>
-              <div className="relative aspect-square w-full overflow-hidden rounded-md mb-3">
-                <img
-                  src={image.previewUrl}
-                  alt={image.file.name}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-              <p className="text-gray-400 text-sm">{image.file.name}</p>
-            </div>
-            
-            {/* Generated Metadata Column */}
-            <div className="p-6">
-              <h3 className="text-xl font-medium text-orange-500 mb-4">
-                {generationMode === 'metadata' ? 'Generated Metadata' : 'Generated Prompt'}
-              </h3>
-              
-              {image.result && (
-                <div className="space-y-6">
-                  <div>
-                    <p className="text-orange-400 mb-1">Filename:</p>
-                    <p>{image.file.name}</p>
-                  </div>
-                  
-                  {generationMode === 'metadata' ? (
-                    <>
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-orange-400 mb-1">Title:</p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyToClipboard(image.result?.title || '')}
-                            className="h-6 px-2 text-xs"
-                          >
-                            <Copy className="h-3 w-3 mr-1" />
-                            <span>Copy</span>
-                          </Button>
-                        </div>
-                        <p>{image.result.title}</p>
+      {hasCompletedImages && (
+        <div className="overflow-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-800">
+                <th className="table-cell text-left">File</th>
+                <th className="table-cell text-left">Title</th>
+                <th className="table-cell text-left">Keywords</th>
+              </tr>
+            </thead>
+            <tbody>
+              {completedImages.map((image) => (
+                <tr key={image.id} className="border-b border-gray-700 hover:bg-gray-800/50">
+                  <td className="table-cell">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-12 h-12 rounded overflow-hidden">
+                        <img
+                          src={image.previewUrl}
+                          alt={image.file.name}
+                          className="w-full h-full object-cover"
+                        />
                       </div>
-                      
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-orange-400 mb-1">Description:</p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyToClipboard(image.result?.description || '')}
-                            className="h-6 px-2 text-xs"
-                          >
-                            <Copy className="h-3 w-3 mr-1" />
-                            <span>Copy</span>
-                          </Button>
-                        </div>
-                        <p>{image.result.description}</p>
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center justify-between">
-                          <p className="text-orange-400 mb-1">Keywords:</p>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleCopyToClipboard(image.result?.keywords.join(', ') || '')}
-                            className="h-6 px-2 text-xs"
-                          >
-                            <Copy className="h-3 w-3 mr-1" />
-                            <span>Copy</span>
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {image.result.keywords.map((keyword, idx) => (
-                            <span 
-                              key={idx} 
-                              className="px-3 py-1 bg-blue-600 rounded-full text-sm text-white"
-                            >
-                              {keyword}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <p className="text-orange-400 mb-1">Generated Prompt:</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopyToClipboard(image.result?.description || '')}
-                          className="h-6 px-2 text-xs"
-                        >
-                          <Copy className="h-3 w-3 mr-1" />
-                          <span>Copy</span>
-                        </Button>
-                      </div>
-                      <p className="text-sm whitespace-pre-wrap">{image.result.description}</p>
+                      <div className="text-xs truncate max-w-[150px]">{image.file.name}</div>
                     </div>
-                  )}
-                </div>
-              )}
-              
-              {image.status === 'pending' && (
-                <div className="h-24 flex items-center justify-center">
-                  <p className="text-sm text-muted-foreground">Ready to process</p>
-                </div>
-              )}
-              
-              {image.status === 'processing' && (
-                <div className="h-24 flex flex-col items-center justify-center">
-                  <div className="h-8 w-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-2"></div>
-                  <p className="text-sm text-muted-foreground animate-pulse-subtle">Analyzing image...</p>
-                </div>
-              )}
-              
-              {image.status === 'error' && (
-                <div className="h-24 flex items-center justify-center">
-                  <p className="text-sm text-red-500">{image.error || 'Error processing image'}</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-      ))}
+                  </td>
+                  <td className="table-cell">
+                    {image.result?.title || ''}
+                  </td>
+                  <td className="table-cell">
+                    <div className="flex flex-wrap gap-1">
+                      {image.result?.keywords.slice(0, 5).map((keyword, idx) => (
+                        <span 
+                          key={idx} 
+                          className="keyword-tag"
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                      {(image.result?.keywords.length || 0) > 5 && (
+                        <span className="text-xs text-gray-400">+{(image.result?.keywords.length || 0) - 5} more</span>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       
       {images.filter(img => img.status !== 'complete').length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {images.filter(img => img.status !== 'complete').map((image) => (
-            <Card key={image.id} className="overflow-hidden glass-panel glass-panel-hover animate-scale-in">
-              <div className="p-4">
+            <div key={image.id} className="bg-gray-800 rounded border border-gray-700 overflow-hidden">
+              <div className="p-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="relative h-12 w-12 overflow-hidden rounded-md border bg-muted">
+                    <div className="relative h-10 w-10 overflow-hidden rounded border bg-gray-700">
                       <img
                         src={image.previewUrl}
                         alt={image.file.name}
@@ -205,50 +123,48 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
                       />
                     </div>
                     <div className="overflow-hidden">
-                      <h3 className="font-medium text-sm truncate max-w-[140px] sm:max-w-[200px]" title={image.file.name}>
+                      <h3 className="font-medium text-xs truncate max-w-[140px]" title={image.file.name}>
                         {image.file.name}
                       </h3>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-400">
                         {formatFileSize(image.file.size)}
                       </p>
                     </div>
                   </div>
                   
-                  <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => onRemoveImage(image.id)}
-                    >
-                      <X className="h-4 w-4" />
-                      <span className="sr-only">Remove</span>
-                    </Button>
-                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => onRemoveImage(image.id)}
+                  >
+                    <X className="h-3 w-3" />
+                    <span className="sr-only">Remove</span>
+                  </Button>
                 </div>
               </div>
               
-              <div className="border-t p-4">
+              <div className="border-t border-gray-700 p-3">
                 {image.status === 'pending' && (
-                  <div className="h-24 flex items-center justify-center">
-                    <p className="text-sm text-muted-foreground">Ready to process</p>
+                  <div className="h-12 flex items-center justify-center">
+                    <p className="text-xs text-gray-400">Ready to process</p>
                   </div>
                 )}
                 
                 {image.status === 'processing' && (
-                  <div className="h-24 flex flex-col items-center justify-center">
-                    <div className="h-8 w-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin mb-2"></div>
-                    <p className="text-sm text-muted-foreground animate-pulse-subtle">Analyzing image...</p>
+                  <div className="h-12 flex flex-col items-center justify-center">
+                    <div className="h-6 w-6 rounded-full border-2 border-blue-500/20 border-t-blue-500 animate-spin mb-1"></div>
+                    <p className="text-xs text-gray-400 animate-pulse">Analyzing image...</p>
                   </div>
                 )}
                 
                 {image.status === 'error' && (
-                  <div className="h-24 flex items-center justify-center">
-                    <p className="text-sm text-red-500">{image.error || 'Error processing image'}</p>
+                  <div className="h-12 flex items-center justify-center">
+                    <p className="text-xs text-red-500">{image.error || 'Error processing image'}</p>
                   </div>
                 )}
               </div>
-            </Card>
+            </div>
           ))}
         </div>
       )}

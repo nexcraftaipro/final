@@ -17,44 +17,48 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
 }) => {
   return (
     <div className="space-y-3">
-      <h3 className="text-lg font-medium text-white">Mode Selection</h3>
+      <h3 className="text-sm font-medium text-white">Mode Selection</h3>
       <RadioGroup 
         value={selectedMode} 
         onValueChange={(value) => onModeChange(value as GenerationMode)}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        className="grid grid-cols-1 gap-3"
       >
-        <div className={`flex flex-col p-4 rounded-lg cursor-pointer transition-colors ${
+        <div className={`flex items-center p-3 rounded cursor-pointer transition-colors ${
           selectedMode === 'metadata' 
-            ? 'bg-amber-900/20 border border-amber-800' 
+            ? 'bg-blue-900/20 border border-blue-800' 
             : 'bg-gray-800 border border-gray-700 hover:bg-gray-800/70'
         }`}>
           <RadioGroupItem value="metadata" id="metadata" className="sr-only" />
-          <Label htmlFor="metadata" className="flex items-center gap-3 cursor-pointer mb-2">
-            <div className="p-2 rounded-full bg-amber-900/30 text-amber-400">
-              <FileImage className="h-5 w-5" />
+          <Label htmlFor="metadata" className="flex items-center cursor-pointer">
+            <div className="p-1.5 rounded-full bg-blue-900/30 text-blue-400 mr-2">
+              <FileImage className="h-4 w-4" />
             </div>
-            <span className="text-lg font-medium text-white">Metadata</span>
+            <div>
+              <span className="text-sm font-medium text-white">Metadata</span>
+              <p className="text-xs text-gray-400">
+                Generate SEO-friendly titles, descriptions, and keywords
+              </p>
+            </div>
           </Label>
-          <p className="text-sm text-gray-400 ml-10">
-            Generate SEO-friendly titles, descriptions, and keywords
-          </p>
         </div>
         
-        <div className={`flex flex-col p-4 rounded-lg cursor-pointer transition-colors ${
+        <div className={`flex items-center p-3 rounded cursor-pointer transition-colors ${
           selectedMode === 'imageToPrompt' 
-            ? 'bg-orange-900/20 border border-orange-800' 
+            ? 'bg-blue-900/20 border border-blue-800' 
             : 'bg-gray-800 border border-gray-700 hover:bg-gray-800/70'
         }`}>
           <RadioGroupItem value="imageToPrompt" id="imageToPrompt" className="sr-only" />
-          <Label htmlFor="imageToPrompt" className="flex items-center gap-3 cursor-pointer mb-2">
-            <div className="p-2 rounded-full bg-orange-900/30 text-orange-400">
-              <MessageSquareText className="h-5 w-5" />
+          <Label htmlFor="imageToPrompt" className="flex items-center cursor-pointer">
+            <div className="p-1.5 rounded-full bg-blue-900/30 text-blue-400 mr-2">
+              <MessageSquareText className="h-4 w-4" />
             </div>
-            <span className="text-lg font-medium text-white">Image to Prompt</span>
+            <div>
+              <span className="text-sm font-medium text-white">Image to Prompt</span>
+              <p className="text-xs text-gray-400">
+                Convert images into detailed text prompts for AI image generators
+              </p>
+            </div>
           </Label>
-          <p className="text-sm text-gray-400 ml-10">
-            Convert images into detailed text prompts for AI image generators
-          </p>
         </div>
       </RadioGroup>
     </div>

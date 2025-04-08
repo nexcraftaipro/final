@@ -99,41 +99,66 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, []);
 
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg animate-slide-up">
-      <div className="p-4 border-b border-gray-800">
-        <h2 className="text-xl font-semibold text-white">Upload Images</h2>
-      </div>
-      
+    <div className="bg-gray-800 border border-gray-700 rounded overflow-hidden shadow-lg">      
       <div className="p-4">
         <div 
-          className={`drop-zone flex flex-col items-center justify-center p-8 transition-all duration-300 rounded-lg ${
+          className={`drop-zone flex flex-col items-center justify-center p-6 transition-all duration-300 rounded ${
             isDragging 
-              ? 'border-amber-500 bg-amber-500/10' 
-              : 'border-gray-700 bg-gray-800/50 hover:border-gray-600'
+              ? 'border-blue-500 bg-blue-500/10' 
+              : 'border-gray-600 bg-gray-800/50 hover:border-gray-500'
           }`} 
           onDragOver={handleDragOver} 
           onDragLeave={handleDragLeave} 
           onDrop={handleDrop}
         >
-          <div className="mb-4 bg-amber-900/30 p-4 rounded-full">
-            <Upload className="h-8 w-8 text-amber-400" />
+          <div className="mb-4 bg-blue-900/30 p-3 rounded-full">
+            <Upload className="h-6 w-6 text-blue-400" />
           </div>
           
           <div className="text-center mb-4">
-            <p className="text-lg font-medium text-white mb-1">Drag and drop unlimited images here</p>
-            <p className="text-sm text-gray-400">
-              or click to upload (JPEG/PNG up to 10MB each)
+            <p className="text-sm font-medium text-white mb-1">SELECT IMAGES</p>
+            <p className="text-xs text-gray-400">
+              Drag and drop unlimited images here or click to upload (JPEG/PNG up to 10MB each)
             </p>
           </div>
           
-          <Button 
-            onClick={handleBrowseClick} 
-            className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white border-none" 
-            disabled={isProcessing}
-          >
-            <Image className="mr-2 h-4 w-4" />
-            Browse Files
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleBrowseClick} 
+              className="bg-gray-700 hover:bg-gray-600 text-white text-xs border-none" 
+              disabled={isProcessing}
+            >
+              Open
+            </Button>
+            
+            <Button 
+              className="bg-orange-600 hover:bg-orange-700 text-white text-xs border-none" 
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            
+            <Button 
+              className="bg-red-600 hover:bg-red-700 text-white text-xs border-none" 
+              disabled={isProcessing}
+            >
+              Clear
+            </Button>
+            
+            <Button 
+              className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs border-none" 
+              disabled={isProcessing}
+            >
+              Remove BG
+            </Button>
+            
+            <Button 
+              className="bg-purple-600 hover:bg-purple-700 text-white text-xs border-none" 
+              disabled={isProcessing}
+            >
+              Compress
+            </Button>
+          </div>
           
           <input 
             type="file" 

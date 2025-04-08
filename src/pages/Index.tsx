@@ -5,17 +5,18 @@ import ApiKeyInput from '@/components/ApiKeyInput';
 import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
-import UserProfile from '@/components/UserProfile';
 import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
-import { Sparkles, Camera, Loader2, ShieldAlert, Image, Settings } from 'lucide-react';
+import { Sparkles, Loader2, ShieldAlert, Image, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import ContentSettings from '@/components/ContentSettings';
 import PlatformSelector, { Platform } from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
-import StarCursor from '@/components/StarCursor';
+import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import AppHeader from '@/components/AppHeader';
+import Sidebar from '@/components/Sidebar';
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
@@ -25,10 +26,9 @@ const Index: React.FC = () => {
   const [descriptionLength, setDescriptionLength] = useState(200);
   const [keywordCount, setKeywordCount] = useState(50);
   const [platform, setPlatform] = useState<Platform | null>('Shutterstock');
-  const [scrolled, setScrolled] = useState(false);
-  const [shouldRedirect, setShouldRedirect] = useState(false);
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
-  const [showSettings, setShowSettings] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('image');
+  const [shouldRedirect, setShouldRedirect] = useState(false);
 
   const {
     user,
@@ -43,17 +43,6 @@ const Index: React.FC = () => {
       setShouldRedirect(true);
     }
   }, [isLoading, user]);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 20;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [scrolled]);
 
   if (shouldRedirect) {
     return <Navigate to="/auth" replace />;
@@ -178,54 +167,57 @@ const Index: React.FC = () => {
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-950 text-gray-200">
-      <StarCursor />
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <AppHeader remainingCredits={remainingCredits} />
       
-      <header className={`sticky top-0 z-10 transition-all duration-300 border-b ${
-        scrolled ? 'bg-gray-900/90 backdrop-blur-md shadow-sm border-gray-800' : 'bg-gray-900/80 backdrop-blur-sm border-transparent'
-      }`}>
-        <div className="container max-w-6xl mx-auto py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-amber-600 bg-clip-text text-transparent flex items-center">
-              <Image className="h-6 w-6 mr-2 text-orange-500" />
-              Meta Master
-            </h1>
-            
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center bg-gray-800/60 rounded-full px-4 py-1.5">
-                <span className="text-sm text-gray-400 mr-2">Credits:</span>
-                <span className="text-sm font-semibold text-amber-400">{remainingCredits}</span>
+      <div className="flex flex-1">
+        <Sidebar 
+          titleLength={titleLength}
+          onTitleLengthChange={handleTitleLengthChange}
+          descriptionLength={descriptionLength}
+          onDescriptionLengthChange={handleDescriptionLengthChange}
+          keywordsCount={keywordCount}
+          onKeywordsCountChange={handleKeywordCountChange}
+          selectedMode={generationMode}
+          onModeChange={handleModeChange}
+          selectedPlatform={platform}
+          onPlatformChange={handlePlatformChange}
+        />
+        
+        <main className="flex-1 p-6 overflow-auto">
+          <div className="max-w-5xl mx-auto">
+            <div className="mb-6">
+              <div className="flex items-center mb-4">
+                <div className="relative w-full">
+                  <div className="flex border-b border-gray-700">
+                    <div 
+                      className={`mode-tab ${selectedTab === 'image' ? 'active' : ''}`}
+                      onClick={() => setSelectedTab('image')}
+                    >
+                      Image
+                    </div>
+                    <div 
+                      className={`mode-tab ${selectedTab === 'vector' ? 'active' : ''}`}
+                      onClick={() => setSelectedTab('vector')}
+                    >
+                      Vector
+                    </div>
+                  </div>
+                </div>
               </div>
               
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="text-gray-400 hover:text-white"
-                onClick={() => setShowSettings(!showSettings)}
-              >
-                <Settings className="h-5 w-5" />
-              </Button>
-              
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
-      
-      <main className="flex-1 py-8">
-        <div className="container max-w-6xl mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* Main content - 8 columns */}
-            <div className="lg:col-span-8 space-y-6">
               <ApiKeyInput apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
-              <ImageUploader onImagesSelected={handleImagesSelected} isProcessing={isProcessing} />
+              
+              <div className="mt-6">
+                <ImageUploader onImagesSelected={handleImagesSelected} isProcessing={isProcessing} />
+              </div>
               
               {pendingCount > 0 && canGenerateMetadata && (
                 <div className="flex justify-center mt-8">
                   <Button 
                     onClick={handleProcessImages} 
                     disabled={isProcessing || !apiKey} 
-                    className="glow-button bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white px-8 py-6 text-lg rounded-xl shadow-lg transition-all duration-300 border-none"
+                    className="glow-button bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
                   >
                     {isProcessing ? (
                       <>
@@ -234,7 +226,7 @@ const Index: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="mr-2 h-5 w-5 glow-amber" />
+                        <Sparkles className="mr-2 h-5 w-5" />
                         Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
                       </>
                     )}
@@ -243,7 +235,7 @@ const Index: React.FC = () => {
               )}
               
               {!canGenerateMetadata && (
-                <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-4 flex items-center">
+                <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-4 flex items-center mt-4">
                   <ShieldAlert className="h-5 w-5 text-amber-500 mr-2" />
                   <p className="text-sm text-amber-300">
                     You've reached your free limit of 10 metadata generations. Contact admin for premium access.
@@ -251,54 +243,18 @@ const Index: React.FC = () => {
                 </div>
               )}
               
-              <ResultsDisplay 
-                images={images} 
-                onRemoveImage={handleRemoveImage} 
-                onClearAll={handleClearAll} 
-                generationMode={generationMode} 
-              />
-            </div>
-            
-            {/* Sidebar - 4 columns */}
-            <div className="lg:col-span-4 space-y-6">
-              <UserProfile />
-              
-              <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
-                <div className="p-4 border-b border-gray-800">
-                  <h2 className="text-xl font-semibold text-white">Generation Settings</h2>
-                </div>
-                
-                <div className="p-4 space-y-6">
-                  <GenerationModeSelector selectedMode={generationMode} onModeChange={handleModeChange} />
-                  
-                  <div className="border-t border-gray-800 pt-4">
-                    <PlatformSelector selectedPlatform={platform} onPlatformChange={handlePlatformChange} />
-                  </div>
-                  
-                  <div className="border-t border-gray-800 pt-4">
-                    <ContentSettings 
-                      titleLength={titleLength} 
-                      onTitleLengthChange={handleTitleLengthChange} 
-                      descriptionLength={descriptionLength} 
-                      onDescriptionLengthChange={handleDescriptionLengthChange} 
-                      keywordsCount={keywordCount} 
-                      onKeywordsCountChange={handleKeywordCountChange} 
-                    />
-                  </div>
-                </div>
+              <div className="mt-8">
+                <ResultsDisplay 
+                  images={images} 
+                  onRemoveImage={handleRemoveImage} 
+                  onClearAll={handleClearAll} 
+                  generationMode={generationMode} 
+                />
               </div>
             </div>
           </div>
-        </div>
-      </main>
-      
-      <footer className="border-t border-gray-800 py-4 mt-12">
-        <div className="container max-w-6xl mx-auto px-4">
-          <p className="text-center text-sm text-gray-500">
-            Meta Master — Extract metadata from images with the power of Google Gemini AI
-          </p>
-        </div>
-      </footer>
+        </main>
+      </div>
     </div>
   );
 };
