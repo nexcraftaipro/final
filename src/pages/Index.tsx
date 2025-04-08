@@ -14,17 +14,19 @@ import { Sparkles, Camera, Loader2, ShieldAlert } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import ContentSettings from '@/components/ContentSettings';
 import PlatformSelector, { Platform } from '@/components/PlatformSelector';
+import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [titleLength, setTitleLength] = useState(200);
-  const [descriptionLength, setDescriptionLength] = useState(200);
-  const [keywordCount, setKeywordCount] = useState(50);
+  const [titleLength, setTitleLength] = useState(10);
+  const [descriptionLength, setDescriptionLength] = useState(15);
+  const [keywordCount, setKeywordCount] = useState(25);
   const [platform, setPlatform] = useState<Platform | null>('Shutterstock');
   const [scrolled, setScrolled] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const { user, isLoading, canGenerateMetadata, incrementCreditsUsed } = useAuth();
 
   // Check authentication and set redirect if needed
@@ -97,6 +99,10 @@ const Index: React.FC = () => {
   const handlePlatformChange = (newPlatform: Platform) => {
     setPlatform(newPlatform);
   };
+  
+  const handleModeChange = (mode: GenerationMode) => {
+    setGenerationMode(mode);
+  };
 
   // Process images with Gemini API
   const handleProcessImages = async () => {
@@ -139,7 +145,15 @@ const Index: React.FC = () => {
       // Process images one by one to avoid overwhelming the API
       for (const image of pendingImages) {
         try {
-          const result = await analyzeImageWithGemini(image.file, apiKey, keywordCount, titleLength, descriptionLength, platform);
+          const result = await analyzeImageWithGemini(
+            image.file, 
+            apiKey, 
+            keywordCount, 
+            titleLength, 
+            descriptionLength, 
+            platform,
+            generationMode
+          );
           
           setImages(prev => 
             prev.map(img => 
@@ -226,6 +240,11 @@ const Index: React.FC = () => {
             </h2>
             
             <div className="space-y-6">
+              <GenerationModeSelector 
+                selectedMode={generationMode}
+                onModeChange={handleModeChange}
+              />
+
               <PlatformSelector 
                 selectedPlatform={platform} 
                 onPlatformChange={handlePlatformChange} 
@@ -282,6 +301,7 @@ const Index: React.FC = () => {
             images={images} 
             onRemoveImage={handleRemoveImage}
             onClearAll={handleClearAll}
+            generationMode={generationMode}
           />
         </div>
       </main>

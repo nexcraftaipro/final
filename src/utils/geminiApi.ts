@@ -1,6 +1,7 @@
 
 import { toast } from "sonner";
 import type { Platform } from "@/components/PlatformSelector";
+import type { GenerationMode } from "@/components/GenerationModeSelector";
 
 interface MetadataResult {
   filename: string;
@@ -13,10 +14,11 @@ interface MetadataResult {
 export async function analyzeImageWithGemini(
   file: File,
   apiKey: string,
-  keywordCount: number = 10,
-  titleLength: number = 200,
-  descriptionLength: number = 200,
-  platform: Platform | null = null
+  keywordCount: number = 25,
+  titleLength: number = 10,
+  descriptionLength: number = 15,
+  platform: Platform | null = null,
+  generationMode: GenerationMode = 'metadata'
 ): Promise<MetadataResult> {
   if (!apiKey) {
     return {
@@ -35,16 +37,25 @@ export async function analyzeImageWithGemini(
     // Remove the data URL prefix for the API request
     const base64Data = base64Image.split(",")[1];
     
-    const keywordInstruction = keywordCount === 1 
-      ? "exactly 1 keyword" 
-      : `between 1-${keywordCount} keywords`;
+    let promptText = "";
     
-    const titleInstruction = `The title should be short and descriptive, maximum ${titleLength} characters`;
-    const descriptionInstruction = `The description should be ${descriptionLength <= 100 ? 'brief' : 'detailed'}, maximum ${descriptionLength} characters`;
-    
-    let platformInstruction = "";
-    if (platform) {
-      platformInstruction = `Optimize the metadata specifically for ${platform} platform requirements and best practices.`;
+    if (generationMode === 'metadata') {
+      const keywordInstruction = keywordCount === 1 
+        ? "exactly 1 keyword" 
+        : `between 1-${keywordCount} keywords`;
+      
+      const titleInstruction = `The title should be short and descriptive, maximum ${titleLength} characters`;
+      const descriptionInstruction = `The description should be ${descriptionLength <= 30 ? 'brief' : 'detailed'}, maximum ${descriptionLength} characters`;
+      
+      let platformInstruction = "";
+      if (platform) {
+        platformInstruction = `Optimize the metadata specifically for ${platform} platform requirements and best practices.`;
+      }
+      
+      promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
+    } else {
+      // Image to Prompt mode
+      promptText = `Analyze this image and create a detailed text prompt that could be used to generate a similar image with an AI image generator. The prompt should be descriptive and capture the key elements, style, composition, colors, and mood of the image. Return ONLY the prompt text without any JSON formatting or explanations.`;
     }
     
     // Updated API endpoint to use gemini-1.5-flash model instead of the deprecated gemini-pro-vision
@@ -60,7 +71,7 @@ export async function analyzeImageWithGemini(
             {
               parts: [
                 {
-                  text: `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`,
+                  text: promptText,
                 },
                 {
                   inline_data: {
@@ -88,22 +99,32 @@ export async function analyzeImageWithGemini(
 
     const resultText = data.candidates[0].content.parts[0].text;
     
-    // Extract the JSON object from the text
-    const jsonMatch = resultText.match(/\{[\s\S]*\}/);
-    
-    if (!jsonMatch) {
-      throw new Error("No JSON object found in response");
+    if (generationMode === 'metadata') {
+      // Extract the JSON object from the text
+      const jsonMatch = resultText.match(/\{[\s\S]*\}/);
+      
+      if (!jsonMatch) {
+        throw new Error("No JSON object found in response");
+      }
+      
+      const jsonStr = jsonMatch[0];
+      const metadata = JSON.parse(jsonStr);
+      
+      return {
+        filename: file.name,
+        title: metadata.title || "",
+        description: metadata.description || "",
+        keywords: Array.isArray(metadata.keywords) ? metadata.keywords : [],
+      };
+    } else {
+      // For image to prompt mode, return the result in the description field
+      return {
+        filename: file.name,
+        title: "Generated Prompt",
+        description: resultText.trim(),
+        keywords: [],
+      };
     }
-    
-    const jsonStr = jsonMatch[0];
-    const metadata = JSON.parse(jsonStr);
-    
-    return {
-      filename: file.name,
-      title: metadata.title || "",
-      description: metadata.description || "",
-      keywords: Array.isArray(metadata.keywords) ? metadata.keywords : [],
-    };
   } catch (error) {
     console.error("Error analyzing image:", error);
     toast.error(`Error analyzing image: ${error instanceof Error ? error.message : "Unknown error"}`);
