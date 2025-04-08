@@ -83,24 +83,24 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-medium text-white">Generation Settings</h2>
         <Badge variant="outline" className="bg-green-900/30 text-green-400 border-green-800 px-3">
-          Using Gemini AI
+          Gemini AI
         </Badge>
       </div>
       
       <SettingRow
         label="Title Length"
-        tooltip="Maximum length for the generated titles"
+        tooltip="The maximum number of characters for the generated title"
         value={titleLength}
         minValue={5}
         maxValue={30}
-        suffix="words"
+        suffix="chars"
         description={titleLength > 20 ? "Long" : "Short"}
         onChange={onTitleLengthChange}
       />
       
       <SettingRow
         label="Keywords Count"
-        tooltip="Number of keywords to generate"
+        tooltip="The number of keywords to generate for your image"
         value={keywordsCount}
         minValue={1}
         maxValue={50}
@@ -111,11 +111,11 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
       
       <SettingRow
         label="Description Length"
-        tooltip="Minimum number of words for the generated description"
+        tooltip="The maximum number of characters for the generated description"
         value={descriptionLength}
-        minValue={15}
+        minValue={5}
         maxValue={50}
-        suffix="words"
+        suffix="chars"
         description={descriptionLength > 30 ? "Complete" : "Brief"}
         onChange={onDescriptionLengthChange}
       />

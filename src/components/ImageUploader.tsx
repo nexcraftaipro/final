@@ -33,8 +33,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesSelected, isProce
   const processFiles = useCallback(async (files: FileList) => {
     const processedImages: ProcessedImage[] = [];
     const promises: Promise<ProcessedImage>[] = [];
-    const filesToProcess = Array.from(files);
+    const MAX_FILES = 10;
+    const filesToProcess = Array.from(files).slice(0, MAX_FILES);
     
+    if (files.length > MAX_FILES) {
+      toast.warning(`Maximum of ${MAX_FILES} images can be processed at once. Only the first ${MAX_FILES} will be used.`);
+    }
+
     for (const file of filesToProcess) {
       const promise = (async () => {
         // Validate file is an image
@@ -74,7 +79,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesSelected, isProce
     
     if (validResults.length > 0) {
       onImagesSelected(validResults);
-      toast.success(`${validResults.length} image${validResults.length !== 1 ? 's' : ''} added`);
     } else if (files.length > 0) {
       toast.error('No valid images were found to process.');
     }
@@ -122,7 +126,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({ onImagesSelected, isProce
         </div>
         
         <div className="text-center mb-4">
-          <p className="text-lg font-medium mb-1">Drag and drop unlimited images here</p>
+          <p className="text-lg font-medium mb-1">Drag and drop up to 10 images here</p>
           <p className="text-sm text-muted-foreground">
             or click to upload (JPEG/PNG up to 10MB each)
           </p>

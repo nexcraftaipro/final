@@ -11,9 +11,6 @@ interface MetadataResult {
   error?: string;
 }
 
-// Helper function to add delay between API calls
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 export async function analyzeImageWithGemini(
   file: File,
   apiKey: string,
@@ -47,8 +44,8 @@ export async function analyzeImageWithGemini(
         ? "exactly 1 keyword" 
         : `between 1-${keywordCount} keywords`;
       
-      const titleInstruction = `The title should be short and descriptive, maximum ${titleLength} words`;
-      const descriptionInstruction = `The description should be ${descriptionLength <= 30 ? 'brief' : 'detailed'}, minimum ${descriptionLength} words`;
+      const titleInstruction = `The title should be short and descriptive, maximum ${titleLength} characters`;
+      const descriptionInstruction = `The description should be ${descriptionLength <= 30 ? 'brief' : 'detailed'}, maximum ${descriptionLength} characters`;
       
       let platformInstruction = "";
       if (platform) {
@@ -60,10 +57,6 @@ export async function analyzeImageWithGemini(
       // Image to Prompt mode
       promptText = `Analyze this image and create a detailed text prompt that could be used to generate a similar image with an AI image generator. The prompt should be descriptive and capture the key elements, style, composition, colors, and mood of the image. Return ONLY the prompt text without any JSON formatting or explanations.`;
     }
-    
-    // Add a delay of 2 seconds to respect API rate limits before making the request
-    // This is essential when processing multiple images to avoid hitting Gemini's 15 RPM limit
-    await delay(2000); 
     
     // Updated API endpoint to use gemini-1.5-flash model instead of the deprecated gemini-pro-vision
     const response = await fetch(
@@ -116,19 +109,11 @@ export async function analyzeImageWithGemini(
       
       const jsonStr = jsonMatch[0];
       const metadata = JSON.parse(jsonStr);
-
-      // Validate the description length (at least 15 words)
-      let description = metadata.description || "";
-      const wordCount = description.split(/\s+/).filter(Boolean).length;
-      
-      if (wordCount < descriptionLength) {
-        throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${descriptionLength} words.`);
-      }
       
       return {
         filename: file.name,
         title: metadata.title || "",
-        description: description,
+        description: metadata.description || "",
         keywords: Array.isArray(metadata.keywords) ? metadata.keywords : [],
       };
     } else {
