@@ -14,7 +14,6 @@ import { useAuth } from '@/context/AuthContext';
 import ContentSettings from '@/components/ContentSettings';
 import PlatformSelector, { Platform } from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
-
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
@@ -26,14 +25,17 @@ const Index: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
-  const { user, isLoading, canGenerateMetadata, incrementCreditsUsed } = useAuth();
-
+  const {
+    user,
+    isLoading,
+    canGenerateMetadata,
+    incrementCreditsUsed
+  } = useAuth();
   useEffect(() => {
     if (!isLoading && !user) {
       setShouldRedirect(true);
     }
   }, [isLoading, user]);
-
   useEffect(() => {
     const handleScroll = () => {
       const isScrolled = window.scrollY > 20;
@@ -41,138 +43,90 @@ const Index: React.FC = () => {
         setScrolled(isScrolled);
       }
     };
-
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [scrolled]);
-
   if (shouldRedirect) {
     return <Navigate to="/auth" replace />;
   }
-
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
+    return <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+      </div>;
   }
-
   const handleApiKeyChange = (key: string) => {
     setApiKey(key);
   };
-
   const handleImagesSelected = (newImages: ProcessedImage[]) => {
     setImages(prev => [...prev, ...newImages]);
   };
-
   const handleRemoveImage = (id: string) => {
     setImages(prev => prev.filter(img => img.id !== id));
   };
-
   const handleClearAll = () => {
     setImages([]);
   };
-
   const handleTitleLengthChange = (value: number[]) => {
     setTitleLength(value[0]);
   };
-
   const handleDescriptionLengthChange = (value: number[]) => {
     setDescriptionLength(value[0]);
   };
-
   const handleKeywordCountChange = (value: number[]) => {
     setKeywordCount(value[0]);
   };
-
   const handlePlatformChange = (newPlatform: Platform) => {
     setPlatform(newPlatform);
   };
-  
   const handleModeChange = (mode: GenerationMode) => {
     setGenerationMode(mode);
   };
-
   const handleProcessImages = async () => {
     if (!apiKey) {
       toast.error('Please enter your Gemini API key first');
       return;
     }
-
     const pendingImages = images.filter(img => img.status === 'pending');
-    
     if (pendingImages.length === 0) {
       toast.info('No images to process');
       return;
     }
-
     if (!canGenerateMetadata) {
       toast.error('You have reached your free limit. Please upgrade to premium.');
       return;
     }
-
     const canProceed = await incrementCreditsUsed();
     if (!canProceed) {
       return;
     }
-
     setIsProcessing(true);
-
     try {
-      setImages(prev => 
-        prev.map(img => 
-          img.status === 'pending' 
-            ? { ...img, status: 'processing' as const } 
-            : img
-        )
-      );
-
+      setImages(prev => prev.map(img => img.status === 'pending' ? {
+        ...img,
+        status: 'processing' as const
+      } : img));
       for (const image of pendingImages) {
         try {
-          const result = await analyzeImageWithGemini(
-            image.file, 
-            apiKey, 
-            keywordCount, 
-            titleLength, 
-            descriptionLength, 
-            platform,
-            generationMode
-          );
-          
-          setImages(prev => 
-            prev.map(img => 
-              img.id === image.id 
-                ? { 
-                    ...img, 
-                    status: result.error ? 'error' as const : 'complete' as const,
-                    result: result.error ? undefined : {
-                      title: result.title,
-                      description: result.description,
-                      keywords: result.keywords
-                    },
-                    error: result.error
-                  } 
-                : img
-            )
-          );
+          const result = await analyzeImageWithGemini(image.file, apiKey, keywordCount, titleLength, descriptionLength, platform, generationMode);
+          setImages(prev => prev.map(img => img.id === image.id ? {
+            ...img,
+            status: result.error ? 'error' as const : 'complete' as const,
+            result: result.error ? undefined : {
+              title: result.title,
+              description: result.description,
+              keywords: result.keywords
+            },
+            error: result.error
+          } : img));
         } catch (error) {
           console.error(`Error processing image ${image.file.name}:`, error);
-          
-          setImages(prev => 
-            prev.map(img => 
-              img.id === image.id 
-                ? { 
-                    ...img, 
-                    status: 'error' as const,
-                    error: error instanceof Error ? error.message : 'Unknown error occurred'
-                  } 
-                : img
-            )
-          );
+          setImages(prev => prev.map(img => img.id === image.id ? {
+            ...img,
+            status: 'error' as const,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+          } : img));
         }
       }
-
       toast.success('All images processed successfully');
     } catch (error) {
       console.error('Error during image processing:', error);
@@ -181,16 +135,9 @@ const Index: React.FC = () => {
       setIsProcessing(false);
     }
   };
-
   const pendingCount = images.filter(img => img.status === 'pending').length;
-
-  return (
-    <div className="flex min-h-screen flex-col">
-      <header className={`sticky top-0 z-10 transition-all duration-300 border-b ${
-        scrolled 
-          ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-gray-200 dark:border-gray-800' 
-          : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-transparent'
-      }`}>
+  return <div className="flex min-h-screen flex-col">
+      <header className={`sticky top-0 z-10 transition-all duration-300 border-b ${scrolled ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-md shadow-sm border-gray-200 dark:border-gray-800' : 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-transparent'}`}>
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent flex items-center">
@@ -207,10 +154,8 @@ const Index: React.FC = () => {
       <main className="flex-1">
         <div className="container py-8 space-y-8">
           <div className="text-center mb-12">
-            <h1 className="hero-headline">Metadata Generator</h1>
-            <p className="hero-subheadline">
-              Generate SEO-friendly titles, descriptions, and keywords for your images with AI
-            </p>
+            
+            
           </div>
 
           <UserProfile />
@@ -224,69 +169,36 @@ const Index: React.FC = () => {
             </h2>
             
             <div className="space-y-6">
-              <GenerationModeSelector 
-                selectedMode={generationMode}
-                onModeChange={handleModeChange}
-              />
+              <GenerationModeSelector selectedMode={generationMode} onModeChange={handleModeChange} />
 
-              <PlatformSelector 
-                selectedPlatform={platform} 
-                onPlatformChange={handlePlatformChange} 
-              />
+              <PlatformSelector selectedPlatform={platform} onPlatformChange={handlePlatformChange} />
               
-              <ContentSettings 
-                titleLength={titleLength}
-                onTitleLengthChange={handleTitleLengthChange}
-                descriptionLength={descriptionLength}
-                onDescriptionLengthChange={handleDescriptionLengthChange}
-                keywordsCount={keywordCount}
-                onKeywordsCountChange={handleKeywordCountChange}
-              />
+              <ContentSettings titleLength={titleLength} onTitleLengthChange={handleTitleLengthChange} descriptionLength={descriptionLength} onDescriptionLengthChange={handleDescriptionLengthChange} keywordsCount={keywordCount} onKeywordsCountChange={handleKeywordCountChange} />
             </div>
           </div>
           
-          <ImageUploader 
-            onImagesSelected={handleImagesSelected} 
-            isProcessing={isProcessing} 
-          />
+          <ImageUploader onImagesSelected={handleImagesSelected} isProcessing={isProcessing} />
           
-          {!canGenerateMetadata && (
-            <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center">
+          {!canGenerateMetadata && <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 flex items-center">
               <ShieldAlert className="h-5 w-5 text-yellow-500 mr-2" />
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
                 You've reached your free limit of 10 metadata generations. Contact admin for premium access.
               </p>
-            </div>
-          )}
+            </div>}
           
-          {pendingCount > 0 && canGenerateMetadata && (
-            <div className="flex justify-center">
-              <Button
-                onClick={handleProcessImages}
-                disabled={isProcessing || !apiKey}
-                className="glow-button bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl transition-all duration-300"
-              >
-                {isProcessing ? (
-                  <>
+          {pendingCount > 0 && canGenerateMetadata && <div className="flex justify-center">
+              <Button onClick={handleProcessImages} disabled={isProcessing || !apiKey} className="glow-button bg-primary hover:bg-primary/90 text-white px-8 py-6 text-lg rounded-xl transition-all duration-300">
+                {isProcessing ? <>
                     <Loader2 className="h-5 w-5 animate-spin mr-2" />
                     Processing...
-                  </>
-                ) : (
-                  <>
+                  </> : <>
                     <Sparkles className="mr-2 h-5 w-5 glow-blue" />
                     Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
-                  </>
-                )}
+                  </>}
               </Button>
-            </div>
-          )}
+            </div>}
           
-          <ResultsDisplay 
-            images={images} 
-            onRemoveImage={handleRemoveImage}
-            onClearAll={handleClearAll}
-            generationMode={generationMode}
-          />
+          <ResultsDisplay images={images} onRemoveImage={handleRemoveImage} onClearAll={handleClearAll} generationMode={generationMode} />
         </div>
       </main>
       
@@ -297,8 +209,6 @@ const Index: React.FC = () => {
           </p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
