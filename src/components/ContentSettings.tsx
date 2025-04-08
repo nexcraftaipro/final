@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
-import { InfoCircle } from 'lucide-react';
+import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from '@/components/ui/badge';
 
@@ -40,7 +40,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <InfoCircle className="h-4 w-4 text-gray-400" />
+              <Info className="h-4 w-4 text-gray-400" />
             </TooltipTrigger>
             <TooltipContent>
               <p className="max-w-xs text-sm">{tooltip}</p>
