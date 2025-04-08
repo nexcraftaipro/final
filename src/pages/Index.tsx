@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -12,6 +11,7 @@ import { toast } from 'sonner';
 import { Sparkles, Loader2, ShieldAlert, Image, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Platform } from '@/components/PlatformSelector';
+import PlatformSelector from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -34,7 +34,7 @@ const Index: React.FC = () => {
   const [maxTitleWords, setMaxTitleWords] = useState(15);
   const [minKeywords, setMinKeywords] = useState(35);
   const [maxKeywords, setMaxKeywords] = useState(45);
-  const [minDescriptionWords, setMinDescriptionWords] = useState(20);
+  const [minDescriptionWords, setMinDescriptionWords] = useState(10); // Changed from 20 to 10
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
 
   const {
@@ -242,21 +242,24 @@ const Index: React.FC = () => {
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
-              <div className="flex items-center mb-4">
-                <div className="relative w-full">
-                  <div className="flex border-b border-gray-700">
-                    <div 
-                      className={`mode-tab ${selectedTab === 'image' ? 'active' : ''}`}
-                      onClick={() => setSelectedTab('image')}
-                    >
-                      Image
-                    </div>
-                    <div 
-                      className={`mode-tab ${selectedTab === 'vector' ? 'active' : ''}`}
-                      onClick={() => setSelectedTab('vector')}
-                    >
-                      Vector
-                    </div>
+              <div className="flex flex-col mb-4">
+                <h2 className="text-lg font-medium text-white mb-2">Platform</h2>
+                <div className="flex border-b border-gray-700">
+                  <PlatformSelector selectedPlatform={platform} onPlatformChange={handlePlatformChange} />
+                </div>
+                
+                <div className="mt-4">
+                  <div 
+                    className={`mode-tab ${selectedTab === 'image' ? 'active' : ''}`}
+                    onClick={() => setSelectedTab('image')}
+                  >
+                    Image
+                  </div>
+                  <div 
+                    className={`mode-tab ${selectedTab === 'vector' ? 'active' : ''}`}
+                    onClick={() => setSelectedTab('vector')}
+                  >
+                    Vector
                   </div>
                 </div>
               </div>

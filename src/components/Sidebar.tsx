@@ -3,7 +3,7 @@ import React from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
 import UserProfile from '@/components/UserProfile';
-import PlatformSelector, { Platform } from './PlatformSelector';
+import { Platform } from './PlatformSelector';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -46,11 +46,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
       <div className="p-3 border-b border-gray-700">
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
-      </div>
-      
-      <div className="p-4 border-b border-gray-700">
-        <h3 className="text-sm font-medium text-white mb-4">Platform</h3>
-        <PlatformSelector selectedPlatform={selectedPlatform} onPlatformChange={onPlatformChange} />
       </div>
       
       <div className="p-4 border-b border-gray-700 flex-1 overflow-auto">
