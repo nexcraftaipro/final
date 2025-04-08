@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from '@/components/ThemeToggle';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface AppHeaderProps {
   remainingCredits: string | number;
@@ -20,7 +21,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
-  const [showPricingModal, setShowPricingModal] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setInputKey(apiKey);
@@ -47,15 +48,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     toast.success('API key cleared');
   };
 
-  const togglePricingModal = () => {
-    setShowPricingModal(!showPricingModal);
-    if (!showPricingModal) {
-      toast.info('Premium plans: $9.99/month for unlimited generations', {
-        description: 'Get unlimited API calls, priority support, and advanced features'
-      });
-    }
-  };
-
   return (
     <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
@@ -74,7 +66,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             variant="outline"
             size="sm"
             className="text-amber-500 border-amber-700 hover:bg-amber-900/20"
-            onClick={togglePricingModal}
+            onClick={() => navigate('/pricing')}
           >
             <CreditCard className="h-4 w-4 mr-1" />
             Pricing
