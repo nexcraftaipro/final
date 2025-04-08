@@ -29,6 +29,10 @@ const Index: React.FC = () => {
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
+  const [minTitleWords, setMinTitleWords] = useState(12);
+  const [maxTitleWords, setMaxTitleWords] = useState(20);
+  const [minKeywords, setMinKeywords] = useState(25);
+  const [maxKeywords, setMaxKeywords] = useState(30);
 
   const {
     user,
@@ -90,6 +94,22 @@ const Index: React.FC = () => {
     setGenerationMode(mode);
   };
 
+  const handleMinTitleWordsChange = (value: number[]) => {
+    setMinTitleWords(value[0]);
+  };
+
+  const handleMaxTitleWordsChange = (value: number[]) => {
+    setMaxTitleWords(value[0]);
+  };
+
+  const handleMinKeywordsChange = (value: number[]) => {
+    setMinKeywords(value[0]);
+  };
+
+  const handleMaxKeywordsChange = (value: number[]) => {
+    setMaxKeywords(value[0]);
+  };
+
   const handleProcessImages = async () => {
     if (!apiKey) {
       toast.error('Please enter your Gemini API key first');
@@ -125,15 +145,19 @@ const Index: React.FC = () => {
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
           
-          const result = await analyzeImageWithGemini(
-            image.file, 
-            apiKey, 
-            keywordCount, 
-            titleLength, 
-            descriptionLength, 
-            platform, 
-            generationMode
-          );
+          const options = {
+            titleLength,
+            descriptionLength,
+            keywordCount,
+            platform,
+            generationMode,
+            minTitleWords,
+            maxTitleWords,
+            minKeywords,
+            maxKeywords
+          };
+          
+          const result = await analyzeImageWithGemini(image.file, apiKey, options);
           
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
@@ -182,6 +206,14 @@ const Index: React.FC = () => {
           onModeChange={handleModeChange}
           selectedPlatform={platform}
           onPlatformChange={handlePlatformChange}
+          minTitleWords={minTitleWords}
+          onMinTitleWordsChange={handleMinTitleWordsChange}
+          maxTitleWords={maxTitleWords}
+          onMaxTitleWordsChange={handleMaxTitleWordsChange}
+          minKeywords={minKeywords}
+          onMinKeywordsChange={handleMinKeywordsChange}
+          maxKeywords={maxKeywords}
+          onMaxKeywordsChange={handleMaxKeywordsChange}
         />
         
         <main className="flex-1 p-6 overflow-auto">

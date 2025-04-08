@@ -11,17 +11,25 @@ interface MetadataResult {
   error?: string;
 }
 
+interface MetadataOptions {
+  titleLength: number;
+  descriptionLength: number;
+  keywordCount: number;
+  platform: Platform | null;
+  generationMode: GenerationMode;
+  minTitleWords: number;
+  maxTitleWords: number;
+  minKeywords: number;
+  maxKeywords: number;
+}
+
 // Helper function to add delay between API calls
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export async function analyzeImageWithGemini(
   file: File,
   apiKey: string,
-  keywordCount: number = 25,
-  titleLength: number = 10,
-  descriptionLength: number = 15,
-  platform: Platform | null = null,
-  generationMode: GenerationMode = 'metadata'
+  options: MetadataOptions
 ): Promise<MetadataResult> {
   if (!apiKey) {
     return {
@@ -42,17 +50,15 @@ export async function analyzeImageWithGemini(
     
     let promptText = "";
     
-    if (generationMode === 'metadata') {
-      const keywordInstruction = keywordCount === 1 
-        ? "exactly 1 keyword" 
-        : `between 1-${keywordCount} keywords`;
+    if (options.generationMode === 'metadata') {
+      const keywordInstruction = `between ${options.minKeywords}-${options.maxKeywords} keywords`;
       
-      const titleInstruction = `The title should be short and descriptive, maximum ${titleLength} words`;
-      const descriptionInstruction = `The description should be ${descriptionLength <= 30 ? 'brief' : 'detailed'}, minimum ${descriptionLength} words`;
+      const titleInstruction = `The title should be between ${options.minTitleWords}-${options.maxTitleWords} words`;
+      const descriptionInstruction = `The description should be ${options.descriptionLength <= 30 ? 'brief' : 'detailed'}, minimum ${options.descriptionLength} words`;
       
       let platformInstruction = "";
-      if (platform) {
-        platformInstruction = `Optimize the metadata specifically for ${platform} platform requirements and best practices.`;
+      if (options.platform) {
+        platformInstruction = `Optimize the metadata specifically for ${options.platform} platform requirements and best practices.`;
       }
       
       promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
@@ -106,7 +112,7 @@ export async function analyzeImageWithGemini(
 
     const resultText = data.candidates[0].content.parts[0].text;
     
-    if (generationMode === 'metadata') {
+    if (options.generationMode === 'metadata') {
       // Extract the JSON object from the text
       const jsonMatch = resultText.match(/\{[\s\S]*\}/);
       
@@ -117,12 +123,12 @@ export async function analyzeImageWithGemini(
       const jsonStr = jsonMatch[0];
       const metadata = JSON.parse(jsonStr);
 
-      // Validate the description length (at least 15 words)
+      // Validate the description length (at least the minimum words)
       let description = metadata.description || "";
       const wordCount = description.split(/\s+/).filter(Boolean).length;
       
-      if (wordCount < descriptionLength) {
-        throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${descriptionLength} words.`);
+      if (wordCount < options.descriptionLength) {
+        throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${options.descriptionLength} words.`);
       }
       
       return {
