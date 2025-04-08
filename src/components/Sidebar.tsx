@@ -3,6 +3,7 @@ import React from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
 import UserProfile from '@/components/UserProfile';
+import PlatformSelector, { Platform } from './PlatformSelector';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -19,6 +20,8 @@ interface SidebarProps {
   onMinDescriptionWordsChange: (value: number[]) => void;
   maxDescriptionWords: number;
   onMaxDescriptionWordsChange: (value: number[]) => void;
+  selectedPlatform: Platform | null;
+  onPlatformChange: (platform: Platform) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -35,15 +38,22 @@ const Sidebar: React.FC<SidebarProps> = ({
   minDescriptionWords,
   onMinDescriptionWordsChange,
   maxDescriptionWords,
-  onMaxDescriptionWordsChange
+  onMaxDescriptionWordsChange,
+  selectedPlatform,
+  onPlatformChange
 }) => {
   return (
     <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
-      <div className="p-3">
+      <div className="p-3 border-b border-gray-700">
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
       </div>
       
       <div className="p-4 border-b border-gray-700">
+        <h3 className="text-sm font-medium text-white mb-4">Platform</h3>
+        <PlatformSelector selectedPlatform={selectedPlatform} onPlatformChange={onPlatformChange} />
+      </div>
+      
+      <div className="p-4 border-b border-gray-700 flex-1 overflow-auto">
         <h3 className="text-sm font-medium text-white mb-4">Metadata Customization</h3>
         <CustomizationControls 
           minTitleWords={minTitleWords}
@@ -61,7 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       </div>
       
-      <div className="mt-auto p-4">
+      <div className="mt-auto p-4 border-t border-gray-700">
         <UserProfile />
       </div>
     </aside>

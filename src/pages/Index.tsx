@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -10,7 +11,7 @@ import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Sparkles, Loader2, ShieldAlert, Image, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import PlatformSelector, { Platform } from '@/components/PlatformSelector';
+import { Platform } from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,12 +29,13 @@ const Index: React.FC = () => {
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
-  const [minTitleWords, setMinTitleWords] = useState(12);
-  const [maxTitleWords, setMaxTitleWords] = useState(20);
-  const [minKeywords, setMinKeywords] = useState(25);
-  const [maxKeywords, setMaxKeywords] = useState(30);
+  // Default values as requested
+  const [minTitleWords, setMinTitleWords] = useState(10);
+  const [maxTitleWords, setMaxTitleWords] = useState(15);
+  const [minKeywords, setMinKeywords] = useState(35);
+  const [maxKeywords, setMaxKeywords] = useState(45);
   const [minDescriptionWords, setMinDescriptionWords] = useState(20);
-  const [maxDescriptionWords, setMaxDescriptionWords] = useState(50);
+  const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
 
   const {
     user,
@@ -158,6 +160,7 @@ const Index: React.FC = () => {
       for (const image of pendingImages) {
         try {
           if (pendingImages.indexOf(image) > 0) {
+            // Add a 2-second delay between processing images to respect the 15 RPM limit
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
           
@@ -214,8 +217,6 @@ const Index: React.FC = () => {
         remainingCredits={remainingCredits} 
         apiKey={apiKey}
         onApiKeyChange={handleApiKeyChange}
-        selectedPlatform={platform}
-        onPlatformChange={handlePlatformChange}
       />
       
       <div className="flex flex-1">
@@ -234,6 +235,8 @@ const Index: React.FC = () => {
           onMinDescriptionWordsChange={handleMinDescriptionWordsChange}
           maxDescriptionWords={maxDescriptionWords}
           onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange}
+          selectedPlatform={platform}
+          onPlatformChange={handlePlatformChange}
         />
         
         <main className="flex-1 p-6 overflow-auto">

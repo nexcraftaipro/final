@@ -53,7 +53,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange,
 }) => {
   return (
-    <div className="grid grid-cols-7 gap-2">
+    <div className="grid grid-cols-4 gap-2 mt-2">
       {platforms.map((platform) => (
         <TooltipProvider key={platform.id}>
           <Tooltip>
