@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Image, Eye, EyeOff } from 'lucide-react';
+import { Image, Eye, EyeOff, CreditCard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
@@ -25,6 +25,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
+  const [showPricingModal, setShowPricingModal] = useState(false);
 
   useEffect(() => {
     setInputKey(apiKey);
@@ -51,6 +52,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     toast.success('API key cleared');
   };
 
+  const togglePricingModal = () => {
+    setShowPricingModal(!showPricingModal);
+    if (!showPricingModal) {
+      toast.info('Premium plans: $9.99/month for unlimited generations', {
+        description: 'Get unlimited API calls, priority support, and advanced features'
+      });
+    }
+  };
+
   return (
     <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="flex flex-col space-y-4">
@@ -66,6 +76,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           </div>
           
           <div className="flex items-center space-x-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-amber-500 border-amber-700 hover:bg-amber-900/20"
+              onClick={togglePricingModal}
+            >
+              <CreditCard className="h-4 w-4 mr-1" />
+              Pricing
+            </Button>
+            
             <div className="flex items-center">
               <span className="text-sm text-gray-400 mr-2">API Key:</span>
               <div className="relative flex-1">

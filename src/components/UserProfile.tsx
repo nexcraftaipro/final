@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Crown, Infinity } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const UserProfile: React.FC = () => {
   const { user, profile, signOut, canGenerateMetadata } = useAuth();
@@ -18,9 +19,12 @@ const UserProfile: React.FC = () => {
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="bg-gray-800 p-2 rounded-full">
-              <User className="h-5 w-5 text-amber-400" />
-            </div>
+            <Avatar>
+              <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+              <AvatarFallback className="bg-blue-900">
+                <User className="h-5 w-5 text-blue-300" />
+              </AvatarFallback>
+            </Avatar>
             <div>
               <p className="font-medium text-white">{user.email}</p>
               <div className="flex items-center text-sm text-gray-400">
