@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, X, Check } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
+import { Card } from '@/components/ui/card';
 
 interface ResultsDisplayProps {
   images: ProcessedImage[];
@@ -14,17 +15,35 @@ interface ResultsDisplayProps {
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, onClearAll, generationMode }) => {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
   if (images.length === 0) return null;
 
-  const handleCopyToClipboard = (text: string) => {
+  const handleCopyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
+    setCopiedId(id);
     toast.success('Copied to clipboard');
+    
+    setTimeout(() => {
+      setCopiedId(null);
+    }, 2000);
   };
 
   const handleDownloadCSV = () => {
     const csvContent = formatImagesAsCSV(images);
     downloadCSV(csvContent);
     toast.success('CSV file downloaded');
+  };
+
+  const downloadPromptText = (text: string, filename: string) => {
+    const element = document.createElement("a");
+    const file = new Blob([text], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = `${filename.split('.')[0]}-prompt.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success('Prompt downloaded as text file');
   };
 
   const completedImages = images.filter(img => img.status === 'complete');
@@ -35,12 +54,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
         <div className="flex gap-2">
-          {hasCompletedImages && (
+          {hasCompletedImages && generationMode === 'metadata' && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleDownloadCSV}
-              className="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white border-none"
+              className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
             >
               <Download className="h-4 w-4" />
               <span>Download CSV</span>
@@ -58,53 +77,117 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
         </div>
       </div>
 
-      {hasCompletedImages && (
+      {/* Image to Prompt mode display */}
+      {generationMode === 'imageToPrompt' && completedImages.length > 0 && (
+        <div className="grid grid-cols-1 gap-6">
+          {completedImages.map((image) => (
+            <div key={image.id} className="bg-black rounded-lg border border-gray-800 overflow-hidden">
+              <div className="p-4">
+                <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
+                <div className="bg-black border border-gray-800 rounded-lg p-6">
+                  <p className="text-gray-300 whitespace-pre-wrap">{image.result?.description || ''}</p>
+                </div>
+                <div className="flex justify-end mt-4 gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)}
+                    className="flex items-center gap-1"
+                  >
+                    {copiedId === image.id ? (
+                      <>
+                        <Check className="h-4 w-4" />
+                        <span>Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadPromptText(image.result?.description || '', image.file.name)}
+                    className="flex items-center gap-1"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Download</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Metadata mode display */}
+      {generationMode === 'metadata' && hasCompletedImages && (
         <div className="overflow-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-800">
-                <th className="table-cell text-left">File</th>
-                <th className="table-cell text-left">Title</th>
-                <th className="table-cell text-left">Keywords</th>
-              </tr>
-            </thead>
-            <tbody>
-              {completedImages.map((image) => (
-                <tr key={image.id} className="border-b border-gray-700 hover:bg-gray-800/50">
-                  <td className="table-cell">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-12 h-12 rounded overflow-hidden">
-                        <img
-                          src={image.previewUrl}
-                          alt={image.file.name}
-                          className="w-full h-full object-cover"
-                        />
+          {completedImages.map((image) => (
+            <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-6 border-r border-gray-700/50">
+                  <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
+                  <div className="rounded-lg overflow-hidden mb-4">
+                    <img
+                      src={image.previewUrl}
+                      alt={image.file.name}
+                      className="w-full object-cover max-h-[400px]"
+                    />
+                  </div>
+                  <div className="text-gray-400">{image.file.name}</div>
+                </div>
+                
+                <div className="p-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadCSV}
+                      className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download CSV</span>
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="text-amber-500">Filename:</h4>
+                      <p className="text-white">{image.file.name}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-amber-500">Title:</h4>
+                      <p className="text-white">{image.result?.title || ''}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-amber-500">Description:</h4>
+                      <p className="text-white">{image.result?.description || ''}</p>
+                    </div>
+                    
+                    <div>
+                      <h4 className="text-amber-500">Keywords:</h4>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {image.result?.keywords.map((keyword, index) => (
+                          <span 
+                            key={index} 
+                            className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full"
+                          >
+                            {keyword}
+                          </span>
+                        ))}
                       </div>
-                      <div className="text-xs truncate max-w-[150px]">{image.file.name}</div>
                     </div>
-                  </td>
-                  <td className="table-cell">
-                    {image.result?.title || ''}
-                  </td>
-                  <td className="table-cell">
-                    <div className="flex flex-wrap gap-1">
-                      {image.result?.keywords.slice(0, 5).map((keyword, idx) => (
-                        <span 
-                          key={idx} 
-                          className="keyword-tag"
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                      {(image.result?.keywords.length || 0) > 5 && (
-                        <span className="text-xs text-gray-400">+{(image.result?.keywords.length || 0) - 5} more</span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
       

@@ -3,6 +3,7 @@ import React from 'react';
 import PlatformSelector, { Platform } from '@/components/PlatformSelector';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
+import ContentSettings from '@/components/ContentSettings';
 
 interface SidebarProps {
   titleLength: number;
@@ -47,6 +48,25 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   return (
     <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
+      <div className="p-4">
+        <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
+
+        <div className="mt-6">
+          <PlatformSelector selectedPlatform={selectedPlatform} onPlatformChange={onPlatformChange} />
+        </div>
+
+        <div className="mt-6">
+          <ContentSettings
+            titleLength={titleLength}
+            onTitleLengthChange={onTitleLengthChange}
+            descriptionLength={descriptionLength}
+            onDescriptionLengthChange={onDescriptionLengthChange}
+            keywordsCount={keywordsCount}
+            onKeywordsCountChange={onKeywordsCountChange}
+          />
+        </div>
+      </div>
+      
       <CustomizationControls 
         minTitleWords={minTitleWords}
         onMinTitleWordsChange={onMinTitleWordsChange}
@@ -57,14 +77,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         maxKeywords={maxKeywords}
         onMaxKeywordsChange={onMaxKeywordsChange}
       />
-      
-      <div className="p-4">
-        <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
-
-        <div className="mt-6">
-          <PlatformSelector selectedPlatform={selectedPlatform} onPlatformChange={onPlatformChange} />
-        </div>
-      </div>
     </aside>
   );
 };
