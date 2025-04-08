@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -6,18 +5,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, Camera } from 'lucide-react';
-
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signIn, signUp, user, isLoading } = useAuth();
+  const {
+    signIn,
+    signUp,
+    user,
+    isLoading
+  } = useAuth();
 
   // Redirect if already authenticated
   if (!isLoading && user) {
     return <Navigate to="/" replace />;
   }
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -27,7 +29,6 @@ const Auth: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -37,17 +38,12 @@ const Auth: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-
   if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
+    return <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:from-slate-950 dark:to-slate-900">
+  return <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:from-slate-950 dark:to-slate-900">
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-transparent py-4">
         <div className="container">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent flex items-center justify-center">
@@ -59,10 +55,8 @@ const Auth: React.FC = () => {
 
       <div className="flex-1 flex flex-col items-center justify-center py-8">
         <div className="mb-12 text-center">
-          <h1 className="hero-headline">Metadata Generator</h1>
-          <p className="hero-subheadline mt-4">
-            Generate SEO-friendly titles, descriptions, and keywords for your images with AI
-          </p>
+          
+          
         </div>
 
         <div className="w-full max-w-md p-8 glass-panel rounded-xl shadow-md glow">
@@ -80,43 +74,21 @@ const Auth: React.FC = () => {
                   <label htmlFor="signin-email" className="text-sm font-medium">
                     Email
                   </label>
-                  <Input
-                    id="signin-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="signin-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 
                 <div className="space-y-2">
                   <label htmlFor="signin-password" className="text-sm font-medium">
                     Password
                   </label>
-                  <Input
-                    id="signin-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  <Input id="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
                 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing in...
-                    </>
-                  ) : (
-                    "Sign In"
-                  )}
+                    </> : "Sign In"}
                 </Button>
               </form>
             </TabsContent>
@@ -127,55 +99,30 @@ const Auth: React.FC = () => {
                   <label htmlFor="signup-email" className="text-sm font-medium">
                     Email
                   </label>
-                  <Input
-                    id="signup-email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
+                  <Input id="signup-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
                 </div>
                 
                 <div className="space-y-2">
                   <label htmlFor="signup-password" className="text-sm font-medium">
                     Password
                   </label>
-                  <Input
-                    id="signup-password"
-                    type="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                  />
+                  <Input id="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
                   <p className="text-xs text-gray-500 dark:text-gray-400">
                     Password must be at least 6 characters long
                   </p>
                 </div>
                 
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating account...
-                    </>
-                  ) : (
-                    "Sign Up"
-                  )}
+                    </> : "Sign Up"}
                 </Button>
               </form>
             </TabsContent>
           </Tabs>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
