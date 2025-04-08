@@ -1,10 +1,8 @@
-
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from '@/components/ui/badge';
-
 interface ContentSettingsProps {
   titleLength: number;
   onTitleLengthChange: (value: number[]) => void;
@@ -13,28 +11,27 @@ interface ContentSettingsProps {
   keywordsCount: number;
   onKeywordsCountChange: (value: number[]) => void;
 }
-
 interface SettingRowProps {
   label: string;
   tooltip: string;
   value: number;
+  minValue: number;
   maxValue: number;
   suffix: string;
   description: string;
   onChange: (value: number[]) => void;
 }
-
 const SettingRow: React.FC<SettingRowProps> = ({
   label,
   tooltip,
   value,
+  minValue,
   maxValue,
   suffix,
   description,
   onChange
 }) => {
-  return (
-    <div className="space-y-2 mb-6">
+  return <div className="space-y-2 mb-6">
       <div className="flex items-center gap-2">
         <div className="text-gray-200">{label}</div>
         <TooltipProvider>
@@ -51,23 +48,14 @@ const SettingRow: React.FC<SettingRowProps> = ({
           {value} {suffix} • {description}
         </div>
       </div>
-      <Slider 
-        value={[value]}
-        min={1}
-        max={maxValue}
-        step={1}
-        onValueChange={onChange}
-        className="w-full"
-      />
+      <Slider value={[value]} min={minValue} max={maxValue} step={1} onValueChange={onChange} className="w-full" />
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-        <span>1</span>
-        <span>{Math.floor(maxValue / 2)}</span>
+        <span>{minValue}</span>
+        <span>{Math.floor((maxValue + minValue) / 2)}</span>
         <span>{maxValue}</span>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 const ContentSettings: React.FC<ContentSettingsProps> = ({
   titleLength,
   onTitleLengthChange,
@@ -76,46 +64,17 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
   keywordsCount,
   onKeywordsCountChange
 }) => {
-  return (
-    <div className="space-y-4 p-6 rounded-xl bg-gray-900/50 border border-gray-800">
+  return <div className="space-y-4 p-6 rounded-xl bg-gray-900/50 border border-gray-800">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-medium text-white">Content Settings</h2>
-        <Badge variant="outline" className="bg-green-900/30 text-green-400 border-green-800 px-3">
-          Gemini AI
-        </Badge>
+        <h2 className="text-xl font-medium text-white">Generation Settings</h2>
+        
       </div>
       
-      <SettingRow
-        label="Title Length"
-        tooltip="The maximum number of characters for the generated title"
-        value={titleLength}
-        maxValue={200}
-        suffix="chars"
-        description={titleLength > 150 ? "Long" : "Short"}
-        onChange={onTitleLengthChange}
-      />
+      <SettingRow label="Title Length" tooltip="Maximum length for the generated titles" value={titleLength} minValue={5} maxValue={30} suffix="words" description={titleLength > 20 ? "Long" : "Short"} onChange={onTitleLengthChange} />
       
-      <SettingRow
-        label="Keywords Count"
-        tooltip="The number of keywords to generate for your image"
-        value={keywordsCount}
-        maxValue={50}
-        suffix="keys"
-        description={keywordsCount > 25 ? "Comprehensive" : "Basic"}
-        onChange={onKeywordsCountChange}
-      />
+      <SettingRow label="Keywords Count" tooltip="Number of keywords to generate" value={keywordsCount} minValue={1} maxValue={50} suffix="keys" description={keywordsCount > 25 ? "Comprehensive" : "Basic"} onChange={onKeywordsCountChange} />
       
-      <SettingRow
-        label="Description Length"
-        tooltip="The maximum number of characters for the generated description"
-        value={descriptionLength}
-        maxValue={200}
-        suffix="chars"
-        description={descriptionLength > 150 ? "Complete" : "Brief"}
-        onChange={onDescriptionLengthChange}
-      />
-    </div>
-  );
+      <SettingRow label="Description Length" tooltip="Minimum number of words for the generated description" value={descriptionLength} minValue={15} maxValue={50} suffix="words" description={descriptionLength > 30 ? "Complete" : "Brief"} onChange={onDescriptionLengthChange} />
+    </div>;
 };
-
 export default ContentSettings;
