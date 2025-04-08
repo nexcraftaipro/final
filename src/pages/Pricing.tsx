@@ -1,16 +1,12 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
-
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-
-  return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+  return <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
       
       <div className="flex-1 py-10 px-4">
@@ -26,7 +22,7 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Free</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">$0</span>
+                  <span className="text-5xl font-extrabold tracking-tight">0</span>
                   <span className="ml-1 text-gray-400">Tk</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">Get started with basic features</p>
@@ -43,12 +39,7 @@ const PricingPage: React.FC = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button 
-                  variant="outline" 
-                  size="lg"
-                  className="w-full border-gray-700 text-gray-300 hover:bg-gray-800"
-                  onClick={() => navigate('/')}
-                >
+                <Button variant="outline" size="lg" className="w-full border-gray-700 text-gray-300 hover:bg-gray-800" onClick={() => navigate('/')}>
                   Your Current Plan
                 </Button>
               </CardFooter>
@@ -83,11 +74,7 @@ const PricingPage: React.FC = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button 
-                  size="lg"
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white"
-                  onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/b9a3a7e2ec6c21fbacfc4eb328bf647c', '_blank')}
-                >
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/b9a3a7e2ec6c21fbacfc4eb328bf647c', '_blank')}>
                   Upgrade to Premium
                 </Button>
               </CardFooter>
@@ -100,20 +87,18 @@ const PricingPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
 
 // Helper component for pricing items
-const PricingItem = ({ included, text }: { included: boolean; text: string }) => (
-  <li className="flex items-start">
-    {included ? (
-      <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" />
-    ) : (
-      <X className="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" />
-    )}
+const PricingItem = ({
+  included,
+  text
+}: {
+  included: boolean;
+  text: string;
+}) => <li className="flex items-start">
+    {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : <X className="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" />}
     <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
-  </li>
-);
-
+  </li>;
 export default PricingPage;
