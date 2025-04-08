@@ -18,7 +18,6 @@ interface SettingRowProps {
   label: string;
   tooltip: string;
   value: number;
-  minValue: number;
   maxValue: number;
   suffix: string;
   description: string;
@@ -29,7 +28,6 @@ const SettingRow: React.FC<SettingRowProps> = ({
   label,
   tooltip,
   value,
-  minValue,
   maxValue,
   suffix,
   description,
@@ -55,15 +53,15 @@ const SettingRow: React.FC<SettingRowProps> = ({
       </div>
       <Slider 
         value={[value]}
-        min={minValue}
+        min={1}
         max={maxValue}
         step={1}
         onValueChange={onChange}
         className="w-full"
       />
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-        <span>{minValue}</span>
-        <span>{Math.floor((maxValue + minValue) / 2)}</span>
+        <span>1</span>
+        <span>{Math.floor(maxValue / 2)}</span>
         <span>{maxValue}</span>
       </div>
     </div>
@@ -81,7 +79,7 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
   return (
     <div className="space-y-4 p-6 rounded-xl bg-gray-900/50 border border-gray-800">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-medium text-white">Generation Settings</h2>
+        <h2 className="text-xl font-medium text-white">Content Settings</h2>
         <Badge variant="outline" className="bg-green-900/30 text-green-400 border-green-800 px-3">
           Gemini AI
         </Badge>
@@ -91,10 +89,9 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
         label="Title Length"
         tooltip="The maximum number of characters for the generated title"
         value={titleLength}
-        minValue={5}
-        maxValue={30}
+        maxValue={200}
         suffix="chars"
-        description={titleLength > 20 ? "Long" : "Short"}
+        description={titleLength > 150 ? "Long" : "Short"}
         onChange={onTitleLengthChange}
       />
       
@@ -102,7 +99,6 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
         label="Keywords Count"
         tooltip="The number of keywords to generate for your image"
         value={keywordsCount}
-        minValue={1}
         maxValue={50}
         suffix="keys"
         description={keywordsCount > 25 ? "Comprehensive" : "Basic"}
@@ -113,10 +109,9 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
         label="Description Length"
         tooltip="The maximum number of characters for the generated description"
         value={descriptionLength}
-        minValue={5}
-        maxValue={50}
+        maxValue={200}
         suffix="chars"
-        description={descriptionLength > 30 ? "Complete" : "Brief"}
+        description={descriptionLength > 150 ? "Complete" : "Brief"}
         onChange={onDescriptionLengthChange}
       />
     </div>
