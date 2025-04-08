@@ -58,10 +58,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="flex items-center">
             <h1 className="text-xl font-semibold text-white flex items-center">
               <Image className="h-5 w-5 mr-2 text-blue-500" />
-              Meta Master
+              Meta CSV Generator Pro
             </h1>
             <div className="ml-4 text-xs text-gray-400">
-              Developed by Jayed Ahmed
+              Developed by Freepikscipts
             </div>
           </div>
           

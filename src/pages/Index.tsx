@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -33,6 +32,8 @@ const Index: React.FC = () => {
   const [maxTitleWords, setMaxTitleWords] = useState(20);
   const [minKeywords, setMinKeywords] = useState(25);
   const [maxKeywords, setMaxKeywords] = useState(30);
+  const [minDescriptionWords, setMinDescriptionWords] = useState(20);
+  const [maxDescriptionWords, setMaxDescriptionWords] = useState(50);
 
   const {
     user,
@@ -42,7 +43,6 @@ const Index: React.FC = () => {
     profile
   } = useAuth();
 
-  // Load API key from localStorage when component mounts
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini-api-key');
     if (savedKey) {
@@ -118,6 +118,14 @@ const Index: React.FC = () => {
     setMaxKeywords(value[0]);
   };
 
+  const handleMinDescriptionWordsChange = (value: number[]) => {
+    setMinDescriptionWords(value[0]);
+  };
+
+  const handleMaxDescriptionWordsChange = (value: number[]) => {
+    setMaxDescriptionWords(value[0]);
+  };
+
   const handleProcessImages = async () => {
     if (!apiKey) {
       toast.error('Please enter your Gemini API key first');
@@ -162,7 +170,9 @@ const Index: React.FC = () => {
             minTitleWords,
             maxTitleWords,
             minKeywords,
-            maxKeywords
+            maxKeywords,
+            minDescriptionWords,
+            maxDescriptionWords
           };
           
           const result = await analyzeImageWithGemini(image.file, apiKey, options);
@@ -220,6 +230,10 @@ const Index: React.FC = () => {
           onMinKeywordsChange={handleMinKeywordsChange}
           maxKeywords={maxKeywords}
           onMaxKeywordsChange={handleMaxKeywordsChange}
+          minDescriptionWords={minDescriptionWords}
+          onMinDescriptionWordsChange={handleMinDescriptionWordsChange}
+          maxDescriptionWords={maxDescriptionWords}
+          onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange}
         />
         
         <main className="flex-1 p-6 overflow-auto">

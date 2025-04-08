@@ -13,6 +13,10 @@ interface CustomizationControlsProps {
   onMinKeywordsChange: (value: number[]) => void;
   maxKeywords: number;
   onMaxKeywordsChange: (value: number[]) => void;
+  minDescriptionWords: number;
+  onMinDescriptionWordsChange: (value: number[]) => void;
+  maxDescriptionWords: number;
+  onMaxDescriptionWordsChange: (value: number[]) => void;
 }
 
 interface SettingRowProps {
@@ -70,10 +74,14 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   minKeywords,
   onMinKeywordsChange,
   maxKeywords,
-  onMaxKeywordsChange
+  onMaxKeywordsChange,
+  minDescriptionWords,
+  onMinDescriptionWordsChange,
+  maxDescriptionWords,
+  onMaxDescriptionWordsChange
 }) => {
   return (
-    <div className="p-4 border-b border-gray-700">
+    <div>
       <SettingRow
         label="Min Title Words:"
         tooltip="Minimum number of words for the generated title"
@@ -90,6 +98,24 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
         minValue={10}
         maxValue={50}
         onChange={onMaxTitleWordsChange}
+      />
+      
+      <SettingRow
+        label="Min Description Words:"
+        tooltip="Minimum number of words for the generated description"
+        value={minDescriptionWords}
+        minValue={10}
+        maxValue={100}
+        onChange={onMinDescriptionWordsChange}
+      />
+      
+      <SettingRow
+        label="Max Description Words:"
+        tooltip="Maximum number of words for the generated description"
+        value={maxDescriptionWords}
+        minValue={20}
+        maxValue={200}
+        onChange={onMaxDescriptionWordsChange}
       />
       
       <SettingRow

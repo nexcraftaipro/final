@@ -2,7 +2,7 @@
 import React from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
-import { Platform } from '@/components/PlatformSelector';
+import PlatformSelector, { Platform } from '@/components/PlatformSelector';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -15,6 +15,10 @@ interface SidebarProps {
   onMinKeywordsChange: (value: number[]) => void;
   maxKeywords: number;
   onMaxKeywordsChange: (value: number[]) => void;
+  minDescriptionWords: number;
+  onMinDescriptionWordsChange: (value: number[]) => void;
+  maxDescriptionWords: number;
+  onMaxDescriptionWordsChange: (value: number[]) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -27,7 +31,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   minKeywords,
   onMinKeywordsChange,
   maxKeywords,
-  onMaxKeywordsChange
+  onMaxKeywordsChange,
+  minDescriptionWords,
+  onMinDescriptionWordsChange,
+  maxDescriptionWords,
+  onMaxDescriptionWordsChange
 }) => {
   return (
     <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
@@ -35,16 +43,23 @@ const Sidebar: React.FC<SidebarProps> = ({
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
       </div>
       
-      <CustomizationControls 
-        minTitleWords={minTitleWords}
-        onMinTitleWordsChange={onMinTitleWordsChange}
-        maxTitleWords={maxTitleWords}
-        onMaxTitleWordsChange={onMaxTitleWordsChange}
-        minKeywords={minKeywords}
-        onMinKeywordsChange={onMinKeywordsChange}
-        maxKeywords={maxKeywords}
-        onMaxKeywordsChange={onMaxKeywordsChange}
-      />
+      <div className="p-4 border-b border-gray-700">
+        <h3 className="text-sm font-medium text-white mb-4">Metadata Customization</h3>
+        <CustomizationControls 
+          minTitleWords={minTitleWords}
+          onMinTitleWordsChange={onMinTitleWordsChange}
+          maxTitleWords={maxTitleWords}
+          onMaxTitleWordsChange={onMaxTitleWordsChange}
+          minKeywords={minKeywords}
+          onMinKeywordsChange={onMinKeywordsChange}
+          maxKeywords={maxKeywords}
+          onMaxKeywordsChange={onMaxKeywordsChange}
+          minDescriptionWords={minDescriptionWords}
+          onMinDescriptionWordsChange={onMinDescriptionWordsChange}
+          maxDescriptionWords={maxDescriptionWords}
+          onMaxDescriptionWordsChange={onMaxDescriptionWordsChange}
+        />
+      </div>
     </aside>
   );
 };
