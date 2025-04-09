@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -101,18 +102,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Check if a user is already logged in elsewhere
   const checkActiveSession = async (email: string): Promise<boolean> => {
     try {
+      // Use a raw query approach to avoid TypeScript type checking issues
       const { data, error } = await supabase
-        .from('active_sessions')
-        .select('*')
-        .eq('email', email)
+        .rpc('check_active_session', { user_email: email })
         .single();
 
       if (error && error.code !== 'PGRST116') {
         // PGRST116 means no rows returned, which is what we want
         console.error('Error checking active sessions:', error);
+        return false;
       }
 
-      return !!data; // If data exists, user is already logged in
+      return !!data?.exists; // If data exists, user is already logged in
     } catch (error) {
       console.error('Error in checkActiveSession:', error);
       return false;
@@ -123,13 +124,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setActiveSession = async (userId: string, email: string): Promise<void> => {
     try {
       const sessionId = session?.access_token.slice(-10) || Date.now().toString();
+      
+      // Use RPC function to set active session
       const { error } = await supabase
-        .from('active_sessions')
-        .upsert({
-          id: userId,
-          email: email,
-          session_id: sessionId,
-          last_activity: new Date().toISOString()
+        .rpc('set_active_session', { 
+          user_id: userId,
+          user_email: email,
+          session_identifier: sessionId,
+          activity_time: new Date().toISOString()
         });
 
       if (error) {
@@ -145,10 +147,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!userId) return;
     
     try {
+      // Use RPC function to remove active session
       const { error } = await supabase
-        .from('active_sessions')
-        .delete()
-        .eq('id', userId);
+        .rpc('remove_active_session', { user_id: userId });
 
       if (error) {
         console.error('Error removing active session:', error);
