@@ -3,18 +3,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 /**
- * Helper function to check if the active_sessions table exists
- * @returns Promise<boolean> indicating if the table exists
+ * Helper function to check if the active_sessions functions exists
+ * @returns Promise<boolean> indicating if the functions exist
  */
 export const checkActiveSessionsTable = async (): Promise<boolean> => {
   try {
-    // Try a query that would fail if the table doesn't exist
-    // But wrap it in error handling to catch the failure
-    await supabase.from('profiles').select('*').limit(1);
+    // Try a function call that would fail if the function doesn't exist
+    const { error } = await supabase.rpc('check_active_session', {
+      user_email: 'test@example.com'
+    });
     
-    return true;
+    // If there's no error or the error is just "no rows returned", the function exists
+    return !error || error.code === 'PGRST116';
   } catch (error) {
-    console.error('Error checking tables:', error);
+    console.error('Error checking active sessions setup:', error);
     return false;
   }
 };

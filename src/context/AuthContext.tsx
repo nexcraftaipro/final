@@ -1,9 +1,9 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { checkActiveSession, setActiveSession, removeActiveSession } from '@/utils/supabaseUtils';
 
 interface UserProfile {
   id: string;
@@ -100,69 +100,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Check if a user is already logged in elsewhere
-  const checkActiveSession = async (email: string): Promise<boolean> => {
-    try {
-      // Use a raw query approach to avoid TypeScript type checking issues
-      const { data, error } = await supabase
-        .rpc('check_active_session', { user_email: email })
-        .single();
-
-      if (error && error.code !== 'PGRST116') {
-        // PGRST116 means no rows returned, which is what we want
-        console.error('Error checking active sessions:', error);
-        return false;
-      }
-
-      return !!data?.exists; // If data exists, user is already logged in
-    } catch (error) {
-      console.error('Error in checkActiveSession:', error);
-      return false;
-    }
-  };
-
-  // Set user as active in the database
-  const setActiveSession = async (userId: string, email: string): Promise<void> => {
-    try {
-      const sessionId = session?.access_token.slice(-10) || Date.now().toString();
-      
-      // Use RPC function to set active session
-      const { error } = await supabase
-        .rpc('set_active_session', { 
-          user_id: userId,
-          user_email: email,
-          session_identifier: sessionId,
-          activity_time: new Date().toISOString()
-        });
-
-      if (error) {
-        console.error('Error setting active session:', error);
-      }
-    } catch (error) {
-      console.error('Error in setActiveSession:', error);
-    }
-  };
-
-  // Remove user from active sessions
-  const removeActiveSession = async (userId: string): Promise<void> => {
-    if (!userId) return;
-    
-    try {
-      // Use RPC function to remove active session
-      const { error } = await supabase
-        .rpc('remove_active_session', { user_id: userId });
-
-      if (error) {
-        console.error('Error removing active session:', error);
-      }
-    } catch (error) {
-      console.error('Error in removeActiveSession:', error);
-    }
+  const checkUserActiveSession = async (email: string): Promise<boolean> => {
+    return await checkActiveSession(email);
   };
 
   const signIn = async (email: string, password: string) => {
     try {
       // Check if the user is already logged in elsewhere
-      const isActiveSession = await checkActiveSession(email);
+      const isActiveSession = await checkUserActiveSession(email);
       if (isActiveSession) {
         toast.error('This account is already logged in on another device or browser');
         return;
@@ -176,8 +121,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
       
       // Set the user as active
-      if (data.user) {
-        await setActiveSession(data.user.id, email);
+      if (data?.user) {
+        const sessionId = data.session?.access_token.slice(-10) || Date.now().toString();
+        await setActiveSession(data.user.id, email, sessionId);
       }
       
       toast.success('Signed in successfully');
@@ -270,7 +216,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const updateSessionActivity = async () => {
       if (user && session) {
-        await setActiveSession(user.id, user.email || '');
+        const sessionId = session.access_token.slice(-10) || Date.now().toString();
+        await setActiveSession(user.id, user.email || '', sessionId);
       }
     };
 

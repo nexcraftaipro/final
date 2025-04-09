@@ -23,6 +23,74 @@ export const executeCustomQuery = async (sqlQuery: string) => {
 };
 
 /**
+ * Check if a user is already logged in elsewhere
+ * @param email - The user's email
+ * @returns Promise<boolean> indicating if the user has an active session
+ */
+export const checkActiveSession = async (email: string): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.rpc('check_active_session', {
+      user_email: email
+    });
+
+    if (error) {
+      console.error('Error checking active session:', error);
+      return false;
+    }
+
+    return !!data?.exists;
+  } catch (error) {
+    console.error('Error in checkActiveSession:', error);
+    return false;
+  }
+};
+
+/**
+ * Set a user as active in the active_sessions table
+ * @param userId - The user's ID
+ * @param email - The user's email
+ * @param sessionId - Unique identifier for this session
+ */
+export const setActiveSession = async (
+  userId: string, 
+  email: string, 
+  sessionId: string
+): Promise<void> => {
+  try {
+    const { error } = await supabase.rpc('set_active_session', {
+      user_id: userId,
+      user_email: email,
+      session_identifier: sessionId,
+      activity_time: new Date().toISOString()
+    });
+
+    if (error) {
+      console.error('Error setting active session:', error);
+    }
+  } catch (error) {
+    console.error('Error in setActiveSession:', error);
+  }
+};
+
+/**
+ * Remove a user from the active_sessions table
+ * @param userId - The user's ID
+ */
+export const removeActiveSession = async (userId: string): Promise<void> => {
+  try {
+    const { error } = await supabase.rpc('remove_active_session', {
+      user_id: userId
+    });
+
+    if (error) {
+      console.error('Error removing active session:', error);
+    }
+  } catch (error) {
+    console.error('Error in removeActiveSession:', error);
+  }
+};
+
+/**
  * Setup function to initialize the database tables and functions needed
  * This should be run once to set up the required database structure
  */
