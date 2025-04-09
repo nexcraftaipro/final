@@ -7,8 +7,8 @@ import { Camera, Crown, Diamond, Box, CircleIcon } from 'lucide-react';
 export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Canva' | '123RF' | 'Dreamstime';
 
 interface PlatformSelectorProps {
-  selectedPlatforms: Platform[];
-  onPlatformChange: (platforms: Platform[]) => void;
+  selectedPlatform: Platform | null;
+  onPlatformChange: (platform: Platform) => void;
 }
 
 const platforms: {
@@ -54,19 +54,9 @@ const platforms: {
 ];
 
 const PlatformSelector: React.FC<PlatformSelectorProps> = ({
-  selectedPlatforms,
+  selectedPlatform,
   onPlatformChange
 }) => {
-  const togglePlatform = (platform: Platform) => {
-    if (selectedPlatforms.includes(platform)) {
-      // Remove the platform if it's already selected
-      onPlatformChange(selectedPlatforms.filter(p => p !== platform));
-    } else {
-      // Add the platform if it's not selected
-      onPlatformChange([...selectedPlatforms, platform]);
-    }
-  };
-
   return (
     <div className="flex space-x-2 overflow-x-auto px-[6px] mx-0 my-0 py-[8px]">
       {platforms.map(platform => (
@@ -75,10 +65,10 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
             <TooltipTrigger asChild>
               <button
                 type="button"
-                onClick={() => togglePlatform(platform.id)}
+                onClick={() => onPlatformChange(platform.id)}
                 className={cn(
                   "flex items-center space-x-2 rounded-lg px-4 py-2 text-sm transition-all relative overflow-hidden",
-                  selectedPlatforms.includes(platform.id)
+                  selectedPlatform === platform.id
                     ? "ring-2 ring-blue-500 bg-blue-500/10"
                     : "bg-gray-800 hover:bg-gray-700"
                 )}
@@ -86,7 +76,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                 {/* Glow Effect Overlay */}
                 <div className={cn(
                   "absolute inset-0 opacity-0 transition-opacity duration-300 rounded-lg pointer-events-none",
-                  selectedPlatforms.includes(platform.id)
+                  selectedPlatform === platform.id
                     ? "bg-gradient-to-r from-purple-600/30 via-blue-500/30 to-cyan-400/30 opacity-100"
                     : "bg-gradient-to-r from-purple-600/30 via-blue-500/30 to-cyan-400/30 group-hover:opacity-100"
                 )}
