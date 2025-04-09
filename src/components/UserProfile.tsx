@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Crown, Infinity } from 'lucide-react';
+import { LogOut, User, Crown, Infinity, Sun, Moon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTheme } from 'next-themes';
+
 const UserProfile: React.FC = () => {
   const {
     user,
@@ -11,20 +14,24 @@ const UserProfile: React.FC = () => {
     signOut,
     canGenerateMetadata
   } = useAuth();
-  const [avatarUrl, setAvatarUrl] = useState('');
-  useEffect(() => {
-    if (user) {
-      // Generate a random avatar based on user email
-      const seed = user.email || Math.random().toString();
-      // Using DiceBear API to generate random avatars
-      const randomId = Math.floor(Math.random() * 1000);
-      setAvatarUrl(`https://api.dicebear.com/7.x/personas/svg?seed=${seed}-${randomId}`);
-    }
-  }, [user]);
+
+  const { theme, setTheme } = useTheme();
+  
   if (!user || !profile) return null;
+  
   const creditPercentage = Math.min(profile.credits_used / 10 * 100, 100);
   const remainingCredits = profile.is_premium ? '∞' : Math.max(0, 10 - profile.credits_used);
-  return <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
+  
+  // Generate avatar URL based on user email for consistency
+  const avatarSeed = user.email || 'default';
+  const avatarUrl = `https://api.dicebear.com/7.x/personas/svg?seed=${avatarSeed}`;
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -37,14 +44,23 @@ const UserProfile: React.FC = () => {
             <div>
               <p className="font-medium text-white">{user.email}</p>
               <div className="flex items-center text-sm text-gray-400">
-                {profile.is_premium ? <div className="flex items-center text-amber-400">
+                {profile.is_premium ? (
+                  <div className="flex items-center text-amber-400">
                     <Crown className="h-3 w-3 mr-1 bg-[#0d0e0d]" />
                     <span className="text-[#01fa01]">Premium User</span>
-                  </div> : <span>Free User</span>}
+                  </div>
+                ) : (
+                  <span>Free User</span>
+                )}
               </div>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={signOut} className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300 hover:-translate-y-1 mx-[10px] my-0 py-0 px-[10px] text-base">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={signOut}
+            className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300 hover:-translate-y-1 mx-[10px] my-0 py-0 px-[10px] text-base"
+          >
             <LogOut className="h-4 w-4 mr-1" />
             Sign Out
           </Button>
@@ -56,12 +72,36 @@ const UserProfile: React.FC = () => {
           <span className="text-sm text-gray-400">Credits remaining</span>
           <div className="flex items-center font-medium text-amber-400">
             {profile.is_premium ? <Infinity className="h-4 w-4 mr-1" /> : null}
-            
+            <span>{remainingCredits}</span>
           </div>
         </div>
         
-        {!profile.is_premium && <Progress value={creditPercentage} className="h-2 bg-gray-800" indicatorClassName="bg-gradient-to-r from-amber-500 to-orange-500" />}
+        {!profile.is_premium && (
+          <Progress 
+            value={creditPercentage} 
+            className="h-2 bg-gray-800" 
+            indicatorClassName="bg-gradient-to-r from-amber-500 to-orange-500" 
+          />
+        )}
+        
+        <div className="pt-2 border-t border-gray-800 mt-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={toggleTheme}
+            className="w-full justify-between border-gray-700 hover:bg-gray-800 transition-all duration-300"
+          >
+            <span>Theme</span>
+            {theme === 'dark' ? (
+              <Moon className="h-4 w-4 text-blue-400" />
+            ) : (
+              <Sun className="h-4 w-4 text-yellow-400" />
+            )}
+          </Button>
+        </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default UserProfile;

@@ -4,8 +4,7 @@ import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Toggle } from '@/components/ui/toggle';
 
-// Create a component that safely uses the theme hook
-const ThemeToggleContent: React.FC = () => {
+const ThemeToggle: React.FC = () => {
   const { theme, setTheme } = useTheme();
   
   // Handle theme toggle
@@ -25,19 +24,10 @@ const ThemeToggleContent: React.FC = () => {
         {theme === 'dark' ? (
           <Moon className="h-5 w-5 text-orange-400 transition-all duration-500 hover:scale-110" />
         ) : (
-          <Sun className="h-5 w-5 text-orange-500 transition-all duration-500 hover:scale-110 animate-spin-slow" />
+          <Sun className="h-5 w-5 text-orange-500 transition-all duration-500 hover:scale-110" />
         )}
       </div>
     </Toggle>
-  );
-};
-
-// Create a wrapper component that doesn't use hooks
-const ThemeToggle: React.FC = () => {
-  return (
-    <div className="hidden">
-      <ThemeToggleContent />
-    </div>
   );
 };
 
