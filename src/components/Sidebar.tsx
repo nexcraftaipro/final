@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
       
       <div className="p-4 border-b border-gray-700 flex-1 overflow-auto">
-        <h3 className="text-sm font-medium text-white mb-4">Metadata Customization</h3>
+        <h3 className="text-sm font-medium mb-4 text-[#f68003]">Metadata Customization</h3>
         <CustomizationControls minTitleWords={minTitleWords} onMinTitleWordsChange={onMinTitleWordsChange} maxTitleWords={maxTitleWords} onMaxTitleWordsChange={onMaxTitleWordsChange} minKeywords={minKeywords} onMinKeywordsChange={onMinKeywordsChange} maxKeywords={maxKeywords} onMaxKeywordsChange={onMaxKeywordsChange} minDescriptionWords={minDescriptionWords} onMinDescriptionWordsChange={onMinDescriptionWordsChange} maxDescriptionWords={maxDescriptionWords} onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} />
       </div>
       
