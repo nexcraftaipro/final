@@ -190,7 +190,7 @@ const Index: React.FC = () => {
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
               <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
-                <h2 className="text-lg font-medium text-white mb-2">Platform</h2>
+                <h2 className="text-lg font-medium mb-2 text-[#fe6e00]">PLATFORMS:-</h2>
                 <div className="flex border-b border-gray-700">
                   <PlatformSelector selectedPlatform={platform} onPlatformChange={handlePlatformChange} />
                 </div>
