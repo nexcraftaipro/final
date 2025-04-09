@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -99,14 +98,86 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Check if a user is already logged in elsewhere
+  const checkActiveSession = async (email: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase
+        .from('active_sessions')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 means no rows returned, which is what we want
+        console.error('Error checking active sessions:', error);
+      }
+
+      return !!data; // If data exists, user is already logged in
+    } catch (error) {
+      console.error('Error in checkActiveSession:', error);
+      return false;
+    }
+  };
+
+  // Set user as active in the database
+  const setActiveSession = async (userId: string, email: string): Promise<void> => {
+    try {
+      const sessionId = session?.access_token.slice(-10) || Date.now().toString();
+      const { error } = await supabase
+        .from('active_sessions')
+        .upsert({
+          id: userId,
+          email: email,
+          session_id: sessionId,
+          last_activity: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error setting active session:', error);
+      }
+    } catch (error) {
+      console.error('Error in setActiveSession:', error);
+    }
+  };
+
+  // Remove user from active sessions
+  const removeActiveSession = async (userId: string): Promise<void> => {
+    if (!userId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('active_sessions')
+        .delete()
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Error removing active session:', error);
+      }
+    } catch (error) {
+      console.error('Error in removeActiveSession:', error);
+    }
+  };
+
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      // Check if the user is already logged in elsewhere
+      const isActiveSession = await checkActiveSession(email);
+      if (isActiveSession) {
+        toast.error('This account is already logged in on another device or browser');
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+      
+      // Set the user as active
+      if (data.user) {
+        await setActiveSession(data.user.id, email);
+      }
       
       toast.success('Signed in successfully');
       navigate('/');
@@ -136,6 +207,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Remove the user from active sessions before signing out
+      if (user) {
+        await removeActiveSession(user.id);
+      }
+      
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
@@ -188,6 +264,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
   };
+
+  // Add a heartbeat function to keep the session alive
+  useEffect(() => {
+    const updateSessionActivity = async () => {
+      if (user && session) {
+        await setActiveSession(user.id, user.email || '');
+      }
+    };
+
+    // Update session activity every 5 minutes
+    const intervalId = setInterval(updateSessionActivity, 5 * 60 * 1000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, [user, session]);
+
+  // Listen for window close or tab close to remove the active session
+  useEffect(() => {
+    const handleBeforeUnload = async () => {
+      if (user) {
+        await removeActiveSession(user.id);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [user]);
 
   const value = {
     session,
