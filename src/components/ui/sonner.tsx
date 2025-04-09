@@ -1,9 +1,11 @@
+
 import { useTheme } from "next-themes"
 import { Toaster as Sonner } from "sonner"
 
 type ToasterProps = React.ComponentProps<typeof Sonner>
 
-const Toaster = ({ ...props }: ToasterProps) => {
+// Create a component that safely uses the theme hook
+const ToasterContent = ({ ...props }: ToasterProps) => {
   const { theme = "system" } = useTheme()
 
   return (
@@ -24,6 +26,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
       {...props}
     />
   )
+}
+
+// Create a wrapper component that doesn't use hooks directly
+const Toaster = (props: ToasterProps) => {
+  return <ToasterContent {...props} />;
 }
 
 export { Toaster }

@@ -14,9 +14,9 @@ import { AuthProvider } from "./context/AuthContext";
 const queryClient = new QueryClient();
 
 const App = () => (
-  <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+  <BrowserRouter>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
@@ -29,9 +29,9 @@ const App = () => (
             </Routes>
           </TooltipProvider>
         </AuthProvider>
-      </BrowserRouter>
+      </ThemeProvider>
     </QueryClientProvider>
-  </ThemeProvider>
+  </BrowserRouter>
 );
 
 export default App;
