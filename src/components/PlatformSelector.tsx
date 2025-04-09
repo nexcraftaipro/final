@@ -2,7 +2,6 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Crown, Diamond, Box, CircleIcon } from 'lucide-react';
 
 export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Canva' | '123RF' | 'Dreamstime';
 
@@ -13,42 +12,42 @@ interface PlatformSelectorProps {
 
 const platforms: {
   id: Platform;
-  icon: React.ReactNode;
+  imgSrc: string;
   name: string;
 }[] = [
   {
     id: 'Freepik',
-    icon: <Crown className="h-5 w-5 text-yellow-400" />,
+    imgSrc: '/lovable-uploads/bd85c2fa-e4e3-4445-a43a-8fd48a0fcdeb.png',
     name: 'Freepik'
   },
   {
     id: 'AdobeStock',
-    icon: <span className="text-sm font-bold">St</span>,
+    imgSrc: '/lovable-uploads/89332086-fa16-40a9-abff-1f946b992469.png',
     name: 'AdobeStock'
   },
   {
     id: 'Shutterstock',
-    icon: <Camera className="h-5 w-5 text-blue-400" />,
+    imgSrc: '/lovable-uploads/e363fb07-b380-46fe-8e0b-185a16cb6a4d.png',
     name: 'Shutterstock'
   },
   {
     id: 'Vecteezy',
-    icon: <Diamond className="h-5 w-5 text-orange-500" />,
+    imgSrc: '/lovable-uploads/764c7b7e-771a-424d-80c9-ac25a796c0af.png',
     name: 'Vecteezy'
   },
   {
     id: 'Canva',
-    icon: <Diamond className="h-5 w-5 text-blue-500" />,
+    imgSrc: '/lovable-uploads/8a67d08d-da17-4c8a-a5a2-e6c9125a6d3f.png',
     name: 'Canva'
   },
   {
     id: '123RF',
-    icon: <Box className="h-5 w-5 text-purple-400" />,
+    imgSrc: '/lovable-uploads/5ab1838a-533f-49c4-acd7-297a2b3db26a.png',
     name: '123RF'
   },
   {
     id: 'Dreamstime',
-    icon: <CircleIcon className="h-5 w-5 text-indigo-400" />,
+    imgSrc: '/lovable-uploads/bfddde46-cbec-4d7b-9e5a-a7808fead3bf.png',
     name: 'Dreamstime'
   }
 ];
@@ -58,7 +57,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange
 }) => {
   return (
-    <div className="flex space-x-2 overflow-x-auto px-[6px] mx-0 my-0 py-[8px]">
+    <div className="flex space-x-3 overflow-x-auto px-2 mx-0 my-0 py-3">
       {platforms.map(platform => (
         <TooltipProvider key={platform.id}>
           <Tooltip>
@@ -67,7 +66,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                 type="button"
                 onClick={() => onPlatformChange(platform.id)}
                 className={cn(
-                  "flex items-center space-x-2 rounded-lg px-4 py-2 text-sm transition-all relative overflow-hidden",
+                  "flex flex-col items-center justify-center rounded-lg px-4 py-3 text-sm transition-all relative overflow-hidden group",
                   selectedPlatform === platform.id
                     ? "ring-2 ring-blue-500 bg-blue-500/10"
                     : "bg-gray-800 hover:bg-gray-700"
@@ -84,8 +83,9 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     boxShadow: "0 0 15px 2px rgba(123, 97, 255, 0.3)",
                   }}
                 />
-                <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-700 relative z-10">
-                  {platform.icon}
+                
+                <div className="flex h-12 w-12 items-center justify-center rounded bg-transparent relative z-10 mb-1">
+                  <img src={platform.imgSrc} alt={platform.name} className="h-10 w-10 object-contain" />
                 </div>
                 <span className="text-sm text-gray-300 relative z-10">{platform.name}</span>
               </button>
