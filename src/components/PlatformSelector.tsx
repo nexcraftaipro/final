@@ -2,6 +2,7 @@
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Camera, Crown, Diamond, Box, CircleIcon } from 'lucide-react';
 
 export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Canva' | '123RF' | 'Dreamstime';
 
@@ -12,42 +13,42 @@ interface PlatformSelectorProps {
 
 const platforms: {
   id: Platform;
-  imgSrc: string;
+  icon: React.ReactNode;
   name: string;
 }[] = [
   {
     id: 'Freepik',
-    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
+    icon: <Crown className="h-5 w-5 text-yellow-400" />,
     name: 'Freepik'
   },
   {
     id: 'AdobeStock',
-    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
+    icon: <span className="text-sm font-bold">St</span>,
     name: 'AdobeStock'
   },
   {
     id: 'Shutterstock',
-    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
+    icon: <Camera className="h-5 w-5 text-blue-400" />,
     name: 'Shutterstock'
   },
   {
     id: 'Vecteezy',
-    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
+    icon: <Diamond className="h-5 w-5 text-orange-500" />,
     name: 'Vecteezy'
   },
   {
     id: 'Canva',
-    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
+    icon: <Diamond className="h-5 w-5 text-blue-500" />,
     name: 'Canva'
   },
   {
     id: '123RF',
-    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
+    icon: <Box className="h-5 w-5 text-purple-400" />,
     name: '123RF'
   },
   {
     id: 'Dreamstime',
-    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
+    icon: <CircleIcon className="h-5 w-5 text-indigo-400" />,
     name: 'Dreamstime'
   }
 ];
@@ -57,7 +58,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange
 }) => {
   return (
-    <div className="flex space-x-3 overflow-x-auto px-2 mx-0 my-0 py-3">
+    <div className="flex space-x-2 overflow-x-auto px-[6px] mx-0 my-0 py-[8px]">
       {platforms.map(platform => (
         <TooltipProvider key={platform.id}>
           <Tooltip>
@@ -66,7 +67,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                 type="button"
                 onClick={() => onPlatformChange(platform.id)}
                 className={cn(
-                  "flex flex-col items-center justify-center rounded-lg px-6 py-4 text-sm transition-all relative overflow-hidden group min-w-[110px]",
+                  "flex items-center space-x-2 rounded-lg px-4 py-2 text-sm transition-all relative overflow-hidden",
                   selectedPlatform === platform.id
                     ? "ring-2 ring-blue-500 bg-blue-500/10"
                     : "bg-gray-800 hover:bg-gray-700"
@@ -83,24 +84,10 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     boxShadow: "0 0 15px 2px rgba(123, 97, 255, 0.3)",
                   }}
                 />
-                
-                <div className="flex h-16 w-16 items-center justify-center rounded bg-transparent relative z-10 mb-2">
-                  <img 
-                    src={platform.imgSrc} 
-                    alt={platform.name} 
-                    className="h-14 w-14 object-contain"
-                    style={{ 
-                      backgroundColor: "#f8f9fa", 
-                      padding: "2px", 
-                      borderRadius: "4px" 
-                    }}
-                    onError={(e) => {
-                      console.error(`Failed to load image: ${platform.imgSrc}`);
-                      e.currentTarget.src = '/placeholder.svg'; // Fallback to placeholder
-                    }}
-                  />
+                <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-700 relative z-10">
+                  {platform.icon}
                 </div>
-                <span className="text-sm font-medium text-gray-200 relative z-10">{platform.name}</span>
+                <span className="text-sm text-gray-300 relative z-10">{platform.name}</span>
               </button>
             </TooltipTrigger>
             <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">

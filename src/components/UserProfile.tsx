@@ -2,9 +2,10 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Crown, Infinity } from 'lucide-react';
+import { LogOut, User, Crown, Infinity, Sun, Moon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTheme } from 'next-themes';
 
 const UserProfile: React.FC = () => {
   const {
@@ -13,6 +14,8 @@ const UserProfile: React.FC = () => {
     signOut,
     canGenerateMetadata
   } = useAuth();
+
+  const { theme, setTheme } = useTheme();
   
   if (!user || !profile) return null;
   
@@ -22,6 +25,10 @@ const UserProfile: React.FC = () => {
   // Generate avatar URL based on user email for consistency
   const avatarSeed = user.email || 'default';
   const avatarUrl = `https://api.dicebear.com/7.x/personas/svg?seed=${avatarSeed}`;
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
@@ -76,6 +83,22 @@ const UserProfile: React.FC = () => {
             indicatorClassName="bg-gradient-to-r from-amber-500 to-orange-500" 
           />
         )}
+        
+        <div className="pt-2 border-t border-gray-800 mt-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={toggleTheme}
+            className="w-full justify-between border-gray-700 hover:bg-gray-800 transition-all duration-300"
+          >
+            <span>Theme</span>
+            {theme === 'dark' ? (
+              <Moon className="h-4 w-4 text-blue-400" />
+            ) : (
+              <Sun className="h-4 w-4 text-yellow-400" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
