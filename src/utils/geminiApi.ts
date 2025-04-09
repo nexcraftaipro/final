@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import type { Platform } from "@/components/PlatformSelector";
 import type { GenerationMode } from "@/components/GenerationModeSelector";
@@ -15,7 +14,7 @@ interface MetadataOptions {
   titleLength: number;
   descriptionLength: number;
   keywordCount: number;
-  platform: Platform | null;
+  platforms: Platform[];  // Changed from platform to platforms (array)
   generationMode: GenerationMode;
   minTitleWords: number;
   maxTitleWords: number;
@@ -77,8 +76,9 @@ export async function analyzeImageWithGemini(
       const descriptionInstruction = `The description should be between ${options.minDescriptionWords}-${options.maxDescriptionWords} words, minimum ${options.minDescriptionWords} words`;
       
       let platformInstruction = "";
-      if (options.platform) {
-        platformInstruction = `Optimize the metadata specifically for ${options.platform} platform requirements and best practices.`;
+      if (options.platforms && options.platforms.length > 0) {
+        // Update to handle multiple platforms
+        platformInstruction = `Optimize the metadata specifically for ${options.platforms.join(', ')} platform requirements and best practices.`;
       }
       
       promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
