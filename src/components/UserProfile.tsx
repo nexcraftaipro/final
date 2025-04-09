@@ -38,8 +38,8 @@ const UserProfile: React.FC = () => {
               <p className="font-medium text-white">{user.email}</p>
               <div className="flex items-center text-sm text-gray-400">
                 {profile.is_premium ? <div className="flex items-center text-amber-400">
-                    <Crown className="h-3 w-3 mr-1" />
-                    <span>Premium User</span>
+                    <Crown className="h-3 w-3 mr-1 bg-[#0d0e0d]" />
+                    <span className="text-[#01fa01]">Premium User</span>
                   </div> : <span>Free User</span>}
               </div>
             </div>
