@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Crown, Infinity } from 'lucide-react';
@@ -8,6 +8,17 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const UserProfile: React.FC = () => {
   const { user, profile, signOut, canGenerateMetadata } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState('');
+
+  useEffect(() => {
+    if (user) {
+      // Generate a random avatar based on user email
+      const seed = user.email || Math.random().toString();
+      // Using DiceBear API to generate random avatars
+      const randomId = Math.floor(Math.random() * 1000);
+      setAvatarUrl(`https://api.dicebear.com/7.x/personas/svg?seed=${seed}-${randomId}`);
+    }
+  }, [user]);
 
   if (!user || !profile) return null;
 
@@ -19,10 +30,10 @@ const UserProfile: React.FC = () => {
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <Avatar>
-              <AvatarImage src="https://github.com/shadcn.png" alt="User" />
+            <Avatar className="ring-2 ring-blue-500/50">
+              <AvatarImage src={avatarUrl} alt={user.email} />
               <AvatarFallback className="bg-blue-900">
-                <User className="h-5 w-5 text-blue-300" />
+                {user.email.charAt(0).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -43,7 +54,7 @@ const UserProfile: React.FC = () => {
             variant="outline" 
             size="sm" 
             onClick={signOut}
-            className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"
+            className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300 hover:-translate-y-1"
           >
             <LogOut className="h-4 w-4 mr-1" />
             Sign Out

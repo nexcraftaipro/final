@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, Camera } from 'lucide-react';
+import { Loader2, FileType } from 'lucide-react';
+
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,6 +22,7 @@ const Auth: React.FC = () => {
   if (!isLoading && user) {
     return <Navigate to="/" replace />;
   }
+  
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -29,6 +32,7 @@ const Auth: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+  
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -38,17 +42,19 @@ const Auth: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+  
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>;
   }
+  
   return <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:from-slate-950 dark:to-slate-900">
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-transparent py-4">
         <div className="container">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-500 dark:from-blue-400 dark:to-cyan-300 bg-clip-text text-transparent flex items-center justify-center">
-            <Camera className="h-6 w-6 mr-2 text-primary" />
-            Photo Metadata Helper
+          <h1 className="text-2xl font-bold flex items-center justify-center">
+            <FileType className="h-6 w-6 mr-2" style={{color: '#f14010'}} />
+            <span style={{color: '#f14010'}}>Meta CSV Generator Pro</span>
           </h1>
         </div>
       </header>
@@ -84,7 +90,7 @@ const Auth: React.FC = () => {
                   <Input id="signin-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required />
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1" disabled={isSubmitting}>
                   {isSubmitting ? <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Signing in...
@@ -112,7 +118,7 @@ const Auth: React.FC = () => {
                   </p>
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                <Button type="submit" className="w-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1" disabled={isSubmitting}>
                   {isSubmitting ? <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       Creating account...
@@ -125,4 +131,5 @@ const Auth: React.FC = () => {
       </div>
     </div>;
 };
+
 export default Auth;

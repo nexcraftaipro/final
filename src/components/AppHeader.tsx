@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Image, Eye, EyeOff, CreditCard } from 'lucide-react';
+import { FileType, Eye, EyeOff, CreditCard, Facebook } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
 import ThemeToggle from '@/components/ThemeToggle';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import UserProfile from '@/components/UserProfile';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 
 interface AppHeaderProps {
   remainingCredits: string | number;
@@ -22,6 +24,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     setInputKey(apiKey);
@@ -48,13 +51,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     toast.success('API key cleared');
   };
 
+  const openSupportPage = () => {
+    window.open("https://www.facebook.com/FreepikScripts", "_blank");
+  };
+
   return (
     <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <h1 className="text-xl font-semibold text-white flex items-center">
-            <Image className="h-5 w-5 mr-2 text-blue-500" />
-            Meta CSV Generator Pro
+          <h1 className="text-xl font-semibold flex items-center">
+            <FileType className="h-5 w-5 mr-2" style={{color: '#f14010'}} />
+            <span style={{color: '#f14010'}}>Meta CSV Generator Pro</span>
           </h1>
           <div className="ml-4 text-xs text-gray-400">
             Developed by Freepikscipts
@@ -62,15 +69,29 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
         
         <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-amber-500 border-amber-700 hover:bg-amber-900/20"
-            onClick={() => navigate('/pricing')}
-          >
-            <CreditCard className="h-4 w-4 mr-1" />
-            Pricing
-          </Button>
+          {user && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-amber-500 border-amber-700 hover:bg-amber-900/20 transition-all duration-300 hover:shadow-md"
+                onClick={() => navigate('/pricing')}
+              >
+                <CreditCard className="h-4 w-4 mr-1" />
+                Pricing
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-blue-500 border-blue-700 hover:bg-blue-900/20 transition-all duration-300 hover:shadow-md"
+                onClick={openSupportPage}
+              >
+                <Facebook className="h-4 w-4 mr-1" />
+                Support
+              </Button>
+            </>
+          )}
           
           <div className="flex items-center">
             <span className="text-sm text-gray-400 mr-2">API Key:</span>
@@ -105,7 +126,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-green-500 hover:text-green-400 hover:bg-gray-700"
+              className="text-green-500 hover:text-green-400 hover:bg-gray-700 transition-all duration-300 hover:-translate-y-1"
               onClick={handleSaveKey}
             >
               Save API
@@ -113,12 +134,25 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-blue-500 hover:text-blue-400 hover:bg-gray-700"
+              className="text-blue-500 hover:text-blue-400 hover:bg-gray-700 transition-all duration-300 hover:-translate-y-1"
               onClick={() => window.open("https://aistudio.google.com/app/apikey", "_blank")}
             >
               Get API
             </Button>
           </div>
+          
+          {user && (
+            <HoverCard>
+              <HoverCardTrigger asChild>
+                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center cursor-pointer text-white font-medium">
+                  {user.email.charAt(0).toUpperCase()}
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent className="w-80">
+                <UserProfile />
+              </HoverCardContent>
+            </HoverCard>
+          )}
         </div>
       </div>
     </header>
