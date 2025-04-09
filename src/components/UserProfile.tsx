@@ -1,15 +1,17 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Crown, Infinity } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-
 const UserProfile: React.FC = () => {
-  const { user, profile, signOut, canGenerateMetadata } = useAuth();
+  const {
+    user,
+    profile,
+    signOut,
+    canGenerateMetadata
+  } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState('');
-
   useEffect(() => {
     if (user) {
       // Generate a random avatar based on user email
@@ -19,14 +21,10 @@ const UserProfile: React.FC = () => {
       setAvatarUrl(`https://api.dicebear.com/7.x/personas/svg?seed=${seed}-${randomId}`);
     }
   }, [user]);
-
   if (!user || !profile) return null;
-
-  const creditPercentage = Math.min((profile.credits_used / 10) * 100, 100);
+  const creditPercentage = Math.min(profile.credits_used / 10 * 100, 100);
   const remainingCredits = profile.is_premium ? '∞' : Math.max(0, 10 - profile.credits_used);
-
-  return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
+  return <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -39,23 +37,14 @@ const UserProfile: React.FC = () => {
             <div>
               <p className="font-medium text-white">{user.email}</p>
               <div className="flex items-center text-sm text-gray-400">
-                {profile.is_premium ? (
-                  <div className="flex items-center text-amber-400">
+                {profile.is_premium ? <div className="flex items-center text-amber-400">
                     <Crown className="h-3 w-3 mr-1" />
                     <span>Premium User</span>
-                  </div>
-                ) : (
-                  <span>Free User</span>
-                )}
+                  </div> : <span>Free User</span>}
               </div>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={signOut}
-            className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300 hover:-translate-y-1"
-          >
+          <Button variant="outline" size="sm" onClick={signOut} className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300 hover:-translate-y-1 mx-[10px] my-0 py-0 px-[10px] text-base">
             <LogOut className="h-4 w-4 mr-1" />
             Sign Out
           </Button>
@@ -66,23 +55,13 @@ const UserProfile: React.FC = () => {
         <div className="flex items-center justify-between mb-1">
           <span className="text-sm text-gray-400">Credits remaining</span>
           <div className="flex items-center font-medium text-amber-400">
-            {profile.is_premium ? (
-              <Infinity className="h-4 w-4 mr-1" />
-            ) : null}
+            {profile.is_premium ? <Infinity className="h-4 w-4 mr-1" /> : null}
             <span>{remainingCredits}</span>
           </div>
         </div>
         
-        {!profile.is_premium && (
-          <Progress 
-            value={creditPercentage} 
-            className="h-2 bg-gray-800"
-            indicatorClassName="bg-gradient-to-r from-amber-500 to-orange-500"
-          />
-        )}
+        {!profile.is_premium && <Progress value={creditPercentage} className="h-2 bg-gray-800" indicatorClassName="bg-gradient-to-r from-amber-500 to-orange-500" />}
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default UserProfile;
