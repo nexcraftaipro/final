@@ -66,7 +66,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                 type="button"
                 onClick={() => onPlatformChange(platform.id)}
                 className={cn(
-                  "flex flex-col items-center justify-center rounded-lg px-4 py-3 text-sm transition-all relative overflow-hidden group",
+                  "flex flex-col items-center justify-center rounded-lg px-6 py-4 text-sm transition-all relative overflow-hidden group min-w-[110px]",
                   selectedPlatform === platform.id
                     ? "ring-2 ring-blue-500 bg-blue-500/10"
                     : "bg-gray-800 hover:bg-gray-700"
@@ -84,10 +84,18 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                   }}
                 />
                 
-                <div className="flex h-14 w-14 items-center justify-center rounded bg-transparent relative z-10 mb-1">
-                  <img src={platform.imgSrc} alt={platform.name} className="h-12 w-12 object-contain" />
+                <div className="flex h-16 w-16 items-center justify-center rounded bg-transparent relative z-10 mb-2">
+                  <img 
+                    src={platform.imgSrc} 
+                    alt={platform.name} 
+                    className="h-14 w-14 object-contain"
+                    onError={(e) => {
+                      console.error(`Failed to load image: ${platform.imgSrc}`);
+                      e.currentTarget.src = '/placeholder.svg'; // Fallback to placeholder
+                    }}
+                  />
                 </div>
-                <span className="text-sm text-gray-300 relative z-10">{platform.name}</span>
+                <span className="text-sm font-medium text-gray-200 relative z-10">{platform.name}</span>
               </button>
             </TooltipTrigger>
             <TooltipContent className="bg-gray-800 text-gray-200 border-gray-700">
