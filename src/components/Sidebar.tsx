@@ -1,8 +1,11 @@
 import React from 'react';
-import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
-import CustomizationControls from '@/components/CustomizationControls';
-import UserProfile from '@/components/UserProfile';
-import { Platform } from './PlatformSelector';
+import { Slider } from "@/components/ui/slider";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import GenerationModeSelector, { GenerationMode } from "@/components/GenerationModeSelector";
+import { Platform } from "@/components/PlatformSelector";
+
 interface SidebarProps {
   selectedMode: GenerationMode;
   onModeChange: (mode: GenerationMode) => void;
@@ -18,9 +21,10 @@ interface SidebarProps {
   onMinDescriptionWordsChange: (value: number[]) => void;
   maxDescriptionWords: number;
   onMaxDescriptionWordsChange: (value: number[]) => void;
-  selectedPlatform: Platform | null;
-  onPlatformChange: (platform: Platform) => void;
+  selectedPlatforms: Platform[];
+  onPlatformChange: (platforms: Platform[]) => void;
 }
+
 const Sidebar: React.FC<SidebarProps> = ({
   selectedMode,
   onModeChange,
@@ -36,22 +40,85 @@ const Sidebar: React.FC<SidebarProps> = ({
   onMinDescriptionWordsChange,
   maxDescriptionWords,
   onMaxDescriptionWordsChange,
-  selectedPlatform,
+  selectedPlatforms,
   onPlatformChange
 }) => {
-  return <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
-      <div className="p-3 border-b border-gray-700">
+  return (
+    <aside className="w-64 border-r border-gray-700 py-4 flex flex-col">
+      <ScrollArea className="flex-1 space-y-4 p-4">
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
-      </div>
-      
-      <div className="p-4 border-b border-gray-700 flex-1 overflow-auto">
-        <h3 className="text-sm font-medium mb-4 text-[#f68003]">Metadata Customization</h3>
-        <CustomizationControls minTitleWords={minTitleWords} onMinTitleWordsChange={onMinTitleWordsChange} maxTitleWords={maxTitleWords} onMaxTitleWordsChange={onMaxTitleWordsChange} minKeywords={minKeywords} onMinKeywordsChange={onMinKeywordsChange} maxKeywords={maxKeywords} onMaxKeywordsChange={onMaxKeywordsChange} minDescriptionWords={minDescriptionWords} onMinDescriptionWordsChange={onMinDescriptionWordsChange} maxDescriptionWords={maxDescriptionWords} onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} />
-      </div>
-      
-      <div className="mt-auto p-4 border-t border-gray-700 my-[37px] px-[9px] py-[40px] mx-0">
-        <UserProfile />
-      </div>
-    </aside>;
+        <Separator />
+        <div className="space-y-2">
+          <Label htmlFor="min-title-words" className="text-sm">Min Title Words ({minTitleWords})</Label>
+          <Slider
+            id="min-title-words"
+            min={1}
+            max={30}
+            step={1}
+            defaultValue={[minTitleWords]}
+            onValueChange={onMinTitleWordsChange}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="max-title-words" className="text-sm">Max Title Words ({maxTitleWords})</Label>
+          <Slider
+            id="max-title-words"
+            min={1}
+            max={30}
+            step={1}
+            defaultValue={[maxTitleWords]}
+            onValueChange={onMaxTitleWordsChange}
+          />
+        </div>
+        <Separator />
+        <div className="space-y-2">
+          <Label htmlFor="min-keywords" className="text-sm">Min Keywords ({minKeywords})</Label>
+          <Slider
+            id="min-keywords"
+            min={1}
+            max={100}
+            step={1}
+            defaultValue={[minKeywords]}
+            onValueChange={onMinKeywordsChange}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="max-keywords" className="text-sm">Max Keywords ({maxKeywords})</Label>
+          <Slider
+            id="max-keywords"
+            min={1}
+            max={100}
+            step={1}
+            defaultValue={[maxKeywords]}
+            onValueChange={onMaxKeywordsChange}
+          />
+        </div>
+        <Separator />
+        <div className="space-y-2">
+          <Label htmlFor="min-description-words" className="text-sm">Min Description Words ({minDescriptionWords})</Label>
+          <Slider
+            id="min-description-words"
+            min={1}
+            max={50}
+            step={1}
+            defaultValue={[minDescriptionWords]}
+            onValueChange={onMinDescriptionWordsChange}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="max-description-words" className="text-sm">Max Description Words ({maxDescriptionWords})</Label>
+          <Slider
+            id="max-description-words"
+            min={1}
+            max={50}
+            step={1}
+            defaultValue={[maxDescriptionWords]}
+            onValueChange={onMaxDescriptionWordsChange}
+          />
+        </div>
+      </ScrollArea>
+    </aside>
+  );
 };
+
 export default Sidebar;

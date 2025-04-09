@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { FileType, Eye, EyeOff, CreditCard, Facebook } from 'lucide-react';
+import { FileType, Eye, EyeOff, CreditCard, Facebook, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
@@ -55,6 +55,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.open("https://www.facebook.com/FreepikScripts", "_blank");
   };
   
+  const openTutorialVideo = () => {
+    window.open("https://youtu.be/IgxtKon5brg?si=06vUvl4yM58SDUph", "_blank");
+  };
+  
   // Generate consistent avatar URL
   const getAvatarUrl = () => {
     if (!user) return '';
@@ -96,6 +100,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               >
                 <Facebook className="h-4 w-4 mr-1" />
                 Support
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-green-500 border-green-700 hover:bg-green-900/20 transition-all duration-300 hover:shadow-md" 
+                onClick={openTutorialVideo}
+              >
+                <Play className="h-4 w-4 mr-1" />
+                Tutorial
               </Button>
             </>
           )}
