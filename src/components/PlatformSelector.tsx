@@ -17,37 +17,37 @@ const platforms: {
 }[] = [
   {
     id: 'Freepik',
-    imgSrc: '/lovable-uploads/62873d0a-2616-43e6-aa7d-4f07fc6af6fb.png',
+    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
     name: 'Freepik'
   },
   {
     id: 'AdobeStock',
-    imgSrc: '/lovable-uploads/61b6ac51-ce03-4947-8b63-4f1a485ac31d.png',
+    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
     name: 'AdobeStock'
   },
   {
     id: 'Shutterstock',
-    imgSrc: '/lovable-uploads/69bc8d70-babd-45f8-81fb-c3090c2294af.png',
+    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
     name: 'Shutterstock'
   },
   {
     id: 'Vecteezy',
-    imgSrc: '/lovable-uploads/280ec0d9-4714-490a-b5cc-3657cd060fb3.png',
+    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
     name: 'Vecteezy'
   },
   {
     id: 'Canva',
-    imgSrc: '/lovable-uploads/cf6db19f-768a-4f04-a4c9-3df7656020e3.png',
+    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
     name: 'Canva'
   },
   {
     id: '123RF',
-    imgSrc: '/lovable-uploads/d7ac0c83-9fa5-482a-ba80-03117bc45fb0.png',
+    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
     name: '123RF'
   },
   {
     id: 'Dreamstime',
-    imgSrc: '/lovable-uploads/58559f70-e0d1-40dc-bbc9-29fc0dc6ff26.png',
+    imgSrc: '/lovable-uploads/43c64a45-f810-4126-873a-a8d5344a4fea.png',
     name: 'Dreamstime'
   }
 ];
@@ -89,6 +89,11 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     src={platform.imgSrc} 
                     alt={platform.name} 
                     className="h-14 w-14 object-contain"
+                    style={{ 
+                      backgroundColor: "#f8f9fa", 
+                      padding: "2px", 
+                      borderRadius: "4px" 
+                    }}
                     onError={(e) => {
                       console.error(`Failed to load image: ${platform.imgSrc}`);
                       e.currentTarget.src = '/placeholder.svg'; // Fallback to placeholder
