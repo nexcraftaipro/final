@@ -17,37 +17,37 @@ const platforms: {
 }[] = [
   {
     id: 'Freepik',
-    imgSrc: '/lovable-uploads/bd85c2fa-e4e3-4445-a43a-8fd48a0fcdeb.png',
+    imgSrc: '/lovable-uploads/62873d0a-2616-43e6-aa7d-4f07fc6af6fb.png',
     name: 'Freepik'
   },
   {
     id: 'AdobeStock',
-    imgSrc: '/lovable-uploads/89332086-fa16-40a9-abff-1f946b992469.png',
+    imgSrc: '/lovable-uploads/61b6ac51-ce03-4947-8b63-4f1a485ac31d.png',
     name: 'AdobeStock'
   },
   {
     id: 'Shutterstock',
-    imgSrc: '/lovable-uploads/e363fb07-b380-46fe-8e0b-185a16cb6a4d.png',
+    imgSrc: '/lovable-uploads/69bc8d70-babd-45f8-81fb-c3090c2294af.png',
     name: 'Shutterstock'
   },
   {
     id: 'Vecteezy',
-    imgSrc: '/lovable-uploads/764c7b7e-771a-424d-80c9-ac25a796c0af.png',
+    imgSrc: '/lovable-uploads/280ec0d9-4714-490a-b5cc-3657cd060fb3.png',
     name: 'Vecteezy'
   },
   {
     id: 'Canva',
-    imgSrc: '/lovable-uploads/8a67d08d-da17-4c8a-a5a2-e6c9125a6d3f.png',
+    imgSrc: '/lovable-uploads/cf6db19f-768a-4f04-a4c9-3df7656020e3.png',
     name: 'Canva'
   },
   {
     id: '123RF',
-    imgSrc: '/lovable-uploads/5ab1838a-533f-49c4-acd7-297a2b3db26a.png',
+    imgSrc: '/lovable-uploads/d7ac0c83-9fa5-482a-ba80-03117bc45fb0.png',
     name: '123RF'
   },
   {
     id: 'Dreamstime',
-    imgSrc: '/lovable-uploads/bfddde46-cbec-4d7b-9e5a-a7808fead3bf.png',
+    imgSrc: '/lovable-uploads/58559f70-e0d1-40dc-bbc9-29fc0dc6ff26.png',
     name: 'Dreamstime'
   }
 ];
@@ -84,8 +84,8 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                   }}
                 />
                 
-                <div className="flex h-12 w-12 items-center justify-center rounded bg-transparent relative z-10 mb-1">
-                  <img src={platform.imgSrc} alt={platform.name} className="h-10 w-10 object-contain" />
+                <div className="flex h-14 w-14 items-center justify-center rounded bg-transparent relative z-10 mb-1">
+                  <img src={platform.imgSrc} alt={platform.name} className="h-12 w-12 object-contain" />
                 </div>
                 <span className="text-sm text-gray-300 relative z-10">{platform.name}</span>
               </button>
