@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 export const checkActiveSessionsTable = async (): Promise<boolean> => {
   try {
     // Try a function call that would fail if the function doesn't exist
-    const { error } = await supabase.rpc('check_active_session', {
+    // Use type assertion to bypass TypeScript's type checking
+    const { error } = await (supabase.rpc as any)('check_active_session', {
       user_email: 'test@example.com'
     });
     

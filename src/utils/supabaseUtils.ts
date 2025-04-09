@@ -10,7 +10,7 @@ export const executeCustomQuery = async (sqlQuery: string) => {
   try {
     // This is a workaround for direct SQL execution
     // For production, it's better to use stored procedures
-    const { data, error } = await supabase.rpc('execute_query', {
+    const { data, error } = await (supabase.rpc as any)('execute_query', {
       query_text: sqlQuery
     });
     
@@ -29,7 +29,7 @@ export const executeCustomQuery = async (sqlQuery: string) => {
  */
 export const checkActiveSession = async (email: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('check_active_session', {
+    const { data, error } = await (supabase.rpc as any)('check_active_session', {
       user_email: email
     });
 
@@ -38,7 +38,8 @@ export const checkActiveSession = async (email: string): Promise<boolean> => {
       return false;
     }
 
-    return !!data?.exists;
+    // Fix for data possibly being null
+    return !!data && !!data.exists;
   } catch (error) {
     console.error('Error in checkActiveSession:', error);
     return false;
@@ -57,7 +58,7 @@ export const setActiveSession = async (
   sessionId: string
 ): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('set_active_session', {
+    const { error } = await (supabase.rpc as any)('set_active_session', {
       user_id: userId,
       user_email: email,
       session_identifier: sessionId,
@@ -78,7 +79,7 @@ export const setActiveSession = async (
  */
 export const removeActiveSession = async (userId: string): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('remove_active_session', {
+    const { error } = await (supabase.rpc as any)('remove_active_session', {
       user_id: userId
     });
 
@@ -96,7 +97,7 @@ export const removeActiveSession = async (userId: string): Promise<void> => {
  */
 export const setupActiveSessionsTable = async () => {
   try {
-    const { data, error } = await supabase.rpc('setup_active_sessions');
+    const { data, error } = await (supabase.rpc as any)('setup_active_sessions');
     
     if (error) {
       console.error('Error setting up active sessions:', error);
