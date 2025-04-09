@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -24,7 +25,7 @@ const Index: React.FC = () => {
   const [titleLength, setTitleLength] = useState(200);
   const [descriptionLength, setDescriptionLength] = useState(200);
   const [keywordCount, setKeywordCount] = useState(50);
-  const [platform, setPlatform] = useState<Platform | null>('Shutterstock');
+  const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
@@ -83,8 +84,8 @@ const Index: React.FC = () => {
   const handleKeywordCountChange = (value: number[]) => {
     setKeywordCount(value[0]);
   };
-  const handlePlatformChange = (newPlatform: Platform) => {
-    setPlatform(newPlatform);
+  const handlePlatformChange = (newPlatforms: Platform[]) => {
+    setPlatforms(newPlatforms);
   };
   const handleModeChange = (mode: GenerationMode) => {
     setGenerationMode(mode);
@@ -141,7 +142,7 @@ const Index: React.FC = () => {
             titleLength,
             descriptionLength,
             keywordCount,
-            platform,
+            platforms,
             generationMode,
             minTitleWords,
             maxTitleWords,
@@ -184,7 +185,7 @@ const Index: React.FC = () => {
       <AppHeader remainingCredits={remainingCredits} apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
       
       <div className="flex flex-1">
-        <Sidebar selectedMode={generationMode} onModeChange={handleModeChange} minTitleWords={minTitleWords} onMinTitleWordsChange={handleMinTitleWordsChange} maxTitleWords={maxTitleWords} onMaxTitleWordsChange={handleMaxTitleWordsChange} minKeywords={minKeywords} onMinKeywordsChange={handleMinKeywordsChange} maxKeywords={maxKeywords} onMaxKeywordsChange={handleMaxKeywordsChange} minDescriptionWords={minDescriptionWords} onMinDescriptionWordsChange={handleMinDescriptionWordsChange} maxDescriptionWords={maxDescriptionWords} onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange} selectedPlatform={platform} onPlatformChange={handlePlatformChange} />
+        <Sidebar selectedMode={generationMode} onModeChange={handleModeChange} minTitleWords={minTitleWords} onMinTitleWordsChange={handleMinTitleWordsChange} maxTitleWords={maxTitleWords} onMaxTitleWordsChange={handleMaxTitleWordsChange} minKeywords={minKeywords} onMinKeywordsChange={handleMinKeywordsChange} maxKeywords={maxKeywords} onMaxKeywordsChange={handleMaxKeywordsChange} minDescriptionWords={minDescriptionWords} onMinDescriptionWordsChange={handleMinDescriptionWordsChange} maxDescriptionWords={maxDescriptionWords} onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange} selectedPlatforms={platforms} onPlatformChange={handlePlatformChange} />
         
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-5xl mx-auto">
@@ -192,7 +193,7 @@ const Index: React.FC = () => {
               <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
                 <h2 className="text-lg font-medium mb-2 text-[#fe6e00]">PLATFORMS:-</h2>
                 <div className="flex border-b border-gray-700">
-                  <PlatformSelector selectedPlatform={platform} onPlatformChange={handlePlatformChange} />
+                  <PlatformSelector selectedPlatforms={platforms} onPlatformChange={handlePlatformChange} />
                 </div>
                 
                 <div className="mt-4">

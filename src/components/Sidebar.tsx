@@ -1,3 +1,4 @@
+
 import React from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
@@ -18,8 +19,8 @@ interface SidebarProps {
   onMinDescriptionWordsChange: (value: number[]) => void;
   maxDescriptionWords: number;
   onMaxDescriptionWordsChange: (value: number[]) => void;
-  selectedPlatform: Platform | null;
-  onPlatformChange: (platform: Platform) => void;
+  selectedPlatforms: Platform[];
+  onPlatformChange: (platforms: Platform[]) => void;
 }
 const Sidebar: React.FC<SidebarProps> = ({
   selectedMode,
@@ -36,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   onMinDescriptionWordsChange,
   maxDescriptionWords,
   onMaxDescriptionWordsChange,
-  selectedPlatform,
+  selectedPlatforms,
   onPlatformChange
 }) => {
   return <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
