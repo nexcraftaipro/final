@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -104,12 +103,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Force sign out a user from any existing sessions
   const forceSignOut = async (email: string) => {
     try {
-      // This is a simple approach - in a production app you might want to use
-      // a more secure method like a dedicated admin API
-      const { data, error } = await supabase
-        .from('active_sessions')
-        .delete()
-        .eq('email', email);
+      // Use RPC function instead of direct table access
+      const { error } = await supabase.rpc('remove_active_session_by_email', {
+        user_email: email
+      });
       
       if (error) {
         console.error('Error in force sign out:', error);

@@ -47,6 +47,14 @@ BEGIN
 END;
 $$;
 
+-- Function to remove a user from active sessions by email
+CREATE OR REPLACE FUNCTION public.remove_active_session_by_email(user_email TEXT)
+RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  DELETE FROM public.active_sessions WHERE email = user_email;
+END;
+$$;
+
 -- Function to clean up old sessions (older than 24 hours)
 CREATE OR REPLACE FUNCTION public.cleanup_old_sessions()
 RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -87,4 +95,5 @@ CREATE POLICY "Users can insert their own active session"
 GRANT EXECUTE ON FUNCTION public.check_active_session TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.set_active_session TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.remove_active_session TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.remove_active_session_by_email TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.cleanup_old_sessions TO anon, authenticated;
