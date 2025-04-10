@@ -81,7 +81,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
               placeholder="Enter your Gemini API key"
               value={inputKey}
               onChange={(e) => setInputKey(e.target.value)}
-              className="bg-gray-800 border-gray-700 text-gray-200 focus:ring-amber-500/30"
+              className="bg-gray-800 border-gray-700 text-gray-200 focus:ring-amber-500/30 pr-10"
             />
             <Button
               type="button"

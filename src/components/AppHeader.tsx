@@ -56,7 +56,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
   
   const openTutorialVideo = () => {
-    window.open("https://youtu.be/IgxtKon5brg?si=06vUvl4yM58SDUph", "_blank");
+    window.open("https://youtu.be/kLfdej4LQ0c?si=dOrBMY4rrJX8d7b0", "_blank");
   };
   
   // Generate consistent avatar URL

@@ -79,8 +79,8 @@ export function isValidImageType(file: File): boolean {
   return acceptedTypes.includes(file.type);
 }
 
-// Check if file size is within limits (10MB max)
-export function isValidFileSize(file: File, maxSizeMB = 10): boolean {
-  const maxSizeBytes = maxSizeMB * 1024 * 1024;
+// Check if file size is within limits (10GB max)
+export function isValidFileSize(file: File, maxSizeGB = 10): boolean {
+  const maxSizeBytes = maxSizeGB * 1024 * 1024 * 1024;
   return file.size <= maxSizeBytes;
 }

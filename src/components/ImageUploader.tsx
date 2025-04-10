@@ -34,7 +34,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
         // Validate file size
         if (!isValidFileSize(file)) {
-          toast.error(`${file.name} exceeds the 10MB size limit.`);
+          toast.error(`${file.name} exceeds the 10GB size limit.`);
           return null;
         }
         try {
@@ -64,6 +64,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       toast.error('No valid images were found to process.');
     }
   }, [onImagesSelected]);
+
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
@@ -94,7 +95,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         <div className="text-center mb-6">
           <p className="text-lg font-medium text-white mb-2">Drag and drop unlimited images here</p>
           <p className="text-sm text-gray-400">
-            or click to upload (JPEG/PNG up to 10MB each)
+            or click to upload (JPEG/PNG up to 10GB each)
           </p>
         </div>
         
@@ -105,8 +106,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept="image/jpeg,image/png,image/jpg" multiple className="hidden" disabled={isProcessing} />
       </div>
-      
-      
     </div>;
 };
 export default ImageUploader;
