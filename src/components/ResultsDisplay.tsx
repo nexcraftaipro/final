@@ -1,11 +1,20 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check } from 'lucide-react';
+import { Download, Copy, X, Check, ChevronDown, ChevronUp, FileIcon } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ResultsDisplayProps {
   images: ProcessedImage[];
@@ -16,6 +25,7 @@ interface ResultsDisplayProps {
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, onClearAll, generationMode }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [expandedMetadataSections, setExpandedMetadataSections] = useState<Record<string, boolean>>({});
 
   if (images.length === 0) return null;
 
@@ -44,6 +54,95 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
     element.click();
     document.body.removeChild(element);
     toast.success('Prompt downloaded as text file');
+  };
+
+  const toggleMetadataSection = (sectionId: string) => {
+    setExpandedMetadataSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
+
+  const renderMetadataSection = (image: ProcessedImage) => {
+    if (!image.result?.metadata) {
+      return <p className="text-gray-400 italic">No metadata found in this file.</p>;
+    }
+
+    const metadata = image.result.metadata;
+    const sections: { title: string; data: Record<string, any> }[] = [];
+
+    // Group metadata into sections based on file type
+    if (metadata.format === 'JPEG' || metadata.format === 'PNG') {
+      if (metadata.exif) sections.push({ title: 'EXIF Data', data: metadata.exif });
+      if (metadata.iptc) sections.push({ title: 'IPTC Data', data: metadata.iptc });
+      if (metadata.xmp) sections.push({ title: 'XMP Data', data: metadata.xmp });
+    } else if (metadata.format === 'EPS' || metadata.format === 'Adobe Illustrator') {
+      if (metadata.xmp) sections.push({ title: 'XMP Data', data: metadata.xmp });
+      
+      // Create a general info section for non-grouped metadata
+      const generalInfo: Record<string, any> = {};
+      Object.entries(metadata).forEach(([key, value]) => {
+        if (key !== 'xmp' && typeof value !== 'object') {
+          generalInfo[key] = value;
+        }
+      });
+      
+      if (Object.keys(generalInfo).length > 0) {
+        sections.push({ title: 'General Information', data: generalInfo });
+      }
+    }
+
+    // Add basic file info section
+    const fileInfo: Record<string, any> = {
+      fileName: metadata.fileName,
+      fileSize: metadata.fileSize,
+      fileType: metadata.fileType,
+      lastModified: metadata.lastModified,
+      format: metadata.format,
+    };
+    sections.unshift({ title: 'File Information', data: fileInfo });
+
+    return (
+      <div className="space-y-4">
+        {sections.map((section, index) => {
+          const sectionId = `${image.id}-${section.title}`;
+          const isExpanded = expandedMetadataSections[sectionId] !== false; // Default to expanded
+          
+          return (
+            <div key={sectionId} className="border border-gray-700 rounded-lg overflow-hidden">
+              <div 
+                className="bg-gray-800 px-4 py-3 flex justify-between items-center cursor-pointer"
+                onClick={() => toggleMetadataSection(sectionId)}
+              >
+                <h4 className="text-amber-500 font-medium">{section.title}</h4>
+                <Button variant="ghost" size="sm">
+                  {isExpanded ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                </Button>
+              </div>
+              
+              {isExpanded && (
+                <div className="p-4">
+                  <Table>
+                    <TableBody>
+                      {Object.entries(section.data).map(([key, value]) => (
+                        <TableRow key={`${sectionId}-${key}`}>
+                          <TableCell className="font-medium text-gray-300 w-1/3">{key}</TableCell>
+                          <TableCell className="text-white">
+                            {typeof value === 'object' 
+                              ? JSON.stringify(value) 
+                              : String(value)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   const completedImages = images.filter(img => img.status === 'complete');
@@ -129,20 +228,27 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
             <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-6 border-r border-gray-700/50">
-                  <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
-                  <div className="rounded-lg overflow-hidden mb-4">
-                    <img
-                      src={image.previewUrl}
-                      alt={image.file.name}
-                      className="w-full object-cover max-h-[400px]"
-                    />
+                  <h3 className="text-amber-500 text-lg mb-2">File Preview</h3>
+                  <div className="rounded-lg overflow-hidden mb-4 bg-gray-900 flex items-center justify-center" style={{minHeight: "200px"}}>
+                    {image.previewUrl.includes('data:image') ? (
+                      <img
+                        src={image.previewUrl}
+                        alt={image.file.name}
+                        className="w-full object-contain max-h-[400px]"
+                      />
+                    ) : (
+                      <div className="text-center p-10">
+                        <FileIcon className="h-20 w-20 mx-auto mb-4 text-blue-400" />
+                        <p className="text-gray-300">{image.file.name}</p>
+                      </div>
+                    )}
                   </div>
                   <div className="text-gray-400">{image.file.name}</div>
                 </div>
                 
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
+                    <h3 className="text-amber-500 text-lg">File Metadata</h3>
                     <Button
                       variant="outline"
                       size="sm"
@@ -155,34 +261,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
                   </div>
                   
                   <div className="space-y-4">
-                    <div>
-                      <h4 className="text-amber-500">Filename:</h4>
-                      <p className="text-white">{image.file.name}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-amber-500">Title:</h4>
-                      <p className="text-white">{image.result?.title || ''}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-amber-500">Description:</h4>
-                      <p className="text-white">{image.result?.description || ''}</p>
-                    </div>
-                    
-                    <div>
-                      <h4 className="text-amber-500">Keywords:</h4>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {image.result?.keywords.map((keyword, index) => (
-                          <span 
-                            key={index} 
-                            className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
+                    {renderMetadataSection(image)}
                   </div>
                 </div>
               </div>
