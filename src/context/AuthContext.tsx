@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,6 +23,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   incrementCreditsUsed: () => Promise<boolean>;
   canGenerateMetadata: boolean;
+  forceSignOut: (email: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -99,6 +101,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Force sign out a user from any existing sessions
+  const forceSignOut = async (email: string) => {
+    try {
+      // This is a simple approach - in a production app you might want to use
+      // a more secure method like a dedicated admin API
+      const { data, error } = await supabase
+        .from('active_sessions')
+        .delete()
+        .eq('email', email);
+      
+      if (error) {
+        console.error('Error in force sign out:', error);
+        throw error;
+      }
+
+      return;
+    } catch (error) {
+      console.error('Error in forceSignOut:', error);
+      throw error;
+    }
+  };
+
   // Check if a user is already logged in elsewhere
   const checkUserActiveSession = async (email: string): Promise<boolean> => {
     return await checkActiveSession(email);
@@ -109,8 +133,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Check if the user is already logged in elsewhere
       const isActiveSession = await checkUserActiveSession(email);
       if (isActiveSession) {
-        toast.error('This account is already logged in on another device or browser');
-        return;
+        const confirmForceLogout = window.confirm(
+          'This account is already logged in on another device or browser. Would you like to force logout from the other session and continue?'
+        );
+        
+        if (!confirmForceLogout) {
+          toast.error('Login cancelled - account is already active elsewhere');
+          return;
+        }
+        
+        // User confirmed, force logout from other sessions
+        await forceSignOut(email);
+        toast.success('Previous session has been terminated');
       }
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -252,7 +286,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signUp,
     signOut,
     incrementCreditsUsed,
-    canGenerateMetadata
+    canGenerateMetadata,
+    forceSignOut
   };
 
   return (

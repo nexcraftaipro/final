@@ -92,6 +92,22 @@ export const removeActiveSession = async (userId: string): Promise<void> => {
 };
 
 /**
+ * Cleanup old sessions (older than 24 hours)
+ * This function can be called periodically to clean up the database
+ */
+export const cleanupOldSessions = async (): Promise<void> => {
+  try {
+    const { error } = await (supabase.rpc as any)('cleanup_old_sessions');
+    
+    if (error) {
+      console.error('Error cleaning up old sessions:', error);
+    }
+  } catch (error) {
+    console.error('Error in cleanupOldSessions:', error);
+  }
+};
+
+/**
  * Setup function to initialize the database tables and functions needed
  * This should be run once to set up the required database structure
  */
