@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -18,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
+
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
@@ -226,7 +226,13 @@ const Index: React.FC = () => {
                 </div>}
               
               <div className="mt-8">
-                <ResultsDisplay images={images} onRemoveImage={handleRemoveImage} onClearAll={handleClearAll} generationMode={generationMode} />
+                <ResultsDisplay 
+                  images={images} 
+                  onRemoveImage={handleRemoveImage} 
+                  onClearAll={handleClearAll} 
+                  generationMode={generationMode}
+                  selectedPlatforms={platforms}
+                />
               </div>
             </div>
           </div>
@@ -234,4 +240,5 @@ const Index: React.FC = () => {
       </div>
     </div>;
 };
+
 export default Index;

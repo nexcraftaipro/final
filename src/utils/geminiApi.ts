@@ -1,3 +1,4 @@
+
 import { toast } from "sonner";
 import type { Platform } from "@/components/PlatformSelector";
 import type { GenerationMode } from "@/components/GenerationModeSelector";
@@ -7,6 +8,8 @@ interface MetadataResult {
   title: string;
   description: string;
   keywords: string[];
+  prompt?: string;
+  baseModel?: string;
   error?: string;
 }
 
@@ -14,7 +17,7 @@ interface MetadataOptions {
   titleLength: number;
   descriptionLength: number;
   keywordCount: number;
-  platforms: Platform[]; // Changed from platform to platforms
+  platforms: Platform[]; 
   generationMode: GenerationMode;
   minTitleWords: number;
   maxTitleWords: number;
@@ -69,6 +72,9 @@ export async function analyzeImageWithGemini(
     
     let promptText = "";
     
+    // Check if only Freepik is selected
+    const isFreepikOnly = options.platforms.length === 1 && options.platforms[0] === 'Freepik';
+    
     if (options.generationMode === 'metadata') {
       const keywordInstruction = `between ${options.minKeywords}-${options.maxKeywords} keywords`;
       
@@ -81,8 +87,14 @@ export async function analyzeImageWithGemini(
         const platformsList = options.platforms.join(', ');
         platformInstruction = `Optimize the metadata specifically for ${platformsList} platform requirements and best practices.`;
       }
-      
-      promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
+
+      if (isFreepikOnly) {
+        // Special prompt for Freepik
+        promptText = `Generate metadata for this image for Freepik platform. Return ONLY a JSON object with the exact keys: 'title', 'keywords', 'prompt', and 'baseModel'. ${titleInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. The prompt should be a short description that could generate this image in an AI model. The baseModel should be a hypothetical model name. DO NOT include any explanations or text outside of the JSON object.`;
+      } else {
+        // Standard prompt for other platforms
+        promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
+      }
     } else {
       // Image to Prompt mode
       promptText = `Analyze this image and create a detailed text prompt that could be used to generate a similar image with an AI image generator. The prompt should be descriptive and capture the key elements, style, composition, colors, lighting, mood of the image. Return ONLY the prompt text without any JSON formatting or explanations. The prompt should be at least 100 words and highly descriptive.`;
@@ -140,20 +152,32 @@ export async function analyzeImageWithGemini(
       const jsonStr = jsonMatch[0];
       const metadata = JSON.parse(jsonStr);
 
-      // Validate the description length (at least the minimum words)
-      let description = metadata.description || "";
-      const wordCount = description.split(/\s+/).filter(Boolean).length;
-      
-      if (wordCount < options.minDescriptionWords) {
-        throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${options.minDescriptionWords} words.`);
+      if (isFreepikOnly) {
+        // For Freepik, return title, keywords, prompt, and baseModel
+        return {
+          filename: file.name,
+          title: metadata.title || "",
+          description: "", // Empty for Freepik
+          keywords: Array.isArray(metadata.keywords) ? metadata.keywords : [],
+          prompt: metadata.prompt || "Generated with AI",
+          baseModel: metadata.baseModel || "Standard AI",
+        };
+      } else {
+        // Validate the description length (at least the minimum words)
+        let description = metadata.description || "";
+        const wordCount = description.split(/\s+/).filter(Boolean).length;
+        
+        if (wordCount < options.minDescriptionWords) {
+          throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${options.minDescriptionWords} words.`);
+        }
+        
+        return {
+          filename: file.name,
+          title: metadata.title || "",
+          description: description,
+          keywords: Array.isArray(metadata.keywords) ? metadata.keywords : [],
+        };
       }
-      
-      return {
-        filename: file.name,
-        title: metadata.title || "",
-        description: description,
-        keywords: Array.isArray(metadata.keywords) ? metadata.keywords : [],
-      };
     } else {
       // For image to prompt mode, return the result in the description field
       return {

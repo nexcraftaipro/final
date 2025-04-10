@@ -8,6 +8,8 @@ export interface ProcessedImage {
     title: string;
     description: string;
     keywords: string[];
+    prompt?: string;
+    baseModel?: string;
   };
   error?: string;
 }
@@ -28,20 +30,36 @@ export function createImagePreview(file: File): Promise<string> {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[]): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false): string {
+  // Determine headers based on platform selection
+  const headers = isFreepikOnly
+    ? ['Filename', 'Title', 'Keywords', 'Prompt', 'Base-Model']
+    : ['Filename', 'Title', 'Description', 'Keywords'];
+    
   // Add headers
   const csvContent = [
-    ['Filename', 'Title', 'Description', 'Keywords'].join(','),
+    headers.join(','),
     // Add data rows
     ...images
       .filter(img => img.status === 'complete' && img.result)
-      .map(img => [
-        // Escape fields that may contain commas
-        `"${img.file.name}"`,
-        `"${img.result?.title || ''}"`,
-        `"${img.result?.description || ''}"`,
-        `"${img.result?.keywords?.join(', ') || ''}"`,
-      ].join(','))
+      .map(img => {
+        if (isFreepikOnly) {
+          return [
+            `"${img.file.name}"`,
+            `"${img.result?.title || ''}"`,
+            `"${img.result?.keywords?.join(', ') || ''}"`,
+            `"${img.result?.prompt || ''}"`,
+            `"${img.result?.baseModel || ''}"`,
+          ].join(',');
+        } else {
+          return [
+            `"${img.file.name}"`,
+            `"${img.result?.title || ''}"`,
+            `"${img.result?.description || ''}"`,
+            `"${img.result?.keywords?.join(', ') || ''}"`,
+          ].join(',');
+        }
+      })
   ].join('\n');
 
   return csvContent;

@@ -6,15 +6,23 @@ import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize } from '
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
+import { Platform } from '@/components/PlatformSelector';
 
 interface ResultsDisplayProps {
   images: ProcessedImage[];
   onRemoveImage: (id: string) => void;
   onClearAll: () => void;
   generationMode: GenerationMode;
+  selectedPlatforms?: Platform[];
 }
 
-const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, onClearAll, generationMode }) => {
+const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
+  images, 
+  onRemoveImage, 
+  onClearAll, 
+  generationMode,
+  selectedPlatforms = ['AdobeStock']
+}) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   if (images.length === 0) return null;
@@ -29,8 +37,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
     }, 2000);
   };
 
+  // Check if only Freepik is selected
+  const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
+
   const handleDownloadCSV = () => {
-    const csvContent = formatImagesAsCSV(images);
+    const csvContent = formatImagesAsCSV(images, isFreepikOnly);
     downloadCSV(csvContent);
     toast.success('CSV file downloaded');
   };
@@ -165,10 +176,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
                       <p className="text-white">{image.result?.title || ''}</p>
                     </div>
                     
-                    <div>
-                      <h4 className="text-amber-500">Description:</h4>
-                      <p className="text-white">{image.result?.description || ''}</p>
-                    </div>
+                    {!isFreepikOnly && (
+                      <div>
+                        <h4 className="text-amber-500">Description:</h4>
+                        <p className="text-white">{image.result?.description || ''}</p>
+                      </div>
+                    )}
                     
                     <div>
                       <h4 className="text-amber-500">Keywords:</h4>
@@ -183,6 +196,20 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ images, onRemoveImage, 
                         ))}
                       </div>
                     </div>
+
+                    {isFreepikOnly && (
+                      <>
+                        <div>
+                          <h4 className="text-amber-500">Prompt:</h4>
+                          <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="text-amber-500">Base-Model:</h4>
+                          <p className="text-white">{image.result?.baseModel || 'Not provided'}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
