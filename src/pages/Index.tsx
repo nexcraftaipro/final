@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -5,7 +6,7 @@ import ImageUploader from '@/components/ImageUploader';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { ProcessedImage, extractMetadata } from '@/utils/imageHelpers';
+import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Sparkles, Loader2, ShieldAlert, Image, Info } from 'lucide-react';
@@ -17,7 +18,6 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
-
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
@@ -109,106 +109,59 @@ const Index: React.FC = () => {
     setMaxDescriptionWords(value[0]);
   };
   const handleProcessImages = async () => {
-    if (!apiKey && generationMode === 'metadata') {
+    if (!apiKey) {
       toast.error('Please enter your Gemini API key first');
       return;
     }
-    
     const pendingImages = images.filter(img => img.status === 'pending');
     if (pendingImages.length === 0) {
       toast.info('No images to process');
       return;
     }
-    
-    if (generationMode === 'metadata' && !canGenerateMetadata) {
+    if (!canGenerateMetadata) {
       toast.error('You have reached your free limit. Please upgrade to premium.');
       return;
     }
-    
-    // Only increment credits for AI-based metadata generation
-    if (generationMode === 'metadata') {
-      const canProceed = await incrementCreditsUsed();
-      if (!canProceed) {
-        return;
-      }
+    const canProceed = await incrementCreditsUsed();
+    if (!canProceed) {
+      return;
     }
-    
     setIsProcessing(true);
-    
     try {
       setImages(prev => prev.map(img => img.status === 'pending' ? {
         ...img,
         status: 'processing' as const
       } : img));
-      
       for (const image of pendingImages) {
         try {
           if (pendingImages.indexOf(image) > 0) {
             // Add a 2-second delay between processing images to respect the 15 RPM limit
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
-          
-          if (generationMode === 'metadata') {
-            // For metadata mode, use Gemini API
-            const options = {
-              titleLength,
-              descriptionLength,
-              keywordCount,
-              platforms,
-              generationMode,
-              minTitleWords,
-              maxTitleWords,
-              minKeywords,
-              maxKeywords,
-              minDescriptionWords,
-              maxDescriptionWords
-            };
-            
-            const result = await analyzeImageWithGemini(image.file, apiKey, options);
-            
-            // Extract file metadata
-            const fileMetadata = await extractMetadata(image.file);
-            
-            setImages(prev => prev.map(img => img.id === image.id ? {
-              ...img,
-              status: result.error ? 'error' as const : 'complete' as const,
-              result: result.error ? undefined : {
-                title: result.title,
-                description: result.description,
-                keywords: result.keywords,
-                metadata: fileMetadata
-              },
-              error: result.error
-            } : img));
-          } else {
-            // For imageToPrompt mode
-            const options = {
-              titleLength,
-              descriptionLength,
-              keywordCount,
-              platforms,
-              generationMode,
-              minTitleWords,
-              maxTitleWords,
-              minKeywords,
-              maxKeywords,
-              minDescriptionWords,
-              maxDescriptionWords
-            };
-            
-            const result = await analyzeImageWithGemini(image.file, apiKey, options);
-            
-            setImages(prev => prev.map(img => img.id === image.id ? {
-              ...img,
-              status: result.error ? 'error' as const : 'complete' as const,
-              result: result.error ? undefined : {
-                title: "",
-                description: result.description,
-                keywords: []
-              },
-              error: result.error
-            } : img));
-          }
+          const options = {
+            titleLength,
+            descriptionLength,
+            keywordCount,
+            platforms,
+            generationMode,
+            minTitleWords,
+            maxTitleWords,
+            minKeywords,
+            maxKeywords,
+            minDescriptionWords,
+            maxDescriptionWords
+          };
+          const result = await analyzeImageWithGemini(image.file, apiKey, options);
+          setImages(prev => prev.map(img => img.id === image.id ? {
+            ...img,
+            status: result.error ? 'error' as const : 'complete' as const,
+            result: result.error ? undefined : {
+              title: result.title,
+              description: result.description,
+              keywords: result.keywords
+            },
+            error: result.error
+          } : img));
         } catch (error) {
           console.error(`Error processing image ${image.file.name}:`, error);
           setImages(prev => prev.map(img => img.id === image.id ? {
@@ -218,10 +171,9 @@ const Index: React.FC = () => {
           } : img));
         }
       }
-      
-      toast.success('All files processed successfully');
+      toast.success('All images processed successfully');
     } catch (error) {
-      console.error('Error during file processing:', error);
+      console.error('Error during image processing:', error);
       toast.error('An error occurred during processing');
     } finally {
       setIsProcessing(false);

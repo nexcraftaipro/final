@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
-
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   return <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -56,7 +54,7 @@ const PricingPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
                   <span className="text-5xl font-extrabold tracking-tight">750</span>
-                  <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk/Life Time</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk/Life  Time</span>
                 </div>
                 <div className="flex items-center mt-1">
                   <span className="text-sm text-amber-500 line-through">850 Tk</span>
@@ -76,7 +74,7 @@ const PricingPage: React.FC = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/7e6ef277e6663777dff6d3c2bca4b239', '_blank')}>
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/b9a3a7e2ec6c21fbacfc4eb328bf647c', '_blank')}>
                   Upgrade to Premium
                 </Button>
               </CardFooter>
@@ -103,5 +101,4 @@ const PricingItem = ({
     {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : <X className="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" />}
     <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
   </li>;
-
 export default PricingPage;
