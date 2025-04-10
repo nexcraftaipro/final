@@ -186,14 +186,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     <div>
                       <h4 className="text-amber-500">Keywords:</h4>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {image.result?.keywords.map((keyword, index) => (
-                          <span 
-                            key={index} 
-                            className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
+                        {image.result?.keywords && image.result.keywords.length > 0 ? (
+                          image.result.keywords.map((keyword, index) => (
+                            <span 
+                              key={index} 
+                              className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full"
+                            >
+                              {keyword}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400">No keywords available</span>
+                        )}
                       </div>
                     </div>
 

@@ -89,8 +89,18 @@ export async function analyzeImageWithGemini(
       }
 
       if (isFreepikOnly) {
-        // Special prompt for Freepik
-        promptText = `Generate metadata for this image for Freepik platform. Return ONLY a JSON object with the exact keys: 'title', 'keywords', 'prompt', and 'baseModel'. ${titleInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. The prompt should be a short description that could generate this image in an AI model. The baseModel should be a hypothetical model name. DO NOT include any explanations or text outside of the JSON object.`;
+        // Special prompt for Freepik - Updated to be more specific about keywords
+        promptText = `Generate metadata for this image for Freepik platform. Return ONLY a JSON object with the exact keys: 'title', 'keywords', 'prompt', and 'baseModel'.
+
+${titleInstruction}. 
+
+Keywords should be at least ${options.minKeywords} relevant tags for the image, with ${keywordInstruction}. The keywords should be specific and detailed.
+
+The prompt field should be a detailed description of the image (similar to a description). It should be at least 50 words and very descriptive of what's in the image.
+
+The baseModel should ALWAYS be "leonardo 5" (exactly, without quotes).
+
+DO NOT include any explanations or text outside of the JSON object. The response must be a valid JSON object.`;
       } else {
         // Standard prompt for other platforms
         promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
@@ -150,17 +160,39 @@ export async function analyzeImageWithGemini(
       }
       
       const jsonStr = jsonMatch[0];
-      const metadata = JSON.parse(jsonStr);
+      let metadata;
+      
+      try {
+        metadata = JSON.parse(jsonStr);
+      } catch (parseError) {
+        console.error("JSON parse error:", parseError);
+        throw new Error("Failed to parse JSON response");
+      }
 
       if (isFreepikOnly) {
-        // For Freepik, return title, keywords, prompt, and baseModel
+        // For Freepik, ensure all required fields are present
+        const title = metadata.title || "";
+        const keywords = Array.isArray(metadata.keywords) ? metadata.keywords : [];
+        // Always set prompt and baseModel for Freepik
+        const prompt = metadata.prompt || "Detailed image of various objects arranged aesthetically";
+        const baseModel = "leonardo 5"; // Always use "leonardo 5" for Freepik
+        
+        // Ensure we have all required fields for Freepik
+        if (!title) {
+          throw new Error("Title is missing from the API response");
+        }
+        
+        if (keywords.length < options.minKeywords) {
+          throw new Error(`Not enough keywords generated. Received ${keywords.length}, but need at least ${options.minKeywords}`);
+        }
+        
         return {
           filename: file.name,
-          title: metadata.title || "",
+          title: title,
           description: "", // Empty for Freepik
-          keywords: Array.isArray(metadata.keywords) ? metadata.keywords : [],
-          prompt: metadata.prompt || "Generated with AI",
-          baseModel: metadata.baseModel || "Standard AI",
+          keywords: keywords,
+          prompt: prompt,
+          baseModel: baseModel,
         };
       } else {
         // Validate the description length (at least the minimum words)

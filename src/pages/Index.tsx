@@ -152,13 +152,22 @@ const Index: React.FC = () => {
             maxDescriptionWords
           };
           const result = await analyzeImageWithGemini(image.file, apiKey, options);
+          
+          // Check if we're in Freepik-only mode
+          const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
+          
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
             status: result.error ? 'error' as const : 'complete' as const,
             result: result.error ? undefined : {
               title: result.title,
               description: result.description,
-              keywords: result.keywords
+              keywords: result.keywords,
+              // Include prompt and baseModel for Freepik
+              ...(isFreepikOnly && {
+                prompt: result.prompt,
+                baseModel: result.baseModel
+              })
             },
             error: result.error
           } : img));

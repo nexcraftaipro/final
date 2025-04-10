@@ -49,7 +49,7 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${img.result?.title || ''}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
             `"${img.result?.prompt || ''}"`,
-            `"${img.result?.baseModel || ''}"`,
+            `"${img.result?.baseModel || 'leonardo 5'}"`,
           ].join(',');
         } else {
           return [
