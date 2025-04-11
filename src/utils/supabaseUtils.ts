@@ -10,8 +10,8 @@ export const executeCustomQuery = async (sqlQuery: string) => {
   try {
     // This is a workaround for direct SQL execution
     // For production, it's better to use stored procedures
-    const { data, error } = await supabase.rpc('execute_query', {
-      query_text: sqlQuery
+    const { data, error } = await supabase.functions.invoke('execute_query', {
+      body: { query_text: sqlQuery }
     });
     
     if (error) throw error;
@@ -29,8 +29,8 @@ export const executeCustomQuery = async (sqlQuery: string) => {
  */
 export const checkActiveSession = async (email: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('check_active_session', {
-      user_email: email
+    const { data, error } = await supabase.functions.invoke('check_active_session', {
+      body: { user_email: email }
     });
 
     if (error) {
@@ -58,11 +58,13 @@ export const setActiveSession = async (
   sessionId: string
 ): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('set_active_session', {
-      user_id: userId,
-      user_email: email,
-      session_identifier: sessionId,
-      activity_time: new Date().toISOString()
+    const { error } = await supabase.functions.invoke('set_active_session', {
+      body: {
+        user_id: userId,
+        user_email: email,
+        session_identifier: sessionId,
+        activity_time: new Date().toISOString()
+      }
     });
 
     if (error) {
@@ -79,8 +81,8 @@ export const setActiveSession = async (
  */
 export const removeActiveSession = async (userId: string): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('remove_active_session', {
-      user_id: userId
+    const { error } = await supabase.functions.invoke('remove_active_session', {
+      body: { user_id: userId }
     });
 
     if (error) {
@@ -97,8 +99,8 @@ export const removeActiveSession = async (userId: string): Promise<void> => {
  */
 export const removeActiveSessionByEmail = async (email: string): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('remove_active_session_by_email', {
-      user_email: email
+    const { error } = await supabase.functions.invoke('remove_active_session_by_email', {
+      body: { user_email: email }
     });
 
     if (error) {
@@ -115,7 +117,7 @@ export const removeActiveSessionByEmail = async (email: string): Promise<void> =
  */
 export const cleanupOldSessions = async (): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('cleanup_old_sessions');
+    const { error } = await supabase.functions.invoke('cleanup_old_sessions');
     
     if (error) {
       console.error('Error cleaning up old sessions:', error);
@@ -131,7 +133,7 @@ export const cleanupOldSessions = async (): Promise<void> => {
  */
 export const setupActiveSessionsTable = async () => {
   try {
-    const { data, error } = await supabase.rpc('setup_active_sessions');
+    const { data, error } = await supabase.functions.invoke('setup_active_sessions');
     
     if (error) {
       console.error('Error setting up active sessions:', error);

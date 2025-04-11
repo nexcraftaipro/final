@@ -103,9 +103,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Force sign out a user from any existing sessions
   const forceSignOut = async (email: string) => {
     try {
-      // Use RPC function instead of direct table access
-      const { error } = await supabase.rpc('remove_active_session_by_email', {
-        user_email: email
+      // Use functions.invoke instead of rpc
+      const { error } = await supabase.functions.invoke('remove_active_session_by_email', {
+        body: { user_email: email }
       });
       
       if (error) {
