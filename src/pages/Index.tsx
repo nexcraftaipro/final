@@ -197,6 +197,7 @@ const Index: React.FC = () => {
           
           // Check if we're in Freepik-only mode
           const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
+          const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
           
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
@@ -209,6 +210,10 @@ const Index: React.FC = () => {
               ...(isFreepikOnly && {
                 prompt: result.prompt,
                 baseModel: result.baseModel
+              }),
+              // Include categories for Shutterstock
+              ...(isShutterstock && {
+                categories: result.categories
               })
             },
             error: result.error
@@ -235,8 +240,13 @@ const Index: React.FC = () => {
   const pendingCount = images.filter(img => img.status === 'pending').length;
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
   
-  return <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <AppHeader remainingCredits={remainingCredits} apiKey={apiKey} onApiKeyChange={handleApiKeyChange} />
+  return (
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <AppHeader
+        remainingCredits={remainingCredits}
+        apiKey={apiKey}
+        onApiKeyChange={handleApiKeyChange}
+      />
       
       <div className="flex flex-1">
         <Sidebar 
@@ -264,7 +274,10 @@ const Index: React.FC = () => {
               <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
                 <h2 className="text-lg font-medium mb-2 text-[#fe6e00]">PLATFORMS:-</h2>
                 <div className="flex border-b border-gray-700">
-                  <PlatformSelector selectedPlatforms={platforms} onPlatformChange={handlePlatformChange} />
+                  <PlatformSelector
+                    selectedPlatforms={platforms}
+                    onPlatformChange={handlePlatformChange}
+                  />
                 </div>
                 
                 <div className="mt-4">
@@ -274,26 +287,36 @@ const Index: React.FC = () => {
               </div>
               
               <div className="mt-6">
-                <ImageUploader onImagesSelected={handleImagesSelected} isProcessing={isProcessing} />
+                <ImageUploader
+                  onImagesSelected={handleImagesSelected}
+                  isProcessing={isProcessing}
+                />
               </div>
               
-              {pendingCount > 0 && canGenerateMetadata && <div className="flex justify-center mt-8">
-                  <Button 
-                    onClick={handleProcessImages} 
-                    disabled={isProcessing || !apiKey} 
+              {pendingCount > 0 && canGenerateMetadata && (
+                <div className="flex justify-center mt-8">
+                  <Button
+                    onClick={handleProcessImages}
+                    disabled={isProcessing || !apiKey}
                     className="glow-button bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
                   >
-                    {isProcessing ? <>
+                    {isProcessing ? (
+                      <>
                         <Loader2 className="h-5 w-5 animate-spin mr-2" />
                         Processing...
-                      </> : <>
+                      </>
+                    ) : (
+                      <>
                         <Sparkles className="mr-2 h-5 w-5" />
                         Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
-                      </>}
+                      </>
+                    )}
                   </Button>
-                </div>}
+                </div>
+              )}
               
-              {!canGenerateMetadata && <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-4 flex flex-col items-center mt-4">
+              {!canGenerateMetadata && (
+                <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-4 flex flex-col items-center mt-4">
                   <div className="flex items-center mb-2">
                     <ShieldAlert className="h-5 w-5 text-amber-500 mr-2" />
                     <p className="text-sm text-amber-300">
@@ -306,13 +329,14 @@ const Index: React.FC = () => {
                   >
                     Upgrade Now
                   </Button>
-                </div>}
+                </div>
+              )}
               
               <div className="mt-8">
-                <ResultsDisplay 
-                  images={images} 
-                  onRemoveImage={handleRemoveImage} 
-                  onClearAll={handleClearAll} 
+                <ResultsDisplay
+                  images={images}
+                  onRemoveImage={handleRemoveImage}
+                  onClearAll={handleClearAll}
                   generationMode={generationMode}
                   selectedPlatforms={platforms}
                 />
@@ -321,7 +345,8 @@ const Index: React.FC = () => {
           </div>
         </main>
       </div>
-    </div>;
+    </div>
+  );
 };
 
 export default Index;

@@ -323,12 +323,12 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
       } else if (isAdobeStock) {
         // Validate the description length (at least the minimum words)
         let description = metadata.description || "";
-        const wordCount = description.split(/\s+/).filter(Boolean).length;
+        const descriptionWordCount = description.split(/\s+/).filter(Boolean).length;
         const titleWordCount = (metadata.title || "").split(/\s+/).filter(Boolean).length;
         
         // For AdobeStock, enforce minimum word counts
-        if (wordCount < 12) {
-          throw new Error(`Description is too short for AdobeStock. It has ${wordCount} words but needs at least 12 words.`);
+        if (descriptionWordCount < 12) {
+          throw new Error(`Description is too short for AdobeStock. It has ${descriptionWordCount} words but needs at least 12 words.`);
         }
         
         if (titleWordCount < 12) {
@@ -410,8 +410,9 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
         };
       } else {
         // For other platforms
-        if (wordCount < options.minDescriptionWords) {
-          throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${options.minDescriptionWords} words.`);
+        const descriptionWordCount = (metadata.description || "").split(/\s+/).filter(Boolean).length;
+        if (descriptionWordCount < options.minDescriptionWords) {
+          throw new Error(`Description is too short. It has ${descriptionWordCount} words but needs at least ${options.minDescriptionWords} words.`);
         }
         
         return {

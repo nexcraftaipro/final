@@ -1,4 +1,3 @@
-
 export interface ProcessedImage {
   id: string;
   file: File;
@@ -170,7 +169,6 @@ export function suggestCategoriesForShutterstock(title: string, description: str
     // Backgrounds/Textures
     'background': ['Backgrounds/Textures'],
     'texture': ['Backgrounds/Textures'],
-    'pattern': ['Backgrounds/Textures'],
     'wallpaper': ['Backgrounds/Textures'],
     
     // Beauty/Fashion
