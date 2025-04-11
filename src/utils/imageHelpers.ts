@@ -91,9 +91,20 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Check if file is a valid image type
+// Check if file is a valid image type - Updated to support more formats
 export function isValidImageType(file: File): boolean {
-  const acceptedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+  const acceptedTypes = [
+    'image/jpeg', 
+    'image/png', 
+    'image/jpg', 
+    'image/webp',
+    'image/svg+xml',  // SVG support
+    'application/postscript', // AI files
+    'application/eps', // EPS files
+    'application/x-eps',
+    'image/eps',
+    'application/illustrator' // Adobe Illustrator
+  ];
   return acceptedTypes.includes(file.type);
 }
 

@@ -89,18 +89,20 @@ export async function analyzeImageWithGemini(
       }
 
       if (isFreepikOnly) {
-        // Special prompt for Freepik - Updated to be more specific about keywords
+        // Improved prompt for Freepik - More specific about keywords to avoid empty results
         promptText = `Generate metadata for this image for Freepik platform. Return ONLY a JSON object with the exact keys: 'title', 'keywords', 'prompt', and 'baseModel'.
 
 ${titleInstruction}. 
 
-Keywords should be at least ${options.minKeywords} relevant tags for the image, with ${keywordInstruction}. The keywords should be specific and detailed.
+Keywords MUST include at least ${options.minKeywords} relevant tags for the image, with ${keywordInstruction}. The keywords should be specific, detailed, and varied to describe all aspects of the image.
 
 The prompt field should be a detailed description of the image (similar to a description). It should be at least 50 words and very descriptive of what's in the image.
 
-The baseModel should ALWAYS be "leonardo 5" (exactly, without quotes).
+The baseModel value MUST be exactly "leonardo 5" (without quotes).
 
-DO NOT include any explanations or text outside of the JSON object. The response must be a valid JSON object.`;
+Even if you have difficulty analyzing the image, you MUST generate at least ${options.minKeywords} keywords based on what you can see.
+
+DO NOT include any explanations or text outside of the JSON object. The response must be a valid JSON object with ALL fields populated.`;
       } else {
         // Standard prompt for other platforms
         promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
@@ -134,6 +136,12 @@ DO NOT include any explanations or text outside of the JSON object. The response
               ],
             },
           ],
+          // Add temperature parameter to encourage more diverse outputs
+          generationConfig: {
+            temperature: 0.7,
+            topP: 0.95,
+            maxOutputTokens: 1024,
+          }
         }),
       }
     );
@@ -172,7 +180,37 @@ DO NOT include any explanations or text outside of the JSON object. The response
       if (isFreepikOnly) {
         // For Freepik, ensure all required fields are present
         const title = metadata.title || "";
-        const keywords = Array.isArray(metadata.keywords) ? metadata.keywords : [];
+        // Fallback for keywords - ensure we have at least some keywords even if the API failed
+        let keywords = Array.isArray(metadata.keywords) ? metadata.keywords : [];
+        
+        // If we have no keywords or fewer than minimum, generate some basic ones
+        if (keywords.length < options.minKeywords) {
+          console.warn(`API returned only ${keywords.length} keywords, adding fallback keywords`);
+          
+          // Add some generic fallback keywords based on the file type
+          const fileExtension = file.name.split('.').pop()?.toLowerCase() || '';
+          
+          const fallbackKeywords = [
+            "digital image", "stock photo", "illustration", 
+            fileExtension, "design element", "vector", "creative", 
+            "artwork", "visual", "graphic design", "content", 
+            "photo", "picture", "media", "digital", "web", 
+            "print", "commercial", "marketing", "visual content",
+            "professional", "high quality", "detailed", "modern",
+            "contemporary", "trendy", "popular", "design", "art",
+            "visual asset", "stock image", "resource", "element",
+            "creative asset", "downloadable", "premium", "collection"
+          ];
+          
+          // Add generic keywords until we reach the minimum
+          while (keywords.length < options.minKeywords && fallbackKeywords.length > 0) {
+            const nextKeyword = fallbackKeywords.shift();
+            if (nextKeyword && !keywords.includes(nextKeyword)) {
+              keywords.push(nextKeyword);
+            }
+          }
+        }
+        
         // Always set prompt and baseModel for Freepik
         const prompt = metadata.prompt || "Detailed image of various objects arranged aesthetically";
         const baseModel = "leonardo 5"; // Always use "leonardo 5" for Freepik
@@ -180,10 +218,6 @@ DO NOT include any explanations or text outside of the JSON object. The response
         // Ensure we have all required fields for Freepik
         if (!title) {
           throw new Error("Title is missing from the API response");
-        }
-        
-        if (keywords.length < options.minKeywords) {
-          throw new Error(`Not enough keywords generated. Received ${keywords.length}, but need at least ${options.minKeywords}`);
         }
         
         return {

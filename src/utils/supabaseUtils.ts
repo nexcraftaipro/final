@@ -1,6 +1,16 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// Define type for RPC function names for better type safety
+type RpcFunction = 
+  | 'execute_query' 
+  | 'check_active_session' 
+  | 'set_active_session' 
+  | 'remove_active_session' 
+  | 'cleanup_old_sessions' 
+  | 'setup_active_sessions'
+  | 'remove_active_session_by_email';
+
 /**
  * Helper function to execute a custom SQL query (used for development/testing)
  * @param sqlQuery - The SQL query to execute
@@ -10,7 +20,7 @@ export const executeCustomQuery = async (sqlQuery: string) => {
   try {
     // This is a workaround for direct SQL execution
     // For production, it's better to use stored procedures
-    const { data, error } = await supabase.rpc('execute_query', {
+    const { data, error } = await supabase.rpc<any>('execute_query' as RpcFunction, {
       query_text: sqlQuery
     });
     
@@ -29,7 +39,7 @@ export const executeCustomQuery = async (sqlQuery: string) => {
  */
 export const checkActiveSession = async (email: string): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc('check_active_session', {
+    const { data, error } = await supabase.rpc<{exists: boolean}>('check_active_session' as RpcFunction, {
       user_email: email
     });
 
@@ -39,7 +49,7 @@ export const checkActiveSession = async (email: string): Promise<boolean> => {
     }
 
     // Fix for data possibly being null
-    return !!data && !!data.exists;
+    return !!data && data.exists;
   } catch (error) {
     console.error('Error in checkActiveSession:', error);
     return false;
@@ -58,7 +68,7 @@ export const setActiveSession = async (
   sessionId: string
 ): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('set_active_session', {
+    const { error } = await supabase.rpc('set_active_session' as RpcFunction, {
       user_id: userId,
       user_email: email,
       session_identifier: sessionId,
@@ -79,7 +89,7 @@ export const setActiveSession = async (
  */
 export const removeActiveSession = async (userId: string): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('remove_active_session', {
+    const { error } = await supabase.rpc('remove_active_session' as RpcFunction, {
       user_id: userId
     });
 
@@ -92,12 +102,30 @@ export const removeActiveSession = async (userId: string): Promise<void> => {
 };
 
 /**
+ * Remove a user from the active_sessions table by email
+ * @param email - The user's email
+ */
+export const removeActiveSessionByEmail = async (email: string): Promise<void> => {
+  try {
+    const { error } = await supabase.rpc('remove_active_session_by_email' as RpcFunction, {
+      user_email: email
+    });
+
+    if (error) {
+      console.error('Error removing active session by email:', error);
+    }
+  } catch (error) {
+    console.error('Error in removeActiveSessionByEmail:', error);
+  }
+};
+
+/**
  * Cleanup old sessions (older than 24 hours)
  * This function can be called periodically to clean up the database
  */
 export const cleanupOldSessions = async (): Promise<void> => {
   try {
-    const { error } = await supabase.rpc('cleanup_old_sessions');
+    const { error } = await supabase.rpc('cleanup_old_sessions' as RpcFunction);
     
     if (error) {
       console.error('Error cleaning up old sessions:', error);
@@ -113,7 +141,7 @@ export const cleanupOldSessions = async (): Promise<void> => {
  */
 export const setupActiveSessionsTable = async () => {
   try {
-    const { data, error } = await supabase.rpc('setup_active_sessions');
+    const { data, error } = await supabase.rpc<any>('setup_active_sessions' as RpcFunction);
     
     if (error) {
       console.error('Error setting up active sessions:', error);
