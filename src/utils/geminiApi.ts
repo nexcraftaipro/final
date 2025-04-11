@@ -88,18 +88,18 @@ export async function analyzeImageWithGemini(
       }
 
       if (isFreepikOnly) {
-        // Updated prompt for Freepik - Requesting shorter one-sentence prompt
+        // Updated prompt for Freepik - Explicitly mentioning the keyword limit
         promptText = `Generate metadata for this image for Freepik platform. Return ONLY a JSON object with the exact keys: 'title', 'keywords', 'prompt', and 'baseModel'.
 
 ${titleInstruction}. 
 
-Keywords MUST include at least ${options.minKeywords} relevant tags for the image, with ${keywordInstruction}. The keywords should be specific, detailed, and varied to describe all aspects of the image.
+Keywords MUST include ${options.minKeywords} to ${options.maxKeywords} relevant tags for the image - DO NOT exceed ${options.maxKeywords} keywords. The keywords should be specific, detailed, and varied to describe all aspects of the image.
 
 The prompt field should be a short, one-sentence description of the image. Keep it concise but descriptive, under 20 words.
 
 The baseModel value MUST be exactly "leonardo" (without quotes).
 
-Even if you have difficulty analyzing the image, you MUST generate at least ${options.minKeywords} keywords based on what you can see.
+Even if you have difficulty analyzing the image, you MUST generate at least ${options.minKeywords} keywords based on what you can see, but no more than ${options.maxKeywords}.
 
 DO NOT include any explanations or text outside of the JSON object. The response must be a valid JSON object with ALL fields populated.`;
       } else {
@@ -182,6 +182,12 @@ DO NOT include any explanations or text outside of the JSON object. The response
         // Fallback for keywords - ensure we have at least some keywords even if the API failed
         let keywords = Array.isArray(metadata.keywords) ? metadata.keywords : [];
         
+        // Ensure keywords respect the min/max range set in options
+        if (keywords.length > options.maxKeywords) {
+          console.warn(`API returned ${keywords.length} keywords, trimming to maximum ${options.maxKeywords}`);
+          keywords = keywords.slice(0, options.maxKeywords);
+        }
+        
         // If we have no keywords or fewer than minimum, generate some basic ones
         if (keywords.length < options.minKeywords) {
           console.warn(`API returned only ${keywords.length} keywords, adding fallback keywords`);
@@ -210,7 +216,6 @@ DO NOT include any explanations or text outside of the JSON object. The response
           }
         }
         
-        // Always set prompt and baseModel for Freepik
         // Ensure prompt is a single sentence for Freepik
         let prompt = metadata.prompt || "Detailed image showing visual content.";
         
