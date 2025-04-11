@@ -98,7 +98,7 @@ Keywords MUST include at least ${options.minKeywords} relevant tags for the imag
 
 The prompt field should be a detailed description of the image (similar to a description). It should be at least 50 words and very descriptive of what's in the image.
 
-The baseModel value MUST be exactly "leonardo 5" (without quotes).
+The baseModel value MUST be exactly "leonardo" (without quotes).
 
 Even if you have difficulty analyzing the image, you MUST generate at least ${options.minKeywords} keywords based on what you can see.
 
@@ -213,7 +213,7 @@ DO NOT include any explanations or text outside of the JSON object. The response
         
         // Always set prompt and baseModel for Freepik
         const prompt = metadata.prompt || "Detailed image of various objects arranged aesthetically";
-        const baseModel = "leonardo 5"; // Always use "leonardo 5" for Freepik
+        const baseModel = "leonardo"; // Always use "leonardo" for Freepik
         
         // Ensure we have all required fields for Freepik
         if (!title) {

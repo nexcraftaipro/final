@@ -33,12 +33,12 @@ export function createImagePreview(file: File): Promise<string> {
 export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false): string {
   // Determine headers based on platform selection
   const headers = isFreepikOnly
-    ? ['Filename', 'Title', 'Keywords', 'Prompt', 'Base-Model']
-    : ['Filename', 'Title', 'Description', 'Keywords'];
+    ? ['"File name"', '"Title"', '"Keywords"', '"Prompt"', '"Base-Model"']
+    : ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
     
   // Add headers
   const csvContent = [
-    headers.join(','),
+    headers.join(';'),
     // Add data rows
     ...images
       .filter(img => img.status === 'complete' && img.result)
@@ -49,8 +49,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${img.result?.title || ''}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
             `"${img.result?.prompt || ''}"`,
-            `"${img.result?.baseModel || 'leonardo 5'}"`,
-          ].join(',');
+            `"leonardo"`,
+          ].join(';');
         } else {
           return [
             `"${img.file.name}"`,
