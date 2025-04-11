@@ -58,15 +58,8 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange
 }) => {
   const togglePlatform = (platform: Platform) => {
-    if (selectedPlatforms.includes(platform)) {
-      // If already selected, remove it (but prevent removing all platforms)
-      if (selectedPlatforms.length > 1) {
-        onPlatformChange(selectedPlatforms.filter(p => p !== platform));
-      }
-    } else {
-      // If not selected, add it
-      onPlatformChange([...selectedPlatforms, platform]);
-    }
+    // Changed to only allow single platform selection
+    onPlatformChange([platform]);
   };
 
   return (

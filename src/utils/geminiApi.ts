@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import type { Platform } from "@/components/PlatformSelector";
 import type { GenerationMode } from "@/components/GenerationModeSelector";
@@ -89,14 +88,14 @@ export async function analyzeImageWithGemini(
       }
 
       if (isFreepikOnly) {
-        // Improved prompt for Freepik - More specific about keywords to avoid empty results
+        // Updated prompt for Freepik - Requesting shorter one-sentence prompt
         promptText = `Generate metadata for this image for Freepik platform. Return ONLY a JSON object with the exact keys: 'title', 'keywords', 'prompt', and 'baseModel'.
 
 ${titleInstruction}. 
 
 Keywords MUST include at least ${options.minKeywords} relevant tags for the image, with ${keywordInstruction}. The keywords should be specific, detailed, and varied to describe all aspects of the image.
 
-The prompt field should be a detailed description of the image (similar to a description). It should be at least 50 words and very descriptive of what's in the image.
+The prompt field should be a short, one-sentence description of the image. Keep it concise but descriptive, under 20 words.
 
 The baseModel value MUST be exactly "leonardo" (without quotes).
 
@@ -212,7 +211,15 @@ DO NOT include any explanations or text outside of the JSON object. The response
         }
         
         // Always set prompt and baseModel for Freepik
-        const prompt = metadata.prompt || "Detailed image of various objects arranged aesthetically";
+        // Ensure prompt is a single sentence for Freepik
+        let prompt = metadata.prompt || "Detailed image showing visual content.";
+        
+        // If prompt is too long, truncate it or use only the first sentence
+        if (prompt.includes('.')) {
+          const firstSentence = prompt.split('.')[0] + '.';
+          prompt = firstSentence;
+        }
+        
         const baseModel = "leonardo"; // Always use "leonardo" for Freepik
         
         // Ensure we have all required fields for Freepik

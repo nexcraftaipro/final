@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -29,7 +28,10 @@ const Index: React.FC = () => {
   const [titleLength, setTitleLength] = useState(200);
   const [descriptionLength, setDescriptionLength] = useState(200);
   const [keywordCount, setKeywordCount] = useState(50);
+  
+  // Updated to only have one platform selected by default
   const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
+  
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');
   const [shouldRedirect, setShouldRedirect] = useState(false);
