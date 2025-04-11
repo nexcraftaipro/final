@@ -73,12 +73,17 @@ export async function analyzeImageWithGemini(
     
     // Check if only Freepik is selected
     const isFreepikOnly = options.platforms.length === 1 && options.platforms[0] === 'Freepik';
+    const isAdobeStock = options.platforms.length === 1 && options.platforms[0] === 'AdobeStock';
     
     if (options.generationMode === 'metadata') {
+      // Update minimum values for AdobeStock
+      const minTitleWordsForPlatform = isAdobeStock ? Math.max(options.minTitleWords, 12) : options.minTitleWords;
+      const minDescWordsForPlatform = isAdobeStock ? Math.max(options.minDescriptionWords, 12) : options.minDescriptionWords;
+      
       const keywordInstruction = `between ${options.minKeywords}-${options.maxKeywords} keywords`;
       
-      const titleInstruction = `The title should be between ${options.minTitleWords}-${options.maxTitleWords} words`;
-      const descriptionInstruction = `The description should be between ${options.minDescriptionWords}-${options.maxDescriptionWords} words, minimum ${options.minDescriptionWords} words`;
+      const titleInstruction = `The title should be between ${minTitleWordsForPlatform}-${options.maxTitleWords} words`;
+      const descriptionInstruction = `The description should be between ${minDescWordsForPlatform}-${options.maxDescriptionWords} words, minimum ${minDescWordsForPlatform} words`;
       
       let platformInstruction = "";
       if (options.platforms && options.platforms.length > 0) {
@@ -102,6 +107,19 @@ The baseModel value MUST be exactly "leonardo" (without quotes).
 Even if you have difficulty analyzing the image, you MUST generate at least ${options.minKeywords} keywords based on what you can see, but no more than ${options.maxKeywords}.
 
 DO NOT include any explanations or text outside of the JSON object. The response must be a valid JSON object with ALL fields populated.`;
+      } else if (isAdobeStock) {
+        // Custom prompt for AdobeStock with stronger emphasis on minimum word requirements
+        promptText = `Generate metadata for this image for AdobeStock platform. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). 
+        
+${titleInstruction}. IMPORTANT: The title MUST be at least 12 words.
+
+${descriptionInstruction}. IMPORTANT: The description MUST be at least 12 words and should be comprehensive and rich in detail.
+
+Keywords should be relevant tags for the image, with ${keywordInstruction}. Separate keywords with commas.
+
+${platformInstruction} 
+
+DO NOT include any explanations or text outside of the JSON object.`;
       } else {
         // Standard prompt for other platforms
         promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
@@ -244,8 +262,18 @@ DO NOT include any explanations or text outside of the JSON object. The response
         // Validate the description length (at least the minimum words)
         let description = metadata.description || "";
         const wordCount = description.split(/\s+/).filter(Boolean).length;
+        const titleWordCount = (metadata.title || "").split(/\s+/).filter(Boolean).length;
         
-        if (wordCount < options.minDescriptionWords) {
+        // For AdobeStock, enforce minimum word counts
+        if (isAdobeStock) {
+          if (wordCount < 12) {
+            throw new Error(`Description is too short for AdobeStock. It has ${wordCount} words but needs at least 12 words.`);
+          }
+          
+          if (titleWordCount < 12) {
+            throw new Error(`Title is too short for AdobeStock. It has ${titleWordCount} words but needs at least 12 words.`);
+          }
+        } else if (wordCount < options.minDescriptionWords) {
           throw new Error(`Description is too short. It has ${wordCount} words but needs at least ${options.minDescriptionWords} words.`);
         }
         

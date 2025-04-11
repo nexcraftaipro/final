@@ -38,7 +38,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     
   // Add headers
   const csvContent = [
-    headers.join(';'),
+    // Use semicolons for Freepik, commas for other platforms
+    headers.join(isFreepikOnly ? ';' : ','),
     // Add data rows
     ...images
       .filter(img => img.status === 'complete' && img.result)

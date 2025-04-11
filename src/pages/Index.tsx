@@ -37,12 +37,12 @@ const Index: React.FC = () => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
 
-  // Default values as requested
-  const [minTitleWords, setMinTitleWords] = useState(10);
+  // Updated default values for title and description
+  const [minTitleWords, setMinTitleWords] = useState(12);
   const [maxTitleWords, setMaxTitleWords] = useState(15);
   const [minKeywords, setMinKeywords] = useState(35);
   const [maxKeywords, setMaxKeywords] = useState(45);
-  const [minDescriptionWords, setMinDescriptionWords] = useState(5); // Changed from 10 to 5
+  const [minDescriptionWords, setMinDescriptionWords] = useState(12); // Updated to 12
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
   
   const {
