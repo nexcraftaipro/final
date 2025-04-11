@@ -37,11 +37,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }, 2000);
   };
 
-  // Check if only Freepik is selected
+  // Check for specific platforms
   const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
+  const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
 
   const handleDownloadCSV = () => {
-    const csvContent = formatImagesAsCSV(images, isFreepikOnly);
+    const csvContent = formatImagesAsCSV(images, isFreepikOnly, isShutterstock);
     downloadCSV(csvContent);
     toast.success('CSV file downloaded');
   };
@@ -171,10 +172,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       <p className="text-white">{image.file.name}</p>
                     </div>
                     
-                    <div>
-                      <h4 className="text-amber-500">Title:</h4>
-                      <p className="text-white">{image.result?.title || ''}</p>
-                    </div>
+                    {!isShutterstock && !isFreepikOnly && (
+                      <div>
+                        <h4 className="text-amber-500">Title:</h4>
+                        <p className="text-white">{image.result?.title || ''}</p>
+                      </div>
+                    )}
                     
                     {!isFreepikOnly && (
                       <div>
@@ -200,6 +203,22 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         )}
                       </div>
                     </div>
+
+                    {isShutterstock && image.result?.categories && (
+                      <div>
+                        <h4 className="text-amber-500">Categories:</h4>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {image.result.categories.map((category, index) => (
+                            <span 
+                              key={index} 
+                              className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
+                            >
+                              {category}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {isFreepikOnly && (
                       <>
