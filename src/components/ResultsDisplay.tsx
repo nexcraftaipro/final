@@ -40,9 +40,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   // Check for specific platforms
   const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
   const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+  const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
 
   const handleDownloadCSV = () => {
-    const csvContent = formatImagesAsCSV(images, isFreepikOnly, isShutterstock);
+    const csvContent = formatImagesAsCSV(images, isFreepikOnly, isShutterstock, isAdobeStock);
     downloadCSV(csvContent);
     toast.success('CSV file downloaded');
   };
@@ -180,7 +181,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       </div>
                     )}
                     
-                    {!isFreepikOnly && (
+                    {!isFreepikOnly && !isAdobeStock && (
                       <div>
                         <h4 className="text-amber-500">Description:</h4>
                         <p className="text-white">{image.result?.description || ''}</p>
@@ -205,7 +206,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       </div>
                     </div>
 
-                    {isShutterstock && image.result?.categories && (
+                    {(isShutterstock || isAdobeStock) && image.result?.categories && (
                       <div>
                         <h4 className="text-amber-500">Categories:</h4>
                         <div className="flex flex-wrap gap-2 mt-2">

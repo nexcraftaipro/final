@@ -1,3 +1,4 @@
+
 export interface ProcessedImage {
   id: string;
   file: File;
@@ -9,7 +10,7 @@ export interface ProcessedImage {
     keywords: string[];
     prompt?: string;
     baseModel?: string;
-    categories?: string[]; // Added categories field for Shutterstock
+    categories?: string[]; // Added categories field for Shutterstock and AdobeStock
   };
   error?: string;
 }
@@ -30,7 +31,7 @@ export function createImagePreview(file: File): Promise<string> {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false): string {
   // Determine headers based on platform selection
   let headers;
   
@@ -38,6 +39,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     headers = ['"File name"', '"Title"', '"Keywords"', '"Prompt"', '"Base-Model"'];
   } else if (isShutterstock) {
     headers = ['"Filename"', '"Description"', '"Keywords"', '"Categories"'];
+  } else if (isAdobeStock) {
+    headers = ['"Filename"', '"Title"', '"Keywords"', '"Category"'];
   } else {
     headers = ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
   }
@@ -63,6 +66,13 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${img.file.name}"`,
             `"${img.result?.description || ''}"`,
             `"${img.result?.keywords?.join(',') || ''}"`,
+            `"${img.result?.categories?.join(',') || ''}"`,
+          ].join(',');
+        } else if (isAdobeStock) {
+          return [
+            `"${img.file.name}"`,
+            `"${img.result?.title || ''}"`,
+            `"${img.result?.keywords?.join(', ') || ''}"`,
             `"${img.result?.categories?.join(',') || ''}"`,
           ].join(',');
         } else {
@@ -138,7 +148,316 @@ export const shutterstockCategories = [
   'Signs/Symbols', 'Sports/Recreation', 'Technology', 'Transportation', 'Vintage'
 ];
 
-// Helper to determine the best categories for an image based on title/description
+// Adobe Stock Categories
+export const adobeStockCategories = [
+  'Animals', 
+  'Buildings and Architecture', 
+  'Business', 
+  'Drinks', 
+  'The Environment', 
+  'States of Mind', 
+  'Food', 
+  'Graphic Resources', 
+  'Hobbies and Leisure', 
+  'Industry', 
+  'Landscapes', 
+  'Lifestyle', 
+  'People', 
+  'Plants and Flowers', 
+  'Culture and Religion', 
+  'Science', 
+  'Social Issues', 
+  'Sports', 
+  'Technology', 
+  'Transport', 
+  'Travel'
+];
+
+// Helper to determine the best categories for an image based on title/description and keywords
+export function suggestCategoriesForAdobeStock(title: string, keywords: string[]): string[] {
+  // Combine the title and keywords for analysis
+  const combinedText = (title + " " + keywords.join(" ")).toLowerCase();
+  
+  // Map of common words/phrases to categories
+  const categoryMatches: Record<string, string[]> = {
+    // Animals
+    'animal': ['Animals'],
+    'wildlife': ['Animals'],
+    'pet': ['Animals'],
+    'dog': ['Animals'],
+    'cat': ['Animals'],
+    'bird': ['Animals'],
+    'fish': ['Animals'],
+    'horse': ['Animals'],
+    'mammal': ['Animals'],
+    'reptile': ['Animals'],
+    
+    // Buildings and Architecture
+    'building': ['Buildings and Architecture'],
+    'architecture': ['Buildings and Architecture'],
+    'house': ['Buildings and Architecture'],
+    'skyscraper': ['Buildings and Architecture'],
+    'tower': ['Buildings and Architecture'],
+    'monument': ['Buildings and Architecture'],
+    'bridge': ['Buildings and Architecture'],
+    'construction': ['Buildings and Architecture'],
+    'apartment': ['Buildings and Architecture'],
+    'office': ['Buildings and Architecture', 'Business'],
+    
+    // Business
+    'business': ['Business'],
+    'office': ['Business'],
+    'meeting': ['Business'],
+    'professional': ['Business'],
+    'corporate': ['Business'],
+    'finance': ['Business'],
+    'economy': ['Business'],
+    'management': ['Business'],
+    'entrepreneur': ['Business'],
+    'startup': ['Business'],
+    
+    // Drinks
+    'drink': ['Drinks'],
+    'beverage': ['Drinks'],
+    'coffee': ['Drinks'],
+    'tea': ['Drinks'],
+    'wine': ['Drinks'],
+    'beer': ['Drinks'],
+    'cocktail': ['Drinks'],
+    'juice': ['Drinks'],
+    'alcohol': ['Drinks'],
+    'water': ['Drinks'],
+    
+    // The Environment
+    'environment': ['The Environment'],
+    'nature': ['The Environment'],
+    'ecology': ['The Environment'],
+    'ecosystem': ['The Environment'],
+    'sustainable': ['The Environment'],
+    'green': ['The Environment'],
+    'climate': ['The Environment'],
+    'pollution': ['The Environment'],
+    'conservation': ['The Environment'],
+    'renewable': ['The Environment'],
+    
+    // States of Mind
+    'emotion': ['States of Mind'],
+    'feeling': ['States of Mind'],
+    'happiness': ['States of Mind'],
+    'sadness': ['States of Mind'],
+    'depression': ['States of Mind'],
+    'anxiety': ['States of Mind'],
+    'stress': ['States of Mind'],
+    'joy': ['States of Mind'],
+    'fear': ['States of Mind'],
+    'love': ['States of Mind'],
+    
+    // Food
+    'food': ['Food'],
+    'meal': ['Food'],
+    'cuisine': ['Food'],
+    'restaurant': ['Food'],
+    'dinner': ['Food'],
+    'lunch': ['Food'],
+    'breakfast': ['Food'],
+    'cooking': ['Food'],
+    'fruit': ['Food'],
+    'vegetable': ['Food'],
+    
+    // Graphic Resources
+    'graphic': ['Graphic Resources'],
+    'design': ['Graphic Resources'],
+    'illustration': ['Graphic Resources'],
+    'vector': ['Graphic Resources'],
+    'font': ['Graphic Resources'],
+    'typography': ['Graphic Resources'],
+    'icon': ['Graphic Resources'],
+    'logo': ['Graphic Resources'],
+    'pattern': ['Graphic Resources'],
+    'template': ['Graphic Resources'],
+    
+    // Hobbies and Leisure
+    'hobby': ['Hobbies and Leisure'],
+    'leisure': ['Hobbies and Leisure'],
+    'recreation': ['Hobbies and Leisure'],
+    'game': ['Hobbies and Leisure'],
+    'craft': ['Hobbies and Leisure'],
+    'diy': ['Hobbies and Leisure'],
+    'gardening': ['Hobbies and Leisure'],
+    'reading': ['Hobbies and Leisure'],
+    'music': ['Hobbies and Leisure'],
+    'entertainment': ['Hobbies and Leisure'],
+    
+    // Industry
+    'industry': ['Industry'],
+    'factory': ['Industry'],
+    'manufacturing': ['Industry'],
+    'production': ['Industry'],
+    'warehouse': ['Industry'],
+    'machinery': ['Industry'],
+    'industrial': ['Industry'],
+    'engineering': ['Industry'],
+    'mining': ['Industry'],
+    'automation': ['Industry'],
+    
+    // Landscapes
+    'landscape': ['Landscapes'],
+    'mountain': ['Landscapes'],
+    'valley': ['Landscapes'],
+    'hill': ['Landscapes'],
+    'desert': ['Landscapes'],
+    'forest': ['Landscapes'],
+    'beach': ['Landscapes'],
+    'ocean': ['Landscapes'],
+    'sea': ['Landscapes'],
+    'river': ['Landscapes'],
+    
+    // Lifestyle
+    'lifestyle': ['Lifestyle'],
+    'fashion': ['Lifestyle'],
+    'beauty': ['Lifestyle'],
+    'trend': ['Lifestyle'],
+    'style': ['Lifestyle'],
+    'luxury': ['Lifestyle'],
+    'wellness': ['Lifestyle'],
+    'health': ['Lifestyle'],
+    'fitness': ['Lifestyle'],
+    'home': ['Lifestyle'],
+    
+    // People
+    'people': ['People'],
+    'person': ['People'],
+    'man': ['People'],
+    'woman': ['People'],
+    'child': ['People'],
+    'family': ['People'],
+    'portrait': ['People'],
+    'crowd': ['People'],
+    'human': ['People'],
+    'adult': ['People'],
+    
+    // Plants and Flowers
+    'plant': ['Plants and Flowers'],
+    'flower': ['Plants and Flowers'],
+    'tree': ['Plants and Flowers'],
+    'garden': ['Plants and Flowers'],
+    'botanical': ['Plants and Flowers'],
+    'floral': ['Plants and Flowers'],
+    'herb': ['Plants and Flowers'],
+    'leaf': ['Plants and Flowers'],
+    'bush': ['Plants and Flowers'],
+    'grass': ['Plants and Flowers'],
+    
+    // Culture and Religion
+    'culture': ['Culture and Religion'],
+    'religion': ['Culture and Religion'],
+    'faith': ['Culture and Religion'],
+    'tradition': ['Culture and Religion'],
+    'heritage': ['Culture and Religion'],
+    'ritual': ['Culture and Religion'],
+    'ceremony': ['Culture and Religion'],
+    'worship': ['Culture and Religion'],
+    'festival': ['Culture and Religion'],
+    'celebration': ['Culture and Religion'],
+    
+    // Science
+    'science': ['Science'],
+    'research': ['Science'],
+    'laboratory': ['Science'],
+    'experiment': ['Science'],
+    'chemistry': ['Science'],
+    'physics': ['Science'],
+    'biology': ['Science'],
+    'medicine': ['Science'],
+    'technology': ['Science', 'Technology'],
+    'innovation': ['Science', 'Technology'],
+    
+    // Social Issues
+    'social': ['Social Issues'],
+    'issue': ['Social Issues'],
+    'poverty': ['Social Issues'],
+    'inequality': ['Social Issues'],
+    'discrimination': ['Social Issues'],
+    'protest': ['Social Issues'],
+    'activism': ['Social Issues'],
+    'community': ['Social Issues'],
+    'diversity': ['Social Issues'],
+    'inclusion': ['Social Issues'],
+    
+    // Sports
+    'sport': ['Sports'],
+    'athlete': ['Sports'],
+    'competition': ['Sports'],
+    'football': ['Sports'],
+    'soccer': ['Sports'],
+    'basketball': ['Sports'],
+    'tennis': ['Sports'],
+    'swimming': ['Sports'],
+    'running': ['Sports'],
+    'fitness': ['Sports'],
+    
+    // Technology
+    'technology': ['Technology'],
+    'digital': ['Technology'],
+    'computer': ['Technology'],
+    'electronic': ['Technology'],
+    'device': ['Technology'],
+    'software': ['Technology'],
+    'hardware': ['Technology'],
+    'internet': ['Technology'],
+    'mobile': ['Technology'],
+    'innovation': ['Technology'],
+    
+    // Transport
+    'transport': ['Transport'],
+    'vehicle': ['Transport'],
+    'car': ['Transport'],
+    'bus': ['Transport'],
+    'train': ['Transport'],
+    'aircraft': ['Transport'],
+    'airplane': ['Transport'],
+    'ship': ['Transport'],
+    'bicycle': ['Transport'],
+    'motorcycle': ['Transport'],
+    
+    // Travel
+    'travel': ['Travel'],
+    'tourism': ['Travel'],
+    'vacation': ['Travel'],
+    'holiday': ['Travel'],
+    'adventure': ['Travel'],
+    'exploration': ['Travel'],
+    'destination': ['Travel'],
+    'tourist': ['Travel'],
+    'journey': ['Travel'],
+    'trip': ['Travel']
+  };
+  
+  // Count category matches based on the text content
+  const categoryCount: Record<string, number> = {};
+  
+  // Check each word against our category mapping
+  const words = combinedText.split(/\s+/);
+  for (const word of words) {
+    if (categoryMatches[word]) {
+      for (const category of categoryMatches[word]) {
+        categoryCount[category] = (categoryCount[category] || 0) + 1;
+      }
+    }
+  }
+  
+  // Sort categories by number of matches
+  const sortedCategories = Object.entries(categoryCount)
+    .sort((a, b) => b[1] - a[1])
+    .map(entry => entry[0]);
+  
+  // Return top 2 categories, or default to "Animals" and "Lifestyle" if none found
+  return sortedCategories.length >= 2 
+    ? sortedCategories.slice(0, 2) 
+    : sortedCategories.concat(["Animals", "Lifestyle"]).slice(0, 2);
+}
+
+// Helper to determine the best categories for a Shutterstock image
 export function suggestCategoriesForShutterstock(title: string, description: string): string[] {
   // Combine the title and description for analysis
   const combinedText = (title + " " + description).toLowerCase();
