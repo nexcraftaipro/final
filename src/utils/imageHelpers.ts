@@ -90,13 +90,26 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
 }
 
 // Export data to CSV file
-export function downloadCSV(csvContent: string, filename = 'image-metadata.csv'): void {
+export function downloadCSV(csvContent: string, filename = 'image-metadata.csv', platform?: string): void {
+  // Create custom folder name based on platform
+  let folderName = 'metadata';
+  
+  if (platform === 'AdobeStock') {
+    folderName = 'AdobeStock-MetaData By FreepikScipts ✨';
+  } else if (platform === 'Freepik') {
+    folderName = 'Freepik-MetaData By Freepikscipts';
+  } else if (platform) {
+    folderName = `${platform}-MetaData`;
+  }
+  
+  const customFilename = `${folderName}/${filename}`;
+  
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   
   link.setAttribute('href', url);
-  link.setAttribute('download', filename);
+  link.setAttribute('download', customFilename);
   link.style.display = 'none';
   
   document.body.appendChild(link);
@@ -202,7 +215,6 @@ export function suggestCategoriesForAdobeStock(title: string, keywords: string[]
     'bridge': ['Buildings and Architecture'],
     'construction': ['Buildings and Architecture'],
     'apartment': ['Buildings and Architecture'],
-    'office': ['Buildings and Architecture', 'Business'],
     
     // Business
     'business': ['Business'],
@@ -369,8 +381,7 @@ export function suggestCategoriesForAdobeStock(title: string, keywords: string[]
     'physics': ['Science'],
     'biology': ['Science'],
     'medicine': ['Science'],
-    'technology': ['Science', 'Technology'],
-    'innovation': ['Science', 'Technology'],
+    'innovation': ['Science'],
     
     // Social Issues
     'social': ['Social Issues'],
@@ -406,7 +417,7 @@ export function suggestCategoriesForAdobeStock(title: string, keywords: string[]
     'hardware': ['Technology'],
     'internet': ['Technology'],
     'mobile': ['Technology'],
-    'innovation': ['Technology'],
+    'tech': ['Technology'],
     
     // Transport
     'transport': ['Transport'],
@@ -451,10 +462,10 @@ export function suggestCategoriesForAdobeStock(title: string, keywords: string[]
     .sort((a, b) => b[1] - a[1])
     .map(entry => entry[0]);
   
-  // Return top 2 categories, or default to "Animals" and "Lifestyle" if none found
-  return sortedCategories.length >= 2 
-    ? sortedCategories.slice(0, 2) 
-    : sortedCategories.concat(["Animals", "Lifestyle"]).slice(0, 2);
+  // Return top 1 category, or default to "Animals" if none found
+  return sortedCategories.length >= 1 
+    ? sortedCategories.slice(0, 1) 
+    : ["Animals"];
 }
 
 // Helper to determine the best categories for a Shutterstock image
@@ -688,3 +699,4 @@ export function suggestCategoriesForShutterstock(title: string, description: str
     ? sortedCategories.slice(0, 2) 
     : sortedCategories.concat(["Miscellaneous", "Objects"]).slice(0, 2);
 }
+

@@ -44,7 +44,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   const handleDownloadCSV = () => {
     const csvContent = formatImagesAsCSV(images, isFreepikOnly, isShutterstock, isAdobeStock);
-    downloadCSV(csvContent);
+    
+    // Pass the platform name for custom folder naming
+    const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
+    downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
+    
     toast.success('CSV file downloaded');
   };
 
@@ -173,7 +177,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       <p className="text-white">{image.file.name}</p>
                     </div>
                     
-                    {/* Fix: Now showing title for all platforms including Freepik but not Shutterstock */}
+                    {/* Show title for all platforms except Shutterstock */}
                     {!isShutterstock && (
                       <div>
                         <h4 className="text-amber-500">Title:</h4>
@@ -181,6 +185,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       </div>
                     )}
                     
+                    {/* Show description for platforms other than Freepik and AdobeStock */}
                     {!isFreepikOnly && !isAdobeStock && (
                       <div>
                         <h4 className="text-amber-500">Description:</h4>
@@ -206,6 +211,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       </div>
                     </div>
 
+                    {/* Show categories for both Shutterstock and AdobeStock */}
                     {(isShutterstock || isAdobeStock) && image.result?.categories && (
                       <div>
                         <h4 className="text-amber-500">Categories:</h4>

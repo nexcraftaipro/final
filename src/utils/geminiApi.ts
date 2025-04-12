@@ -1,7 +1,8 @@
+
 import { toast } from "sonner";
 import type { Platform } from "@/components/PlatformSelector";
 import type { GenerationMode } from "@/components/GenerationModeSelector";
-import { suggestCategoriesForShutterstock } from "./imageHelpers";
+import { suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock } from "./imageHelpers";
 
 interface MetadataResult {
   filename: string;
@@ -10,7 +11,7 @@ interface MetadataResult {
   keywords: string[];
   prompt?: string;
   baseModel?: string;
-  categories?: string[]; // Added categories for Shutterstock
+  categories?: string[]; // Added categories for Shutterstock and AdobeStock
   error?: string;
 }
 
@@ -215,10 +216,12 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
       // Ensure we have the right number of keywords
       const finalKeywords = svgKeywords.slice(0, options.maxKeywords);
       
-      // For Shutterstock, also generate categories
+      // Generate categories based on the platform
       let categories: string[] = [];
       if (isShutterstock) {
         categories = suggestCategoriesForShutterstock(title, description);
+      } else if (isAdobeStock) {
+        categories = suggestCategoriesForAdobeStock(title, finalKeywords);
       }
       
       return {
@@ -226,7 +229,7 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
         title: title,
         description: description,
         keywords: finalKeywords,
-        ...(isShutterstock && { categories })
+        ...(isShutterstock || isAdobeStock ? { categories } : {})
       };
     }
 
@@ -452,11 +455,15 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
           }
         }
         
+        // Generate a single category for AdobeStock based on title and keywords
+        const categories = suggestCategoriesForAdobeStock(metadata.title || "", keywords);
+        
         return {
           filename: file.name,
           title: metadata.title || "",
           description: description,
-          keywords: keywords, // Ensure keywords are always returned for AdobeStock
+          keywords: keywords,
+          categories: categories
         };
       } else {
         // For other platforms
@@ -510,11 +517,15 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
       // Trim to requested keyword count
       const finalKeywords = svgKeywords.slice(0, options.maxKeywords);
       
-      // For Shutterstock, also generate categories
+      // Generate categories based on the platform
       const isShutterstock = options.platforms.length === 1 && options.platforms[0] === 'Shutterstock';
+      const isAdobeStock = options.platforms.length === 1 && options.platforms[0] === 'AdobeStock';
       let categories: string[] = [];
+      
       if (isShutterstock) {
         categories = suggestCategoriesForShutterstock(title, description);
+      } else if (isAdobeStock) {
+        categories = suggestCategoriesForAdobeStock(title, finalKeywords);
       }
       
       return {
@@ -522,7 +533,7 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
         title: title,
         description: description,
         keywords: finalKeywords,
-        ...(isShutterstock && { categories })
+        ...(isShutterstock || isAdobeStock ? { categories } : {})
       };
     }
     
