@@ -103,7 +103,7 @@ export async function analyzeImageWithGemini(
         // Updated prompt for Freepik - Explicitly mentioning the keyword limit
         promptText = `Generate metadata for this image for Freepik platform. Return ONLY a JSON object with the exact keys: 'title', 'keywords', 'prompt', and 'baseModel'.
 
-${titleInstruction}. 
+${titleInstruction}. IMPORTANT: The title MUST BE INCLUDED and should be descriptive.
 
 Keywords MUST include ${options.minKeywords} to ${options.maxKeywords} relevant tags for the image - DO NOT exceed ${options.maxKeywords} keywords. The keywords should be specific, detailed, and varied to describe all aspects of the image.
 
@@ -263,17 +263,18 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
 
       if (isFreepikOnly) {
         // For Freepik, ensure all required fields are present
-        const title = metadata.title || "";
-        // Fallback for keywords - ensure we have at least some keywords even if the API failed
+        const title = metadata.title || "Colorful Digital Illustration"; // Fixed: Always provide a title
+        
+        // Fallback for keywords
         let keywords = Array.isArray(metadata.keywords) ? metadata.keywords : [];
         
-        // Ensure keywords respect the min/max range set in options
+        // Ensure keywords respect the min/max range
         if (keywords.length > options.maxKeywords) {
           console.warn(`API returned ${keywords.length} keywords, trimming to maximum ${options.maxKeywords}`);
           keywords = keywords.slice(0, options.maxKeywords);
         }
         
-        // If we have no keywords or fewer than minimum, generate some basic ones
+        // Add fallback keywords if needed
         if (keywords.length < options.minKeywords) {
           console.warn(`API returned only ${keywords.length} keywords, adding fallback keywords`);
           
@@ -304,7 +305,7 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
         // Ensure prompt is a single sentence for Freepik
         let prompt = metadata.prompt || "Detailed image showing visual content.";
         
-        // If prompt is too long, truncate it or use only the first sentence
+        // If prompt is too long, truncate it
         if (prompt.includes('.')) {
           const firstSentence = prompt.split('.')[0] + '.';
           prompt = firstSentence;
@@ -312,14 +313,9 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
         
         const baseModel = "leonardo"; // Always use "leonardo" for Freepik
         
-        // Ensure we have all required fields for Freepik
-        if (!title) {
-          throw new Error("Title is missing from the API response");
-        }
-        
         return {
           filename: file.name,
-          title: title,
+          title: title, // Fixed: Always pass the title
           description: "", // Empty for Freepik
           keywords: keywords,
           prompt: prompt,

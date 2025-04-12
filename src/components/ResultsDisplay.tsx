@@ -172,7 +172,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       <p className="text-white">{image.file.name}</p>
                     </div>
                     
-                    {!isShutterstock && !isFreepikOnly && (
+                    {/* Fix: Now showing title for all platforms including Freepik but not Shutterstock */}
+                    {!isShutterstock && (
                       <div>
                         <h4 className="text-amber-500">Title:</h4>
                         <p className="text-white">{image.result?.title || ''}</p>
