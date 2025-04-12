@@ -46,7 +46,7 @@ const UserProfile: React.FC = () => {
               </div>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={signOut} className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300 hover:-translate-y-1 mx-[10px] my-0 py-0 px-[10px] text-base">
+          <Button variant="outline" size="sm" onClick={signOut} className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white transition-all duration-300 hover:-translate-y-1 my-0 py-0 px-[10px] text-base mx-0">
             <LogOut className="h-4 w-4 mr-1" />
             Sign Out
           </Button>
