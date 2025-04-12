@@ -96,6 +96,9 @@ const Auth: React.FC = () => {
                       Signing in...
                     </> : "Sign In"}
                 </Button>
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                  Upon sign in, you'll be assigned a Gemini API key automatically
+                </p>
               </form>
             </TabsContent>
             
@@ -124,6 +127,9 @@ const Auth: React.FC = () => {
                       Creating account...
                     </> : "Sign Up"}
                 </Button>
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+                  Upon sign up and login, you'll get a Gemini API key assigned automatically
+                </p>
               </form>
             </TabsContent>
           </Tabs>

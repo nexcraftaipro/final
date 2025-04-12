@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +24,7 @@ interface AuthContextType {
   incrementCreditsUsed: () => Promise<boolean>;
   canGenerateMetadata: boolean;
   forceSignOut: (email: string) => Promise<void>;
+  getRandomApiKey: () => string;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,6 +36,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [canGenerateMetadata, setCanGenerateMetadata] = useState<boolean>(false);
   const navigate = useNavigate();
+
+  // Define the list of API keys
+  const API_KEYS = [
+    'AIzaSyDml9XSTLPg83r9LYJytVWzB225PGjjZms',
+    'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
+    'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
+    'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
+    'AIzaSyAIstbYpqJ09epoUw_Mf1IX3ilslqW7KKc',
+    'AIzaSyA_ALrz_Dq_Ng3NcIbMB1hO52xEoVtLsSw',
+    'AIzaSyAMiWClJZRIQFsPktNVXWKiKN-MSF4gQXY',
+    'AIzaSyBt-xmLLYomUmnlTRE1-NNyh4dpUHaDDlU',
+    'AIzaSyAGheV4z8nhuVtAIF9Skfg4xkVM1-ML638',
+    'AIzaSyD6wzrV3TGP6H2F0zBouHr0j3rWtC0HJ1k',
+    'AIzaSyAj5cj6uFO1lZqI6cPfc8s1nQFQs03PxAA',
+    'AIzaSyD3q-TvESGAf0UngLyh-H7sbieh3kUxHiI'
+  ];
+
+  // Function to get a random API key
+  const getRandomApiKey = (): string => {
+    const randomIndex = Math.floor(Math.random() * API_KEYS.length);
+    return API_KEYS[randomIndex];
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
@@ -155,6 +179,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data?.user) {
         const sessionId = data.session?.access_token.slice(-10) || Date.now().toString();
         await setActiveSession(data.user.id, email, sessionId);
+        
+        // Set a random API key in localStorage when user logs in
+        const randomApiKey = getRandomApiKey();
+        localStorage.setItem('gemini-api-key', randomApiKey);
+        toast.success(`API Key assigned: ${randomApiKey.substring(0, 10)}...`);
       }
       
       toast.success('Signed in successfully');
@@ -284,7 +313,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signOut,
     incrementCreditsUsed,
     canGenerateMetadata,
-    forceSignOut
+    forceSignOut,
+    getRandomApiKey
   };
 
   return (
