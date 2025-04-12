@@ -18,8 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
 
-// New payment gateway link
-const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/4e3d28571f82a89663e81caa00be83cc";
+// Updated payment gateway link
+const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/c21636d6632b892a566527e92735d059";
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');

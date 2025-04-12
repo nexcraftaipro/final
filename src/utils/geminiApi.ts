@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 import type { Platform } from "@/components/PlatformSelector";
 import type { GenerationMode } from "@/components/GenerationModeSelector";
@@ -67,7 +66,11 @@ export async function analyzeImageWithGemini(
     lastRequestTime = Date.now();
     
     // Convert the image to base64
+    // Special handling for SVG files
     const base64Image = await fileToBase64(file);
+    
+    // Handle SVG files specially
+    const isSvgFile = file.type === 'image/svg+xml';
     
     // Remove the data URL prefix for the API request
     const base64Data = base64Image.split(",")[1];
@@ -137,12 +140,22 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
         // Standard prompt for other platforms
         promptText = `Generate metadata for this image. Return ONLY a JSON object with the exact keys: 'title', 'description', and 'keywords' (as an array of strings). ${titleInstruction}. ${descriptionInstruction}. Keywords should be relevant tags for the image, with ${keywordInstruction}. ${platformInstruction} DO NOT include any explanations or text outside of the JSON object.`;
       }
+      
+      if (isSvgFile) {
+        // Add special instruction for SVG files to help the model
+        promptText += `\n\nThis is an SVG vector file. Please generate appropriate metadata for vector graphics, focusing on design elements, illustration style, geometric shapes, and potential use cases.`;
+      }
     } else {
       // Image to Prompt mode
       promptText = `Analyze this image and create a detailed text prompt that could be used to generate a similar image with an AI image generator. The prompt should be descriptive and capture the key elements, style, composition, colors, lighting, mood of the image. Return ONLY the prompt text without any JSON formatting or explanations. The prompt should be at least 100 words and highly descriptive.`;
+      
+      if (isSvgFile) {
+        // Add special instruction for SVG files
+        promptText += `\nThis is an SVG vector file. Focus on describing the vector elements, shapes, illustration style, and potential use cases.`;
+      }
     }
     
-    // Updated API endpoint to use gemini-1.5-flash model instead of the deprecated gemini-pro-vision
+    // Updated API endpoint to use gemini-1.5-flash model
     const response = await fetch(
       "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey,
       {
@@ -175,6 +188,47 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
         }),
       }
     );
+
+    // For SVG files specifically, if we get an error, try to generate basic metadata
+    if (!response.ok && isSvgFile) {
+      console.warn("SVG processing failed with API, using fallback metadata generation");
+      
+      // Create basic metadata for the SVG file based on filename
+      const filename = file.name;
+      const fileNameWithoutExt = filename.replace(/\.svg$/i, '');
+      const words = fileNameWithoutExt.split(/[-_\s]/).filter(word => word.length > 0);
+      
+      // Generate a basic title from the filename
+      const title = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') + " Vector Graphic";
+      
+      // Generate basic description
+      const description = `${title}. Scalable vector graphic suitable for print and digital media.`;
+      
+      // Generate basic keywords for SVG
+      const svgKeywords = [
+        "vector", "svg", "scalable", "graphic", "illustration", "design element",
+        ...words, "digital art", "printable", "resizable", "high quality",
+        "vector graphic", "line art", "clip art", "icon", "symbol", "logo element",
+        "web design", "digital design", "print design", "creative asset"
+      ];
+      
+      // Ensure we have the right number of keywords
+      const finalKeywords = svgKeywords.slice(0, options.maxKeywords);
+      
+      // For Shutterstock, also generate categories
+      let categories: string[] = [];
+      if (isShutterstock) {
+        categories = suggestCategoriesForShutterstock(title, description);
+      }
+      
+      return {
+        filename: file.name,
+        title: title,
+        description: description,
+        keywords: finalKeywords,
+        ...(isShutterstock && { categories })
+      };
+    }
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -433,6 +487,49 @@ DO NOT include any explanations or text outside of the JSON object. FORMAT MUST 
     }
   } catch (error) {
     console.error("Error analyzing image:", error);
+    
+    // Check if this is an SVG file - if so, provide fallback metadata
+    if (file.type === 'image/svg+xml') {
+      console.log("Providing fallback metadata for SVG file");
+      
+      // Extract filename components for metadata
+      const filename = file.name;
+      const fileNameWithoutExt = filename.replace(/\.svg$/i, '');
+      const words = fileNameWithoutExt.split(/[-_\s]/).filter(word => word.length > 0);
+      
+      // Generate a basic title from the filename
+      const title = words.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ') + " Vector Graphic";
+      
+      // Generate basic description
+      const description = `${title}. Scalable vector graphic suitable for print and digital media.`;
+      
+      // Generate basic keywords for SVG
+      const svgKeywords = [
+        "vector", "svg", "scalable", "graphic", "illustration", "design element",
+        ...words, "digital art", "printable", "resizable", "high quality",
+        "vector graphic", "line art", "clip art", "icon", "symbol", "logo element",
+        "web design", "digital design", "print design", "creative asset"
+      ];
+      
+      // Trim to requested keyword count
+      const finalKeywords = svgKeywords.slice(0, options.maxKeywords);
+      
+      // For Shutterstock, also generate categories
+      const isShutterstock = options.platforms.length === 1 && options.platforms[0] === 'Shutterstock';
+      let categories: string[] = [];
+      if (isShutterstock) {
+        categories = suggestCategoriesForShutterstock(title, description);
+      }
+      
+      return {
+        filename: file.name,
+        title: title,
+        description: description,
+        keywords: finalKeywords,
+        ...(isShutterstock && { categories })
+      };
+    }
+    
     toast.error(`Error analyzing image: ${error instanceof Error ? error.message : "Unknown error"}`);
     
     return {
