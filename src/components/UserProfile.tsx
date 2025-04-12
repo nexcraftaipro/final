@@ -27,7 +27,7 @@ const UserProfile: React.FC = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
   return <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-gray-800 px-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="ring-2 ring-blue-500/50">
