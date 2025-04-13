@@ -341,7 +341,7 @@ export function suggestCategoriesForAdobeStock(title: string, keywords: string[]
     'luxury': ['Lifestyle'],
     'wellness': ['Lifestyle'],
     'health': ['Lifestyle'],
-    'fitness': ['Lifestyle'],
+    'exercise': ['Lifestyle'], // Changed 'fitness' to 'exercise' to avoid duplicate
     'home': ['Lifestyle'],
     
     // People
