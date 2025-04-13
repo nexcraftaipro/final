@@ -4,6 +4,7 @@ import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
+
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   return <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -74,7 +75,7 @@ const PricingPage: React.FC = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/c21636d6632b892a566527e92735d059', '_blank')}>
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a', '_blank')}>
                   Upgrade to Premium
                 </Button>
               </CardFooter>
@@ -101,4 +102,5 @@ const PricingItem = ({
     {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : <X className="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" />}
     <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
   </li>;
+
 export default PricingPage;
