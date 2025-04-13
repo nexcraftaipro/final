@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -20,7 +19,7 @@ import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
 
 // Updated payment gateway link
-const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/c21636d6632b892a566527e92735d059";
+const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
 
 const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
