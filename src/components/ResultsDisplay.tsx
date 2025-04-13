@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, X, Check } from 'lucide-react';
-import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize } from '@/utils/imageHelpers';
+import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
@@ -142,110 +142,115 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       {/* Metadata mode display */}
       {generationMode === 'metadata' && hasCompletedImages && (
         <div className="overflow-auto">
-          {completedImages.map((image) => (
-            <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-6 border-r border-gray-700/50">
-                  <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
-                  <div className="rounded-lg overflow-hidden mb-4">
-                    <img
-                      src={image.previewUrl}
-                      alt={image.file.name}
-                      className="w-full object-cover max-h-[400px]"
-                    />
-                  </div>
-                  <div className="text-gray-400">{image.file.name}</div>
-                </div>
-                
-                <div className="p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleDownloadCSV}
-                      className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
-                    >
-                      <Download className="h-4 w-4" />
-                      <span>Download CSV</span>
-                    </Button>
+          {completedImages.map((image) => {
+            // Clean title by removing symbols
+            const cleanTitle = image.result?.title ? removeSymbolsFromTitle(image.result.title) : '';
+            
+            return (
+              <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-6 border-r border-gray-700/50">
+                    <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
+                    <div className="rounded-lg overflow-hidden mb-4">
+                      <img
+                        src={image.previewUrl}
+                        alt={image.file.name}
+                        className="w-full object-cover max-h-[400px]"
+                      />
+                    </div>
+                    <div className="text-gray-400">{image.file.name}</div>
                   </div>
                   
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="text-amber-500">Filename:</h4>
-                      <p className="text-white">{image.file.name}</p>
+                  <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownloadCSV}
+                        className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Download CSV</span>
+                      </Button>
                     </div>
                     
-                    {/* Show title for all platforms except Shutterstock */}
-                    {!isShutterstock && (
+                    <div className="space-y-4">
                       <div>
-                        <h4 className="text-amber-500">Title:</h4>
-                        <p className="text-white">{image.result?.title || ''}</p>
+                        <h4 className="text-amber-500">Filename:</h4>
+                        <p className="text-white">{image.file.name}</p>
                       </div>
-                    )}
-                    
-                    {/* Show description for platforms other than Freepik and AdobeStock */}
-                    {!isFreepikOnly && !isAdobeStock && (
+                      
+                      {/* Show title for all platforms except Shutterstock */}
+                      {!isShutterstock && (
+                        <div>
+                          <h4 className="text-amber-500">Title:</h4>
+                          <p className="text-white">{cleanTitle}</p>
+                        </div>
+                      )}
+                      
+                      {/* Show description for platforms other than Freepik and AdobeStock */}
+                      {!isFreepikOnly && !isAdobeStock && (
+                        <div>
+                          <h4 className="text-amber-500">Description:</h4>
+                          <p className="text-white">{image.result?.description || ''}</p>
+                        </div>
+                      )}
+                      
                       <div>
-                        <h4 className="text-amber-500">Description:</h4>
-                        <p className="text-white">{image.result?.description || ''}</p>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <h4 className="text-amber-500">Keywords:</h4>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {image.result?.keywords && image.result.keywords.length > 0 ? (
-                          image.result.keywords.map((keyword, index) => (
-                            <span 
-                              key={index} 
-                              className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full"
-                            >
-                              {keyword}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-gray-400">No keywords available</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Show categories for both Shutterstock and AdobeStock */}
-                    {(isShutterstock || isAdobeStock) && image.result?.categories && (
-                      <div>
-                        <h4 className="text-amber-500">Categories:</h4>
+                        <h4 className="text-amber-500">Keywords:</h4>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          {image.result.categories.map((category, index) => (
-                            <span 
-                              key={index} 
-                              className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
-                            >
-                              {category}
-                            </span>
-                          ))}
+                          {image.result?.keywords && image.result.keywords.length > 0 ? (
+                            image.result.keywords.map((keyword, index) => (
+                              <span 
+                                key={index} 
+                                className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full"
+                              >
+                                {keyword}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400">No keywords available</span>
+                          )}
                         </div>
                       </div>
-                    )}
 
-                    {isFreepikOnly && (
-                      <>
+                      {/* Show categories for both Shutterstock and AdobeStock */}
+                      {(isShutterstock || isAdobeStock) && image.result?.categories && (
                         <div>
-                          <h4 className="text-amber-500">Prompt:</h4>
-                          <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
+                          <h4 className="text-amber-500">Categories:</h4>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {image.result.categories.map((category, index) => (
+                              <span 
+                                key={index} 
+                                className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
+                              >
+                                {category}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                        
-                        <div>
-                          <h4 className="text-amber-500">Base-Model:</h4>
-                          <p className="text-white">{image.result?.baseModel || 'Not provided'}</p>
-                        </div>
-                      </>
-                    )}
+                      )}
+
+                      {isFreepikOnly && (
+                        <>
+                          <div>
+                            <h4 className="text-amber-500">Prompt:</h4>
+                            <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-amber-500">Base-Model:</h4>
+                            <p className="text-white">{image.result?.baseModel || 'Not provided'}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
       

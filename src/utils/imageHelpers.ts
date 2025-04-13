@@ -1,4 +1,3 @@
-
 export interface ProcessedImage {
   id: string;
   file: File;
@@ -53,10 +52,13 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     ...images
       .filter(img => img.status === 'complete' && img.result)
       .map(img => {
+        // Ensure title has no symbols before writing to CSV
+        const cleanTitle = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
+        
         if (isFreepikOnly) {
           return [
             `"${img.file.name}"`,
-            `"${img.result?.title || ''}"`,
+            `"${cleanTitle}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
             `"${img.result?.prompt || ''}"`,
             `"leonardo"`,
@@ -71,14 +73,14 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
         } else if (isAdobeStock) {
           return [
             `"${img.file.name}"`,
-            `"${img.result?.title || ''}"`,
+            `"${cleanTitle}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
             `"${img.result?.categories?.join(',') || ''}"`,
           ].join(',');
         } else {
           return [
             `"${img.file.name}"`,
-            `"${img.result?.title || ''}"`,
+            `"${cleanTitle}"`,
             `"${img.result?.description || ''}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
           ].join(',');
@@ -87,6 +89,12 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
   ].join('\n');
 
   return csvContent;
+}
+
+// Function to remove symbols from title
+export function removeSymbolsFromTitle(title: string): string {
+  // Remove symbols but keep alphanumeric, spaces, and basic punctuation like commas and periods
+  return title.replace(/[^\w\s.,()-]/g, '');
 }
 
 // Export data to CSV file
@@ -128,7 +136,7 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Check if file is a valid image type - Updated to support more formats
+// Check if file is a valid image type
 export function isValidImageType(file: File): boolean {
   const acceptedTypes = [
     'image/jpeg', 
@@ -700,3 +708,69 @@ export function suggestCategoriesForShutterstock(title: string, description: str
     : sortedCategories.concat(["Miscellaneous", "Objects"]).slice(0, 2);
 }
 
+// Get relevant keywords for Freepik based on image content
+export function getRelevantFreepikKeywords(imageDescription: string): string[] {
+  // Create a more comprehensive set of keywords based on the image description
+  const description = imageDescription.toLowerCase();
+  
+  // Extract all meaningful words from the description (words longer than 3 letters)
+  const words = description.split(/\s+/)
+    .filter(word => word.length > 3)
+    .map(word => word.replace(/[^\w]/g, ''))
+    .filter(word => word.length > 0);
+  
+  // Get unique words to prevent duplicates
+  const uniqueWords = Array.from(new Set(words));
+  
+  // Common categories to help structure the keywords
+  const categories = {
+    objects: ['table', 'chair', 'desk', 'lamp', 'computer', 'phone', 'book', 'pen', 'pencil', 'notebook', 'cup', 'mug', 'bottle', 'glass', 'plate', 'bowl', 'fork', 'knife', 'spoon', 'watch', 'clock', 'bag', 'box', 'container', 'bin', 'trash', 'recycle'],
+    nature: ['tree', 'plant', 'flower', 'grass', 'leaf', 'mountain', 'river', 'lake', 'ocean', 'sea', 'beach', 'forest', 'garden', 'park', 'sky', 'cloud', 'rain', 'snow', 'sun', 'moon', 'star'],
+    animals: ['dog', 'cat', 'bird', 'fish', 'horse', 'cow', 'sheep', 'goat', 'chicken', 'pig', 'duck', 'rabbit', 'mouse', 'rat', 'hamster', 'guinea', 'turtle', 'snake', 'lizard', 'frog'],
+    colors: ['red', 'blue', 'green', 'yellow', 'orange', 'purple', 'pink', 'brown', 'black', 'white', 'gray', 'gold', 'silver', 'bronze', 'copper', 'turquoise', 'teal', 'navy', 'maroon', 'olive'],
+    materials: ['wood', 'metal', 'plastic', 'glass', 'ceramic', 'cotton', 'wool', 'silk', 'leather', 'paper', 'cardboard', 'stone', 'marble', 'granite', 'concrete', 'brick', 'rubber'],
+    concepts: ['happy', 'sad', 'angry', 'calm', 'quiet', 'loud', 'fast', 'slow', 'big', 'small', 'tall', 'short', 'long', 'wide', 'narrow', 'thick', 'thin', 'heavy', 'light', 'old', 'new', 'young', 'ancient', 'modern', 'futuristic', 'vintage', 'retro', 'classic', 'traditional', 'contemporary']
+  };
+  
+  // Final keywords array
+  let keywords: string[] = [];
+  
+  // Add words from the description
+  keywords = [...uniqueWords];
+  
+  // Add related words from categories if they appear in the description
+  Object.entries(categories).forEach(([category, words]) => {
+    words.forEach(word => {
+      if (description.includes(word) && !keywords.includes(word)) {
+        keywords.push(word);
+      }
+    });
+  });
+  
+  // Add some adjectives that might be relevant
+  const styleAdjectives = ['elegant', 'beautiful', 'stylish', 'modern', 'rustic', 'minimalist', 'luxurious', 'colorful', 'vintage', 'artistic'];
+  styleAdjectives.forEach(adj => {
+    if (description.includes(adj) && !keywords.includes(adj)) {
+      keywords.push(adj);
+    }
+  });
+  
+  // Ensure we have a reasonable number of keywords (between 10-30)
+  if (keywords.length < 15) {
+    // If we have too few keywords, add some general ones based on likely content
+    if (description.includes('indoor') || description.includes('room') || description.includes('interior')) {
+      keywords.push('interior', 'indoor', 'home', 'decor');
+    }
+    
+    if (description.includes('outdoor') || description.includes('outside') || description.includes('garden')) {
+      keywords.push('outdoor', 'exterior', 'garden', 'nature');
+    }
+    
+    if (description.includes('person') || description.includes('people') || description.includes('man') || description.includes('woman')) {
+      keywords.push('person', 'people', 'lifestyle', 'portrait');
+    }
+  }
+  
+  // Deduplicate again and limit to 30 keywords
+  return Array.from(new Set(keywords)).slice(0, 30);
+}

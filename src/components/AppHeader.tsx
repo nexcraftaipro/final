@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { FileType, Eye, EyeOff, CreditCard, Facebook, Video } from 'lucide-react';
+import { FileType, Eye, EyeOff, CreditCard, Facebook, Video, FileVideo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
@@ -56,7 +56,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
   
   const openTutorialVideo = () => {
-    window.open("https://youtu.be/kLfdej4LQ0c?si=dOrBMY4rrJX8d7b0", "_blank");
+    window.open("https://youtu.be/JaWAE8S0-wM?si=oJDfh60P7T_VVujL", "_blank");
+  };
+  
+  const openEpsProcessVideo = () => {
+    window.open("https://youtu.be/FJL8F1vn55Q?si=dUpFZQlYSFg6Xvi8", "_blank");
   };
   
   // Generate consistent avatar URL
@@ -100,6 +104,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               >
                 <Video className="h-4 w-4 mr-1" />
                 Tutorial
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-purple-500 border-purple-700 hover:bg-purple-900/20 transition-all duration-300 hover:shadow-md" 
+                onClick={openEpsProcessVideo}
+              >
+                <FileVideo className="h-4 w-4 mr-1" />
+                EPS Process
               </Button>
               
               <Button 
