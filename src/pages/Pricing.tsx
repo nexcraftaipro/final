@@ -4,7 +4,6 @@ import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
-
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   return <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -58,8 +57,8 @@ const PricingPage: React.FC = () => {
                   <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk/Life  Time</span>
                 </div>
                 <div className="flex items-center mt-1">
-                  <span className="text-sm text-amber-500 line-through">850 Tk</span>
-                  <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-500">Save 100 Tk</span>
+                  <span className="text-sm text-amber-500 line-through">1250 Tk</span>
+                  <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-500">Save 300 Tk</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
@@ -102,5 +101,4 @@ const PricingItem = ({
     {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : <X className="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" />}
     <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
   </li>;
-
 export default PricingPage;
