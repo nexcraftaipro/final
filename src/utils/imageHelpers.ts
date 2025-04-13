@@ -1,4 +1,3 @@
-
 export interface ProcessedImage {
   id: string;
   file: File;
@@ -186,6 +185,12 @@ export const adobeStockCategories = [
   'Travel'
 ];
 
+// Helper to remove special characters/symbols from a string
+export function removeSymbols(text: string): string {
+  // Remove special characters but keep letters, numbers, and spaces
+  return text.replace(/[^\w\s]/gi, '').replace(/\s+/g, ' ').trim();
+}
+
 // Helper to determine the best categories for an image based on title/description and keywords
 export function suggestCategoriesForAdobeStock(title: string, keywords: string[]): string[] {
   // Combine the title and keywords for analysis
@@ -204,6 +209,7 @@ export function suggestCategoriesForAdobeStock(title: string, keywords: string[]
     'horse': ['Animals'],
     'mammal': ['Animals'],
     'reptile': ['Animals'],
+    'kitten': ['Animals'],
     
     // Buildings and Architecture
     'building': ['Buildings and Architecture'],
@@ -700,3 +706,29 @@ export function suggestCategoriesForShutterstock(title: string, description: str
     : sortedCategories.concat(["Miscellaneous", "Objects"]).slice(0, 2);
 }
 
+// Function to generate unique keywords by filtering out duplicates
+export function getUniqueKeywords(keywords: string[], maxCount: number): string[] {
+  // Convert all keywords to lowercase for comparison
+  const lowercaseKeywords = keywords.map(k => k.toLowerCase());
+  
+  // Create a new array to store unique keywords
+  const uniqueKeywords: string[] = [];
+  
+  // Track which keywords we've already added
+  const addedKeywordSet = new Set<string>();
+  
+  // Add each keyword if it's not already in our set
+  for (const keyword of lowercaseKeywords) {
+    if (!addedKeywordSet.has(keyword) && keyword.trim() !== '') {
+      addedKeywordSet.add(keyword);
+      uniqueKeywords.push(keyword);
+      
+      // Stop once we reach the max keyword count
+      if (uniqueKeywords.length >= maxCount) {
+        break;
+      }
+    }
+  }
+  
+  return uniqueKeywords;
+}

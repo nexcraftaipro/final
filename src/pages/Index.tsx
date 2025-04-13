@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -198,6 +199,7 @@ const Index: React.FC = () => {
           // Check if we're in Freepik-only mode
           const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
           const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
+          const isAdobeStock = platforms.length === 1 && platforms[0] === 'AdobeStock';
           
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
@@ -211,8 +213,8 @@ const Index: React.FC = () => {
                 prompt: result.prompt,
                 baseModel: result.baseModel
               }),
-              // Include categories for Shutterstock
-              ...(isShutterstock && {
+              // Include categories for Shutterstock and AdobeStock
+              ...((isShutterstock || isAdobeStock) && {
                 categories: result.categories
               })
             },
@@ -271,21 +273,6 @@ const Index: React.FC = () => {
         <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
-              <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">
-                <h2 className="text-lg font-medium mb-2 text-[#fe6e00]">PLATFORMS:-</h2>
-                <div className="flex border-b border-gray-700">
-                  <PlatformSelector
-                    selectedPlatforms={platforms}
-                    onPlatformChange={handlePlatformChange}
-                  />
-                </div>
-                
-                <div className="mt-4">
-                  
-                  
-                </div>
-              </div>
-              
               <div className="mt-6">
                 <ImageUploader
                   onImagesSelected={handleImagesSelected}
