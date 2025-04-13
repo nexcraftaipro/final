@@ -1,3 +1,4 @@
+
 export interface ProcessedImage {
   id: string;
   file: File;
@@ -411,7 +412,8 @@ export function suggestCategoriesForAdobeStock(title: string, keywords: string[]
     'tennis': ['Sports'],
     'swimming': ['Sports'],
     'running': ['Sports'],
-    'fitness': ['Sports'],
+    // This is where the duplicate 'fitness' property was
+    'exercise': ['Sports'],
     
     // Technology
     'technology': ['Technology'],
