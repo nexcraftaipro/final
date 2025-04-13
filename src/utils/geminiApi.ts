@@ -59,7 +59,8 @@ export async function analyzeImageWithGemini(
     } else if (isFreepikOnly) {
       prompt = `Analyze this image and generate metadata for the Freepik platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.
-2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).`;
+2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).
+3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image. Focus on content, style, emotions, and technical details of the image.`;
     } else if (isShutterstock) {
       prompt = `Analyze this image and generate metadata for the Shutterstock platform:
 1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
@@ -78,7 +79,7 @@ export async function analyzeImageWithGemini(
     if (generationMode === 'imageToPrompt') {
       prompt += `\n\nReturn the prompt description only, nothing else.`;
     } else if (isFreepikOnly) {
-      prompt += `\n\nFormat your response as a JSON object with the fields "title" and "prompt".`;
+      prompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
     } else if (isShutterstock) {
       prompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array).`;
     } else if (isAdobeStock) {
@@ -87,8 +88,8 @@ export async function analyzeImageWithGemini(
       prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
     }
     
-    // Make the API request to Google's Gemini API
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`, {
+    // Updated to use the newer Gemini 1.5 Flash model
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -158,11 +159,14 @@ export async function analyzeImageWithGemini(
       result.title = removeSymbolsFromTitle(result.title);
     }
     
-    // For Freepik, generate better keywords based on the image description
+    // For Freepik, use the keywords provided directly from the API response
     if (isFreepikOnly) {
-      // Use the prompt as a source for generating relevant keywords
-      const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '');
-      result.keywords = freepikKeywords;
+      // If keywords exist in the result, use them
+      if (!result.keywords || result.keywords.length < minKeywords) {
+        // Fallback: Generate keywords from the prompt if not enough keywords provided
+        const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '');
+        result.keywords = freepikKeywords;
+      }
       result.baseModel = "leonardo";
     }
     
