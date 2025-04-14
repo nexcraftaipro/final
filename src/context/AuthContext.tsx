@@ -42,6 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     'AIzaSyDml9XSTLPg83r9LYJytVWzB225PGjjZms',
     'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
     'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
+    'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
     'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
     'AIzaSyAIstbYpqJ09epoUw_Mf1IX3ilslqW7KKc',
     'AIzaSyA_ALrz_Dq_Ng3NcIbMB1hO52xEoVtLsSw',
