@@ -58,7 +58,7 @@ const UserProfile: React.FC = () => {
           <span className="text-sm text-gray-400">Credits remaining</span>
           <div className="flex items-center font-medium text-amber-400">
             {profile.is_premium ? <Infinity className="h-4 w-4 mr-1" /> : null}
-            <span>{remainingCredits}</span>
+            
           </div>
         </div>
         
