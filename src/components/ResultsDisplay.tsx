@@ -94,44 +94,60 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       </div>
 
-      {/* Image to Prompt mode display */}
+      {/* Image to Prompt mode display - Updated to show image with prompt */}
       {generationMode === 'imageToPrompt' && completedImages.length > 0 && (
         <div className="grid grid-cols-1 gap-6">
           {completedImages.map((image) => (
             <div key={image.id} className="bg-black rounded-lg border border-gray-800 overflow-hidden">
-              <div className="p-4">
-                <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
-                <div className="bg-black border border-gray-800 rounded-lg p-6">
-                  <p className="text-gray-300 whitespace-pre-wrap">{image.result?.description || ''}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                {/* Left column - Source Image */}
+                <div className="p-4 border border-gray-800 rounded-lg">
+                  <h3 className="text-xl font-semibold mb-4">Source Image:</h3>
+                  <div className="rounded-lg overflow-hidden mb-4">
+                    <img
+                      src={image.previewUrl}
+                      alt={image.file.name}
+                      className="w-full object-cover max-h-[400px]"
+                    />
+                  </div>
+                  <div className="text-gray-400">{image.file.name}</div>
                 </div>
-                <div className="flex justify-end mt-4 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)}
-                    className="flex items-center gap-1"
-                  >
-                    {copiedId === image.id ? (
-                      <>
-                        <Check className="h-4 w-4" />
-                        <span>Copied</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-4 w-4" />
-                        <span>Copy</span>
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => downloadPromptText(image.result?.description || '', image.file.name)}
-                    className="flex items-center gap-1"
-                  >
-                    <Download className="h-4 w-4" />
-                    <span>Download</span>
-                  </Button>
+                
+                {/* Right column - Generated Prompt */}
+                <div className="p-4">
+                  <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
+                  <div className="bg-black border border-gray-800 rounded-lg p-6">
+                    <p className="text-gray-300 whitespace-pre-wrap">{image.result?.description || ''}</p>
+                  </div>
+                  <div className="flex justify-end mt-4 gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)}
+                      className="flex items-center gap-1"
+                    >
+                      {copiedId === image.id ? (
+                        <>
+                          <Check className="h-4 w-4" />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => downloadPromptText(image.result?.description || '', image.file.name)}
+                      className="flex items-center gap-1"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span>Download</span>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
