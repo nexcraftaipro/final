@@ -55,7 +55,7 @@ const UserProfile: React.FC = () => {
       
       <div className="p-4 space-y-3">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm text-gray-400">Credits remaining</span>
+          <span className="text-orange-500 text-xl">Credits remaining</span>
           <div className="flex items-center font-medium text-amber-400">
             {profile.is_premium ? <Infinity className="h-4 w-4 mr-1" /> : null}
             
