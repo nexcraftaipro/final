@@ -25,6 +25,7 @@ interface AuthContextType {
   canGenerateMetadata: boolean;
   forceSignOut: (email: string) => Promise<void>;
   getRandomApiKey: () => string;
+  apiKey: string;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,6 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [canGenerateMetadata, setCanGenerateMetadata] = useState<boolean>(false);
+  const [apiKey, setApiKey] = useState<string>('');
   const navigate = useNavigate();
 
   // Define the list of API keys
@@ -90,6 +92,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setIsLoading(false);
     });
+
+    // Check for stored API key
+    const storedApiKey = localStorage.getItem('gemini-api-key');
+    if (storedApiKey) {
+      setApiKey(storedApiKey);
+    }
 
     return () => {
       subscription.unsubscribe();
@@ -181,9 +189,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const sessionId = data.session?.access_token.slice(-10) || Date.now().toString();
         await setActiveSession(data.user.id, email, sessionId);
         
-        // Set a random API key in localStorage when user logs in
+        // Assign and save a random API key for the user
         const randomApiKey = getRandomApiKey();
         localStorage.setItem('gemini-api-key', randomApiKey);
+        setApiKey(randomApiKey);
+        
         toast.success(`API Key assigned: ${randomApiKey.substring(0, 10)}...`);
       }
       
@@ -315,7 +325,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     incrementCreditsUsed,
     canGenerateMetadata,
     forceSignOut,
-    getRandomApiKey
+    getRandomApiKey,
+    apiKey
   };
 
   return (

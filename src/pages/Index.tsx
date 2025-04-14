@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import ApiKeyInput from '@/components/ApiKeyInput';
@@ -23,6 +22,15 @@ import Sidebar from '@/components/Sidebar';
 const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
 
 const Index: React.FC = () => {
+  const {
+    user,
+    isLoading,
+    canGenerateMetadata,
+    incrementCreditsUsed,
+    profile,
+    apiKey: authApiKey
+  } = useAuth();
+
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,20 +54,13 @@ const Index: React.FC = () => {
   const [minDescriptionWords, setMinDescriptionWords] = useState(12); // Updated to 12
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
   
-  const {
-    user,
-    isLoading,
-    canGenerateMetadata,
-    incrementCreditsUsed,
-    profile
-  } = useAuth();
-  
+  // Get API key from localStorage or auth context
   useEffect(() => {
-    const savedKey = localStorage.getItem('gemini-api-key');
+    const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
     if (savedKey) {
       setApiKey(savedKey);
     }
-  }, []);
+  }, [authApiKey]);
   
   useEffect(() => {
     if (!isLoading && !user) {

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Info } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 import {
   Tooltip,
   TooltipContent,
@@ -19,15 +20,23 @@ interface ApiKeyInputProps {
 const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
+  const { apiKey: authApiKey } = useAuth();
 
-  // Initialize from localStorage when component mounts
+  // Initialize from localStorage or authContext when component mounts
   useEffect(() => {
-    const savedKey = localStorage.getItem('gemini-api-key');
+    const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
     if (savedKey) {
       setInputKey(savedKey);
       onApiKeyChange(savedKey);
     }
-  }, [onApiKeyChange]);
+  }, [onApiKeyChange, authApiKey]);
+
+  // Update when apiKey prop changes
+  useEffect(() => {
+    if (apiKey) {
+      setInputKey(apiKey);
+    }
+  }, [apiKey]);
 
   const toggleShowApiKey = () => {
     setShowApiKey(!showApiKey);

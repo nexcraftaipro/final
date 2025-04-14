@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FileType, Eye, EyeOff, CreditCard, Facebook, Video, FileVideo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,11 +23,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, apiKey: authApiKey } = useAuth();
 
   useEffect(() => {
+    // Initialize from props apiKey
     setInputKey(apiKey);
   }, [apiKey]);
+
+  // Update when authApiKey changes (e.g., when a user logs in)
+  useEffect(() => {
+    if (authApiKey && !apiKey) {
+      setInputKey(authApiKey);
+      onApiKeyChange(authApiKey);
+    }
+  }, [authApiKey, apiKey, onApiKeyChange]);
 
   const toggleShowApiKey = () => {
     setShowApiKey(!showApiKey);
