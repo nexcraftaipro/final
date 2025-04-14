@@ -78,11 +78,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     return `https://api.dicebear.com/7.x/personas/svg?seed=${avatarSeed}`;
   };
 
+  const navigateToHome = () => {
+    navigate('/');
+  };
+
   return (
     <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <h1 className="text-xl font-semibold flex items-center">
+          <h1 
+            onClick={navigateToHome} 
+            className="text-xl font-semibold flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <FileType className="h-5 w-5 mr-2" style={{ color: '#f14010' }} />
             <span style={{ color: '#f14010' }}>Meta CSV Generator Pro</span>
           </h1>
@@ -97,7 +104,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-amber-500 border-amber-700 hover:bg-amber-900/20 transition-all duration-300 hover:shadow-md" 
+                className="text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
                 onClick={() => navigate('/pricing')}
               >
                 <CreditCard className="h-4 w-4 mr-1" />
@@ -107,7 +114,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-green-500 border-green-700 hover:bg-green-900/20 transition-all duration-300 hover:shadow-md" 
+                className="text-green-500 border-green-700 hover:bg-green-900/50 hover:text-green-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
                 onClick={openTutorialVideo}
               >
                 <Video className="h-4 w-4 mr-1" />
@@ -117,7 +124,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-purple-500 border-purple-700 hover:bg-purple-900/20 transition-all duration-300 hover:shadow-md" 
+                className="text-purple-500 border-purple-700 hover:bg-purple-900/50 hover:text-purple-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
                 onClick={openEpsProcessVideo}
               >
                 <FileVideo className="h-4 w-4 mr-1" />
@@ -127,7 +134,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-blue-500 border-blue-700 hover:bg-blue-900/20 transition-all duration-300 hover:shadow-md" 
+                className="text-blue-500 border-blue-700 hover:bg-blue-900/50 hover:text-blue-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
                 onClick={openSupportPage}
               >
                 <Facebook className="h-4 w-4 mr-1" />
