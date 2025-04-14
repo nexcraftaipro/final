@@ -82,7 +82,7 @@ const PricingPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
                   <span className="text-5xl font-extrabold tracking-tight">7990</span>
-                  <span className="ml-1 mx-[10px] text-slate-50 text-3xl">Tk/Lifetime</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-2xl">Tk/Lifetime</span>
                 </div>
                 <div className="flex items-center mt-1">
                   <span className="text-sm text-amber-500 line-through">9990 Tk</span>
