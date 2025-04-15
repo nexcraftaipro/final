@@ -270,6 +270,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
       
+      {/* Pending/Processing Images */}
       {images.filter(img => img.status !== 'complete').length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {images.filter(img => img.status !== 'complete').map((image) => (
