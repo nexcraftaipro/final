@@ -18,7 +18,35 @@ const PricingPage: React.FC = () => {
             <p className="text-muted-foreground mt-2">Simple, transparent pricing to meet your needs</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8 mt-8">
+          <div className="grid md:grid-cols-4 gap-8 mt-8">
+            {/* Free Plan */}
+            <Card className="bg-gray-900 border-gray-800 shadow-xl relative overflow-hidden">
+              <CardHeader className="pb-0">
+                <h2 className="text-2xl font-bold text-white">Free</h2>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-5xl font-extrabold tracking-tight">0</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk</span>
+                </div>
+                <p className="text-sm text-gray-400 mt-3">Limited features to get started</p>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <PricingItem included text="Limited Metadata Generation" />
+                  <PricingItem included text="Basic Image to Prompt Features" />
+                  <PricingItem included text="Limited Access to Metadata Customization" />
+                  <PricingItem included={false} text="More Fast Processing" />
+                  <PricingItem included={false} text="Fully Custom Support" />
+                  <PricingItem included={false} text="All Future Features" />
+                  <PricingItem included={false} text="Commercial License" />
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button size="lg" className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white" onClick={() => navigate('/')}>
+                  Continue with Free
+                </Button>
+              </CardFooter>
+            </Card>
+            
             {/* Basic Plan */}
             <Card className="bg-gray-900 border-gray-800 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-medium">
