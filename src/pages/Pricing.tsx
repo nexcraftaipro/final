@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
+
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   return <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -17,34 +19,6 @@ const PricingPage: React.FC = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-8 mt-8">
-            {/* Free Plan */}
-            <Card className="bg-gray-900 border-gray-800 shadow-xl">
-              <CardHeader className="pb-0">
-                <h2 className="text-2xl font-bold text-white">Free</h2>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">0</span>
-                  <span className="ml-1 text-gray-400">Tk</span>
-                </div>
-                <p className="text-sm text-gray-400 mt-3">Get started with basic features</p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <ul className="space-y-3">
-                  <PricingItem included text="Limited Metadata Generation" />
-                  <PricingItem included text="Basic Image to Prompt Features" />
-                  <PricingItem included text="Limited Access to Metadata Customization" />
-                  <PricingItem included text="Fast Processing" />
-                  <PricingItem included={false} text="Priority Custom Support" />
-                  <PricingItem included={false} text="Future Feature Updates" />
-                  <PricingItem included={false} text="Commercial License" />
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" size="lg" className="w-full border-gray-700 text-gray-300 hover:bg-gray-800" onClick={() => navigate('/')}>
-                  Your Current Plan
-                </Button>
-              </CardFooter>
-            </Card>
-            
             {/* Basic Plan */}
             <Card className="bg-gray-900 border-gray-800 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-medium">
@@ -70,8 +44,36 @@ const PricingPage: React.FC = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/0f455e6690cbb892ec8c2d8c42f20bc8', '_blank')}>
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/d8SXoLqYdFiYKuI1krkrAojZPDCTpmdu38g3IOgs', '_blank')}>
                   Upgrade to Basic
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* Advanced Plan */}
+            <Card className="bg-gray-900 border-gray-800 shadow-xl relative overflow-hidden">
+              <CardHeader className="pb-0">
+                <h2 className="text-2xl font-bold text-white">Advanced</h2>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-5xl font-extrabold tracking-tight">100</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk/Month</span>
+                </div>
+                <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <PricingItem included text="Unlimited Metadata Generation" />
+                  <PricingItem included text="Full Image to Prompt Features" />
+                  <PricingItem included text="Full Access to Metadata Customization" />
+                  <PricingItem included text="More Fast Processing" />
+                  <PricingItem included text="Fully Custom Support" />
+                  <PricingItem included text="All Future Features" />
+                  <PricingItem included text="Commercial License" />
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/M34Jv5Li8NtcjSInrZ03xVQBTfINwbake2BA28TT', '_blank')}>
+                  Upgrade to Advanced
                 </Button>
               </CardFooter>
             </Card>
@@ -102,7 +104,7 @@ const PricingPage: React.FC = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://secure-pay.nagorikpay.com/api/execute/3cce987da65392141aece79474adb0e4', '_blank')}>
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}>
                   Upgrade to Premium
                 </Button>
               </CardFooter>
@@ -126,7 +128,7 @@ const PricingItem = ({
   included: boolean;
   text: string;
 }) => <li className="flex items-start">
-    {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : <X className="h-5 w-5 text-gray-500 mr-2 flex-shrink-0" />}
+    {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : null}
     <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
   </li>;
 export default PricingPage;
