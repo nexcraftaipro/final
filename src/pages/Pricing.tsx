@@ -1,11 +1,9 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
-
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   return <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -56,7 +54,7 @@ const PricingPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white">Basic</h2>
                 <div className="flex items-baseline mt-2">
                   <span className="text-5xl font-extrabold tracking-tight">100</span>
-                  <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk/Month</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Month</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
@@ -83,8 +81,8 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Advanced</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">100</span>
-                  <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk/Month</span>
+                  <span className="text-5xl font-extrabold tracking-tight">1000</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Yearly</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
@@ -112,7 +110,7 @@ const PricingPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
                   <span className="text-5xl font-extrabold tracking-tight">7990</span>
-                  <span className="ml-1 mx-[10px] text-slate-50 text-2xl">Tk/Lifetime</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Lifetime</span>
                 </div>
                 <div className="flex items-center mt-1">
                   <span className="text-sm text-amber-500 line-through">9990 Tk</span>
