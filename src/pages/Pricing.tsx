@@ -1,14 +1,11 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
-
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  
   return <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
       
@@ -42,9 +39,7 @@ const PricingPage: React.FC = () => {
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white" onClick={() => navigate('/')}>
-                  Continue with Free
-                </Button>
+                <Button size="lg" onClick={() => navigate('/')} className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-inherit">Current Plan</Button>
               </CardFooter>
             </Card>
             
@@ -132,5 +127,4 @@ const PricingItem = ({
     {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : null}
     <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
   </li>;
-
 export default PricingPage;
