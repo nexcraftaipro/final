@@ -1,16 +1,9 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, X, FileIcon, Image, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { 
-  ProcessedImage, 
-  createProcessedImages, 
-  createImagePreview, 
-  generateId, 
-  isValidImageType, 
-  isValidFileSize, 
-  formatFileSize 
-} from '@/utils/imageHelpers';
+import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;

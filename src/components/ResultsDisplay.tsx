@@ -66,7 +66,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
-  // Removed duplicate platform check variables that were here previously
+  // Check for specific platforms
+  const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
+  const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+  const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
 
   return (
     <div className="w-full space-y-4">
