@@ -75,7 +75,7 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${img.file.name}"`,
             `"${cleanTitle}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
-            `"${img.result?.categories?.join(',') || ''}"`,
+            `"${img.result?.categories?.[0] || 'Animals'}"`,
           ].join(',');
         } else {
           return [
