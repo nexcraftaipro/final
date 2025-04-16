@@ -85,9 +85,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             color: '#f14010'
           }} className="text-blue-700">PIKSHINE</span>
           </h1>
-          <div className="ml-4 text-xs text-gray-400">
-            Developed by Freepikscipts
-          </div>
+          <div className="ml-4 text-xs text-gray-400">Developed by Pikshine</div>
         </div>
         
         <div className="flex items-center space-x-4">
