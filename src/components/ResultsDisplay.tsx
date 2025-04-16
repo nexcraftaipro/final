@@ -66,11 +66,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
-  // Check for specific platforms
-  const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
-  const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
-  const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
-
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
@@ -236,25 +231,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       </div>
 
-                      {/* Show categories for AdobeStock */}
-                      {isAdobeStock && image.result?.categories && (
-                        <div>
-                          <h4 className="text-amber-500">Category:</h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result.categories.map((category, index) => (
-                              <span 
-                                key={index} 
-                                className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
-                              >
-                                {category}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Show categories for Shutterstock */}
-                      {isShutterstock && image.result?.categories && (
+                      {/* Show categories for both Shutterstock and AdobeStock */}
+                      {(isShutterstock || isAdobeStock) && image.result?.categories && (
                         <div>
                           <h4 className="text-amber-500">Categories:</h4>
                           <div className="flex flex-wrap gap-2 mt-2">

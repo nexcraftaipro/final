@@ -178,14 +178,11 @@ export async function analyzeImageWithGemini(
       );
     }
     
-    // For Adobe Stock, suggest categories based on title and keywords
+    // For Adobe Stock, suggest categories based on content
     if (isAdobeStock) {
-      // Make sure we have the keywords array to work with
-      const keywords = result.keywords || [];
-      // Generate appropriate category based on title and keywords
       result.categories = suggestCategoriesForAdobeStock(
         result.title || '',
-        keywords
+        result.keywords || []
       );
     }
     
