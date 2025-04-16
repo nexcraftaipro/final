@@ -18,6 +18,11 @@ export interface ProcessedImage {
   error?: string;
 }
 
+// Generate a unique ID for images
+export const generateId = (): string => {
+  return uuidv4();
+};
+
 // Function to create image objects with preview URLs
 export const createProcessedImages = (files: File[]): ProcessedImage[] => {
   return Array.from(files).map(file => ({
@@ -26,6 +31,39 @@ export const createProcessedImages = (files: File[]): ProcessedImage[] => {
     previewUrl: URL.createObjectURL(file),
     status: 'pending'
   }));
+};
+
+// Create image preview from file
+export const createImagePreview = async (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    try {
+      const previewUrl = URL.createObjectURL(file);
+      resolve(previewUrl);
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// Check if file is a valid image type
+export const isValidImageType = (file: File): boolean => {
+  const validTypes = [
+    'image/jpeg', 
+    'image/jpg', 
+    'image/png', 
+    'image/svg+xml', 
+    'application/postscript', 
+    'application/eps', 
+    'image/eps', 
+    'application/illustrator'
+  ];
+  return validTypes.includes(file.type);
+};
+
+// Check if file size is valid (less than 10GB)
+export const isValidFileSize = (file: File): boolean => {
+  const maxSize = 10 * 1024 * 1024 * 1024; // 10GB in bytes
+  return file.size <= maxSize;
 };
 
 // Format file size to human-readable format
