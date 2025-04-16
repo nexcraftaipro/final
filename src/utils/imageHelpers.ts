@@ -1,6 +1,5 @@
-
-import { Platform } from '@/components/PlatformSelector';
 import { v4 as uuidv4 } from 'uuid';
+import { Platform } from '@/components/PlatformSelector';
 
 export interface ProcessedImage {
   id: string;
