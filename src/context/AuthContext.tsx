@@ -1,17 +1,10 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { checkActiveSession, setActiveSession, removeActiveSession } from '@/utils/supabaseUtils';
-
-interface UserProfile {
-  id: string;
-  email: string;
-  credits_used: number;
-  is_premium: boolean;
-}
+import { UserProfile } from '@/types/supabase';
 
 interface AuthContextType {
   session: Session | null;
