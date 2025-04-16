@@ -9,6 +9,7 @@ A powerful CSV generator for creating metadata for your images. Works with multi
 - Export to CSV for different platforms
 - Customize metadata fields
 - Process multiple images at once
+- AI-powered title, description and keyword generation
 
 ## Technologies Used
 
@@ -17,6 +18,7 @@ A powerful CSV generator for creating metadata for your images. Works with multi
 - React
 - shadcn-ui
 - Tailwind CSS
+- Gemini AI
 
 ## Development
 
