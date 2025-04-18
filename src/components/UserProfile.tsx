@@ -1,14 +1,36 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Check, Crown, Infinity } from 'lucide-react';
+import { LogOut, Check, Crown, Infinity, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
+import { getTimeRemaining, isPremiumExpired } from '@/utils/dateUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 const UserProfile: React.FC = () => {
   const { user, profile, signOut } = useAuth();
+
+  useEffect(() => {
+    const checkPremiumStatus = async () => {
+      if (profile?.is_premium && profile.expiration_date && isPremiumExpired(profile.expiration_date)) {
+        // Update user to free status when premium expires
+        const { error } = await supabase
+          .from('profiles')
+          .update({ 
+            is_premium: false,
+            expiration_date: null 
+          })
+          .eq('id', user?.id);
+
+        if (error) {
+          console.error('Error updating premium status:', error);
+        }
+      }
+    };
+
+    checkPremiumStatus();
+  }, [profile?.expiration_date, profile?.is_premium, user?.id]);
 
   if (!user || !profile) return null;
 
@@ -22,6 +44,10 @@ const UserProfile: React.FC = () => {
   const formattedExpirationDate = profile.expiration_date 
     ? format(new Date(profile.expiration_date), 'MMM dd, yyyy')
     : null;
+
+  const timeRemaining = profile.is_premium && profile.expiration_date 
+    ? getTimeRemaining(profile.expiration_date)
+    : '';
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
@@ -44,9 +70,13 @@ const UserProfile: React.FC = () => {
                       <span className="text-[#01fa01]">Premium User</span>
                     </div>
                     {formattedExpirationDate && (
-                      <span className="text-xs text-gray-400 mt-1">
-                        Expires: {formattedExpirationDate}
-                      </span>
+                      <div className="flex flex-col text-xs text-gray-400 mt-1">
+                        <div className="flex items-center">
+                          <Clock className="h-3 w-3 mr-1" />
+                          <span>Time remaining: {timeRemaining}</span>
+                        </div>
+                        <span>Expires: {formattedExpirationDate}</span>
+                      </div>
                     )}
                   </div>
                 ) : (
