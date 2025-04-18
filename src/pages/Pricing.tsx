@@ -53,7 +53,7 @@ const PricingPage: React.FC = () => {
                 <div className="flex items-baseline mt-2">
                   <span className="text-5xl font-extrabold tracking-tight">1000
                 </span>
-                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Month</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Yearly</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
@@ -81,7 +81,7 @@ const PricingPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white">Basic</h2>
                 <div className="flex items-baseline mt-2">
                   <span className="text-5xl font-extrabold tracking-tight">200</span>
-                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Yearly</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Month</span>
                 </div>
                 <div className="flex items-center mt-1">
                   <span className="text-sm text-amber-500 line-through">150 Tk</span>
