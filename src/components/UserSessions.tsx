@@ -11,7 +11,7 @@ const UserSessions = () => {
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['user-sessions'],
     queryFn: async () => {
-      // Use functions.invoke instead of direct table access
+      // Use the edge function to get user sessions
       const { data, error } = await supabase.functions.invoke('get_user_sessions', {
         body: {},
       });
