@@ -35,6 +35,7 @@ export type Database = {
           created_at: string | null
           credits_used: number | null
           email: string
+          expiration_date: string | null
           id: string
           is_premium: boolean | null
           updated_at: string | null
@@ -43,6 +44,7 @@ export type Database = {
           created_at?: string | null
           credits_used?: number | null
           email: string
+          expiration_date?: string | null
           id: string
           is_premium?: boolean | null
           updated_at?: string | null
@@ -51,6 +53,7 @@ export type Database = {
           created_at?: string | null
           credits_used?: number | null
           email?: string
+          expiration_date?: string | null
           id?: string
           is_premium?: boolean | null
           updated_at?: string | null
