@@ -5,25 +5,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
 import { Globe, Clock, Monitor } from 'lucide-react';
-
-interface UserSession {
-  id: string;
-  ip_address: string;
-  user_agent: string;
-  last_seen: string;
-  created_at: string;
-  country: string;
-  city: string;
-}
+import { UserSession } from '@/types/supabase';
 
 const UserSessions = () => {
   const { data: sessions, isLoading } = useQuery({
     queryKey: ['user-sessions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_sessions')
-        .select('*')
-        .order('last_seen', { ascending: false });
+      // Use functions.invoke instead of direct table access
+      const { data, error } = await supabase.functions.invoke('get_user_sessions', {
+        body: {},
+      });
       
       if (error) throw error;
       return data as UserSession[];

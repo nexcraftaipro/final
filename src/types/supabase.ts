@@ -23,3 +23,15 @@ export interface ActiveSession {
   session_id: string;
   last_activity: string;
 }
+
+export interface UserSession {
+  id: string;
+  user_id: string;
+  ip_address: string;
+  user_agent: string;
+  last_seen: string;
+  created_at: string;
+  session_id: string;
+  country?: string;
+  city?: string;
+}
