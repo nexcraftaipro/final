@@ -6,6 +6,7 @@ export interface UserProfile {
   is_premium: boolean;
   created_at?: string;
   updated_at?: string;
+  expiration_date?: string;
 }
 
 export interface ImageMetadataGeneration {
