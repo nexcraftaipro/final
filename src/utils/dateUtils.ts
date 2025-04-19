@@ -1,18 +1,16 @@
+import { differenceInDays, parseISO, isAfter } from 'date-fns';
 
-import { differenceInDays, isPast } from 'date-fns';
+export const getTimeRemaining = (expirationDate: string): string => {
+  const now = new Date();
+  const expDate = parseISO(expirationDate);
+  const daysRemaining = differenceInDays(expDate, now);
 
-export const getTimeRemaining = (expirationDate: string | null | undefined): string => {
-  if (!expirationDate) return '';
-  
-  const expDate = new Date(expirationDate);
-  if (isPast(expDate)) return 'Expired';
-  
-  const daysRemaining = differenceInDays(expDate, new Date());
-  if (daysRemaining <= 0) return 'Less than a day';
+  if (daysRemaining < 0) return 'Expired';
   return `${daysRemaining} days`;
 };
 
-export const isPremiumExpired = (expirationDate: string | null | undefined): boolean => {
-  if (!expirationDate) return true;
-  return isPast(new Date(expirationDate));
+export const isPremiumExpired = (expirationDate: string): boolean => {
+  const now = new Date();
+  const expDate = parseISO(expirationDate);
+  return isAfter(now, expDate);
 };

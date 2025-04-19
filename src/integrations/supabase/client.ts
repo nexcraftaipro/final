@@ -5,6 +5,16 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://xnquehtifrkfgoahqjje.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhucXVlaHRpZnJrZmdvYWhxamplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE4NjUwMzQsImV4cCI6MjA1NzQ0MTAzNH0.b8ddu9kzwv5RlyX59n9Mmrgh0ijGEztXPDuazAy8IGI";
 
+// Database connection configuration
+export const DB_CONFIG = {
+  host: 'aws-0-ap-southeast-1.pooler.supabase.com',
+  port: 5432,
+  database: 'postgres',
+  user: 'postgres.xnquehtifrkfgoahqjje',
+  password: 'cTHwRr8P2S9uMfDV',
+  ssl: true
+};
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
