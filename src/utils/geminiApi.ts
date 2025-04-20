@@ -220,7 +220,7 @@ export async function analyzeImageWithGemini(
     if (!response.ok) {
       let errorMessage = 'Failed to analyze image';
       try {
-        const errorData = await response.json();
+      const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
         if (errorData.documentation_url) {
           console.error('API Documentation:', errorData.documentation_url);
