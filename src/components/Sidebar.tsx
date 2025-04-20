@@ -5,6 +5,9 @@ import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
 import AIGenerateToggle from './AIGenerateToggle';
 import AIModelSelector, { AIModel } from './AIModelSelector';
+import KeywordSettings from './KeywordSettings';
+import TitleCustomization from './TitleCustomization';
+import Customization from './Customization';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -24,6 +27,22 @@ interface SidebarProps {
   selectedPlatforms: Platform[];
   onPlatformChange: (platforms: Platform[]) => void;
   onBaseModelChange: (model: AIModel | null) => void;
+  onKeywordSettingsChange: (settings: {
+    singleWord: boolean;
+    doubleWord: boolean;
+    mixedKeywords: boolean;
+  }) => void;
+  onTitleCustomizationChange?: (customization: {
+    beforeTitle: string;
+    afterTitle: string;
+  }) => void;
+  onCustomizationChange?: (settings: {
+    customPrompt: boolean;
+    prohibitedWords: boolean;
+    transparentBackground: boolean;
+  }) => void;
+  onCustomPromptTextChange?: (text: string) => void;
+  onProhibitedWordsChange?: (words: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -43,11 +62,21 @@ const Sidebar: React.FC<SidebarProps> = ({
   onMaxDescriptionWordsChange,
   selectedPlatforms,
   onPlatformChange,
-  onBaseModelChange
+  onBaseModelChange,
+  onKeywordSettingsChange,
+  onTitleCustomizationChange,
+  onCustomizationChange,
+  onCustomPromptTextChange,
+  onProhibitedWordsChange
 }) => {
   const [aiGenerate, setAiGenerate] = useState(false);
   const [selectedAIModel, setSelectedAIModel] = useState<AIModel>('Midjourney 6');
   const isFreepikSelected = selectedPlatforms.includes('Freepik');
+  const [keywordSettings, setKeywordSettings] = useState({
+    singleWord: true,
+    doubleWord: false,
+    mixedKeywords: false
+  });
 
   // Reset AI state when Freepik is deselected
   useEffect(() => {
@@ -75,6 +104,29 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const handleKeywordSettingChange = (setting: keyof typeof keywordSettings) => {
+    const newSettings = {
+      ...keywordSettings,
+      [setting]: !keywordSettings[setting]
+    };
+    setKeywordSettings(newSettings);
+    onKeywordSettingsChange(newSettings);
+  };
+
+  const handleBeforeTitleChange = (text: string) => {
+    onTitleCustomizationChange?.({
+      beforeTitle: text,
+      afterTitle: ''
+    });
+  };
+
+  const handleAfterTitleChange = (text: string) => {
+    onTitleCustomizationChange?.({
+      beforeTitle: '',
+      afterTitle: text
+    });
+  };
+
   return (
     <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen">
       <div className="p-3 border-b border-gray-700">
@@ -97,7 +149,19 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        <h3 className="text-sm font-medium mb-4 text-[#f68003]">Metadata Customization</h3>
+        <Customization
+          onCustomizationChange={onCustomizationChange || (() => {})}
+          onCustomPromptTextChange={onCustomPromptTextChange || (() => {})}
+          onProhibitedWordsChange={onProhibitedWordsChange || (() => {})}
+        />
+
+        <TitleCustomization
+          onBeforeTitleChange={handleBeforeTitleChange}
+          onAfterTitleChange={handleAfterTitleChange}
+        />
+
+        <KeywordSettings onSettingsChange={handleKeywordSettingChange} />
+
         <CustomizationControls 
           minTitleWords={minTitleWords} 
           onMinTitleWordsChange={onMinTitleWordsChange} 

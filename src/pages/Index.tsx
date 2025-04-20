@@ -22,6 +22,25 @@ import { AIModel } from '@/components/AIModelSelector';
 // Updated payment gateway link
 const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
 
+interface KeywordSettings {
+  singleWord: boolean;
+  doubleWord: boolean;
+  mixedKeywords: boolean;
+}
+
+interface TitleCustomization {
+  beforeTitle: string;
+  afterTitle: string;
+}
+
+interface CustomizationSettings {
+  customPrompt: boolean;
+  customPromptText: string;
+  prohibitedWords: boolean;
+  prohibitedWordsList: string[];
+  transparentBackground: boolean;
+}
+
 const Index: React.FC = () => {
   const {
     user,
@@ -55,6 +74,25 @@ const Index: React.FC = () => {
   const [maxKeywords, setMaxKeywords] = useState(45);
   const [minDescriptionWords, setMinDescriptionWords] = useState(12);
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
+  
+  const [keywordSettings, setKeywordSettings] = useState<KeywordSettings>({
+    singleWord: true,
+    doubleWord: false,
+    mixedKeywords: false
+  });
+  
+  const [titleCustomization, setTitleCustomization] = useState<TitleCustomization>({
+    beforeTitle: '',
+    afterTitle: ''
+  });
+  
+  const [customization, setCustomization] = useState<CustomizationSettings>({
+    customPrompt: false,
+    customPromptText: '',
+    prohibitedWords: false,
+    prohibitedWordsList: [],
+    transparentBackground: false
+  });
   
   // Get API key from localStorage or auth context
   useEffect(() => {
@@ -140,6 +178,42 @@ const Index: React.FC = () => {
     setMaxDescriptionWords(value[0]);
   };
   
+  const handleKeywordSettingsChange = (settings: KeywordSettings) => {
+    setKeywordSettings(settings);
+  };
+  
+  const handleTitleCustomizationChange = (customization: TitleCustomization) => {
+    setTitleCustomization(prev => ({
+      ...prev,
+      ...customization
+    }));
+  };
+  
+  const handleCustomizationChange = (settings: {
+    customPrompt: boolean;
+    prohibitedWords: boolean;
+    transparentBackground: boolean;
+  }) => {
+    setCustomization(prev => ({
+      ...prev,
+      ...settings
+    }));
+  };
+  
+  const handleCustomPromptTextChange = (text: string) => {
+    setCustomization(prev => ({
+      ...prev,
+      customPromptText: text
+    }));
+  };
+  
+  const handleProhibitedWordsChange = (words: string) => {
+    setCustomization(prev => ({
+      ...prev,
+      prohibitedWordsList: words.split('\n').map(word => word.trim()).filter(Boolean)
+    }));
+  };
+  
   const handleUpgradePlan = () => {
     window.location.href = PAYMENT_GATEWAY_URL;
   };
@@ -194,7 +268,10 @@ const Index: React.FC = () => {
             maxKeywords,
             minDescriptionWords,
             maxDescriptionWords,
-            baseModel
+            baseModel,
+            keywordSettings,
+            titleCustomization,
+            customization
           };
           
           const result = await analyzeImageWithGemini(image.file, apiKey, options);
@@ -241,10 +318,6 @@ const Index: React.FC = () => {
   const pendingCount = images.filter(img => img.status === 'pending').length;
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
   
-  const handleBaseModelChange = (model: AIModel | null) => {
-    setBaseModel(model);
-  };
-  
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader
@@ -271,7 +344,12 @@ const Index: React.FC = () => {
           onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange} 
           selectedPlatforms={platforms} 
           onPlatformChange={handlePlatformChange}
-          onBaseModelChange={handleBaseModelChange}
+          onBaseModelChange={setBaseModel}
+          onKeywordSettingsChange={handleKeywordSettingsChange}
+          onTitleCustomizationChange={handleTitleCustomizationChange}
+          onCustomizationChange={handleCustomizationChange}
+          onCustomPromptTextChange={handleCustomPromptTextChange}
+          onProhibitedWordsChange={handleProhibitedWordsChange}
         />
         
         <main className="flex-1 p-6 overflow-auto">

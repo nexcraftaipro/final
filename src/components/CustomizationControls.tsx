@@ -1,8 +1,8 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
-import { Info } from 'lucide-react';
+import { Info, ChevronDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 interface CustomizationControlsProps {
   minTitleWords: number;
@@ -84,67 +84,86 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   maxDescriptionWords,
   onMaxDescriptionWordsChange
 }) => {
+  const [isExpanded, setIsExpanded] = useState(true);
+
   return (
     <div>
-      <SettingRow
-        label="Min Title Words"
-        tooltip="Minimum number of words for the generated title"
-        value={minTitleWords}
-        minValue={5}
-        maxValue={25}
-        onChange={onMinTitleWordsChange}
-        currentValue={minTitleWords.toString()}
-      />
-      
-      <SettingRow
-        label="Max Title Words"
-        tooltip="Maximum number of words for the generated title"
-        value={maxTitleWords}
-        minValue={10}
-        maxValue={25}
-        onChange={onMaxTitleWordsChange}
-        currentValue={maxTitleWords.toString()}
-      />
-      
-      <SettingRow
-        label="Min Keywords"
-        tooltip="Minimum number of keywords to generate"
-        value={minKeywords}
-        minValue={5}
-        maxValue={50}
-        onChange={onMinKeywordsChange}
-        currentValue={minKeywords.toString()}
-      />
-      
-      <SettingRow
-        label="Max Keywords"
-        tooltip="Maximum number of keywords to generate"
-        value={maxKeywords}
-        minValue={10}
-        maxValue={50}
-        onChange={onMaxKeywordsChange}
-        currentValue={maxKeywords.toString()}
-      />
-      
-      <SettingRow
-        label="Min Description Words"
-        tooltip="Minimum number of words for the generated description"
-        value={minDescriptionWords}
-        minValue={5}  // Changed from 10 to 5
-        maxValue={40}
-        onChange={onMinDescriptionWordsChange}
-        currentValue={minDescriptionWords.toString()}
-      />
-      
-      <SettingRow
-        label="Max Description Words"
-        tooltip="Maximum number of words for the generated description"
-        value={maxDescriptionWords}
-        minValue={20}
-        maxValue={40}
-        onChange={onMaxDescriptionWordsChange}
-        currentValue={maxDescriptionWords.toString()}
-      />
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center justify-between w-full mb-4 group"
+      >
+        <h3 className="text-sm font-medium text-[#f68003]">Metadata Customization</h3>
+        <ChevronDown 
+          className={cn(
+            "h-4 w-4 text-[#f68003] transition-transform duration-200",
+            isExpanded ? "transform rotate-180" : ""
+          )}
+        />
+      </button>
+
+      {isExpanded && (
+        <div className="space-y-4">
+          <SettingRow
+            label="Min Title Words"
+            tooltip="Minimum number of words for the generated title"
+            value={minTitleWords}
+            minValue={5}
+            maxValue={25}
+            onChange={onMinTitleWordsChange}
+            currentValue={minTitleWords.toString()}
+          />
+          
+          <SettingRow
+            label="Max Title Words"
+            tooltip="Maximum number of words for the generated title"
+            value={maxTitleWords}
+            minValue={10}
+            maxValue={25}
+            onChange={onMaxTitleWordsChange}
+            currentValue={maxTitleWords.toString()}
+          />
+          
+          <SettingRow
+            label="Min Keywords"
+            tooltip="Minimum number of keywords to generate"
+            value={minKeywords}
+            minValue={5}
+            maxValue={50}
+            onChange={onMinKeywordsChange}
+            currentValue={minKeywords.toString()}
+          />
+          
+          <SettingRow
+            label="Max Keywords"
+            tooltip="Maximum number of keywords to generate"
+            value={maxKeywords}
+            minValue={10}
+            maxValue={50}
+            onChange={onMaxKeywordsChange}
+            currentValue={maxKeywords.toString()}
+          />
+          
+          <SettingRow
+            label="Min Description Words"
+            tooltip="Minimum number of words for the generated description"
+            value={minDescriptionWords}
+            minValue={5}
+            maxValue={40}
+            onChange={onMinDescriptionWordsChange}
+            currentValue={minDescriptionWords.toString()}
+          />
+          
+          <SettingRow
+            label="Max Description Words"
+            tooltip="Maximum number of words for the generated description"
+            value={maxDescriptionWords}
+            minValue={20}
+            maxValue={40}
+            onChange={onMaxDescriptionWordsChange}
+            currentValue={maxDescriptionWords.toString()}
+          />
+        </div>
+      )}
     </div>
   );
 };

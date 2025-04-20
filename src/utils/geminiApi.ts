@@ -1,4 +1,3 @@
-
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
@@ -15,6 +14,23 @@ interface AnalysisOptions {
   maxKeywords?: number;
   minDescriptionWords?: number;
   maxDescriptionWords?: number;
+  baseModel?: string;
+  keywordSettings?: {
+    singleWord: boolean;
+    doubleWord: boolean;
+    mixed: boolean;
+  };
+  titleCustomization?: {
+    beforeTitle?: string;
+    afterTitle?: string;
+  };
+  customization?: {
+    customPrompt: boolean;
+    customPromptText?: string;
+    prohibitedWords: boolean;
+    prohibitedWordsList?: string[];
+    transparentBackground: boolean;
+  };
 }
 
 interface AnalysisResult {
@@ -25,6 +41,35 @@ interface AnalysisResult {
   baseModel?: string;
   categories?: string[];
   error?: string;
+}
+
+function validateAndFilterKeywords(keywords: string[], settings: { singleWord: boolean; doubleWord: boolean; mixed: boolean }): string[] {
+  if (!keywords || keywords.length === 0) return [];
+
+  const processedKeywords = keywords.map(kw => kw.trim().toLowerCase())
+    .filter(kw => kw.length > 0);
+  
+  if (settings.doubleWord) {
+    // For double-word mode, combine adjacent single words into pairs
+    const forcedDoubleWords: string[] = [];
+    for (let i = 0; i < processedKeywords.length - 1; i += 2) {
+      const pair = `${processedKeywords[i]} ${processedKeywords[i + 1]}`;
+      if (pair.split(/\s+/).length === 2) {
+        forcedDoubleWords.push(pair);
+      }
+    }
+    return forcedDoubleWords;
+  }
+
+  return processedKeywords.filter(keyword => {
+    const wordCount = keyword.split(/\s+/).length;
+    if (settings.singleWord) {
+      return wordCount === 1;
+    } else if (settings.mixed) {
+      return wordCount <= 2;
+    }
+    return true;
+  });
 }
 
 export async function analyzeImageWithGemini(
@@ -40,7 +85,24 @@ export async function analyzeImageWithGemini(
     minKeywords = 25,
     maxKeywords = 35,
     minDescriptionWords = 10,
-    maxDescriptionWords = 30
+    maxDescriptionWords = 30,
+    baseModel,
+    keywordSettings = {
+      singleWord: true,
+      doubleWord: false,
+      mixed: false
+    },
+    titleCustomization = {
+      beforeTitle: '',
+      afterTitle: ''
+    },
+    customization = {
+      customPrompt: false,
+      customPromptText: '',
+      prohibitedWords: false,
+      prohibitedWordsList: [],
+      transparentBackground: false
+    }
   } = options;
 
   const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
@@ -51,41 +113,79 @@ export async function analyzeImageWithGemini(
     // Convert image file to base64
     const base64Image = await fileToBase64(imageFile);
     
-    // Define prompt based on platform
-    let prompt = `Analyze this image and generate:`;
-    
-    if (generationMode === 'imageToPrompt') {
-      prompt = `Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
-    } else if (isFreepikOnly) {
-      prompt = `Analyze this image and generate metadata for the Freepik platform:
-1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.
-2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).
-3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image. Focus on content, style, emotions, and technical details of the image.`;
-    } else if (isShutterstock) {
-      prompt = `Analyze this image and generate metadata for the Shutterstock platform:
-1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
-2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
-    } else if (isAdobeStock) {
-      prompt = `Analyze this image and generate metadata for Adobe Stock:
-1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
-2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
+    let prompt = '';
+
+    if (customization.customPrompt && customization.customPromptText) {
+      // Use custom prompt if provided
+      prompt = customization.customPromptText;
     } else {
-      prompt = `Analyze this image and generate:
+      if (keywordSettings.doubleWord) {
+        prompt = `Analyze this image and generate metadata.
+
+CRITICAL INSTRUCTION FOR KEYWORDS:
+You must ONLY generate TWO-WORD keyword phrases. Each keyword MUST be EXACTLY two words.
+
+Required format for keywords:
+- Each keyword must be exactly two words (e.g., "botanical illustration", "floral design", "natural medicine")
+- DO NOT generate single words
+- DO NOT generate phrases with more than two words
+- DO NOT use hyphens or special characters
+
+Examples of VALID keywords:
+- "medicinal plants"
+- "herbal medicine"
+- "floral arrangement"
+- "botanical art"
+- "natural wellness"
+
+Examples of INVALID keywords (DO NOT use):
+- "flowers" (single word)
+- "pink" (single word)
+- "health-conscious" (hyphenated)
+- "spa and wellness" (three words)
+- "beautiful pink flowers" (three words)
+
+Generate ${maxKeywords} two-word keywords that describe:
+1. Subject matter and content
+2. Style and technique
+3. Colors and visual elements
+4. Usage and context
+5. Mood and feeling
+
+Format the response as a JSON object with these exact fields:
+{
+  "title": "descriptive title",
+  ${isFreepikOnly ? '"prompt": "image generation prompt",' : ''}
+  "keywords": ["two word phrase", "another two words", ...]
+}
+
+IMPORTANT: Each keyword in the array MUST be exactly two words.`;
+      } else {
+        prompt = `Analyze this image and generate:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
 2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
-3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
+3. Generate between ${minKeywords}-${maxKeywords} keywords that someone might search for to find this image.
+   Focus on: subject matter, actions, emotions, style, technical aspects, colors, composition.`;
+      }
     }
-    
+
+    // Add format instructions
     if (generationMode === 'imageToPrompt') {
       prompt += `\n\nReturn the prompt description only, nothing else.`;
-    } else if (isFreepikOnly) {
-      prompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
-    } else if (isShutterstock) {
-      prompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array).`;
-    } else if (isAdobeStock) {
-      prompt += `\n\nFormat your response as a JSON object with the fields "title" and "keywords" (as an array).`;
     } else {
-      prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
+      prompt += `\n\nFormat your response as a JSON object with the following fields:
+- "title": The descriptive title
+- "description": The detailed description (if applicable)
+- "keywords": An array of keywords following the specified format
+${isFreepikOnly ? '- "prompt": The image generation prompt' : ''}
+
+IMPORTANT: For the keywords array, ensure STRICT adherence to the specified format (${keywordSettings.doubleWord ? 'exactly two words per keyword' : keywordSettings.singleWord ? 'exactly one word per keyword' : 'mix of one and two words'}).`;
+    }
+
+    // Add prohibited words instruction if enabled
+    if (customization.prohibitedWords && customization.prohibitedWordsList?.length) {
+      prompt += `\n\nIMPORTANT: Do NOT use any of the following words in the title, description, or keywords:
+${customization.prohibitedWordsList.join(', ')}`;
     }
     
     // Updated to use the newer Gemini 1.5 Flash model
@@ -161,13 +261,17 @@ export async function analyzeImageWithGemini(
     
     // For Freepik, use the keywords provided directly from the API response
     if (isFreepikOnly) {
-      // If keywords exist in the result, use them
-      if (!result.keywords || result.keywords.length < minKeywords) {
-        // Fallback: Generate keywords from the prompt if not enough keywords provided
+      // If keywords exist in the result, validate and filter them
+      let filteredKeywords = validateAndFilterKeywords(result.keywords || [], keywordSettings);
+      
+      // If we don't have enough keywords after filtering, generate new ones from the prompt
+      if (!filteredKeywords || filteredKeywords.length < minKeywords) {
         const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '');
-        result.keywords = freepikKeywords;
+        filteredKeywords = validateAndFilterKeywords(freepikKeywords, keywordSettings);
       }
-      result.baseModel = "leonardo";
+      
+      result.keywords = filteredKeywords;
+      result.baseModel = baseModel || '';
     }
     
     // For Shutterstock, suggest categories based on content
@@ -186,12 +290,73 @@ export async function analyzeImageWithGemini(
       );
     }
     
+    // Enhanced validation for double-word keywords
+    if (result.keywords && keywordSettings.doubleWord) {
+      let filteredKeywords = validateAndFilterKeywords(result.keywords, keywordSettings);
+      
+      // If we don't have enough valid double-word keywords, try to create them from single words
+      if (filteredKeywords.length < minKeywords) {
+        const allWords = result.keywords
+          .join(' ')
+          .split(/\s+/)
+          .filter(word => word.length > 2);
+        
+        const additionalPairs: string[] = [];
+        for (let i = 0; i < allWords.length - 1; i += 2) {
+          additionalPairs.push(`${allWords[i]} ${allWords[i + 1]}`);
+        }
+        
+        filteredKeywords = [...new Set([...filteredKeywords, ...additionalPairs])];
+      }
+      
+      result.keywords = filteredKeywords.slice(0, maxKeywords);
+    }
+    
+    // Process the title with customization
+    if (result.title) {
+      let customizedTitle = result.title.trim();
+      if (titleCustomization.beforeTitle) {
+        customizedTitle = `${titleCustomization.beforeTitle.trim()} ${customizedTitle}`;
+      }
+      if (customization.transparentBackground) {
+        customizedTitle = `${customizedTitle} on Transparent Background`;
+      }
+      if (titleCustomization.afterTitle) {
+        customizedTitle = `${customizedTitle} ${titleCustomization.afterTitle.trim()}`;
+      }
+      result.title = customizedTitle;
+    }
+    
+    if (result.keywords) {
+      // Filter out prohibited words from keywords if enabled
+      if (customization.prohibitedWords && customization.prohibitedWordsList?.length) {
+        result.keywords = result.keywords.filter(keyword => 
+          !customization.prohibitedWordsList?.some(prohibited => 
+            keyword.toLowerCase().includes(prohibited.toLowerCase())
+          )
+        );
+      }
+
+      // Add transparent background keyword if enabled
+      if (customization.transparentBackground) {
+        result.keywords.push('transparent background');
+      }
+
+      // Validate keywords based on settings
+      result.keywords = validateAndFilterKeywords(result.keywords, keywordSettings);
+    }
+
+    if (result.description && customization.transparentBackground) {
+      // Add transparent background mention to description
+      result.description = `${result.description.trim()}. This image features a transparent background, making it perfect for various design applications.`;
+    }
+    
     return {
       title: result.title || '',
       description: result.description || '',
       keywords: result.keywords || [],
       prompt: result.prompt,
-      baseModel: result.baseModel || "leonardo",
+      baseModel: result.baseModel || baseModel || '',
       categories: result.categories,
     };
   } catch (error) {
