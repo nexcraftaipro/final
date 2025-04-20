@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
+import { AIModel } from '@/components/AIModelSelector';
 
 // Updated payment gateway link
 const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
@@ -37,6 +38,7 @@ const Index: React.FC = () => {
   const [titleLength, setTitleLength] = useState(200);
   const [descriptionLength, setDescriptionLength] = useState(200);
   const [keywordCount, setKeywordCount] = useState(50);
+  const [baseModel, setBaseModel] = useState<AIModel | null>(null);
   
   // Updated to only have one platform selected by default
   const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
@@ -51,7 +53,7 @@ const Index: React.FC = () => {
   const [maxTitleWords, setMaxTitleWords] = useState(15);
   const [minKeywords, setMinKeywords] = useState(35);
   const [maxKeywords, setMaxKeywords] = useState(45);
-  const [minDescriptionWords, setMinDescriptionWords] = useState(12); // Updated to 12
+  const [minDescriptionWords, setMinDescriptionWords] = useState(12);
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
   
   // Get API key from localStorage or auth context
@@ -177,7 +179,6 @@ const Index: React.FC = () => {
       for (const image of pendingImages) {
         try {
           if (pendingImages.indexOf(image) > 0) {
-            // Add a 2-second delay between processing images to respect the 15 RPM limit
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
           
@@ -192,12 +193,12 @@ const Index: React.FC = () => {
             minKeywords,
             maxKeywords,
             minDescriptionWords,
-            maxDescriptionWords
+            maxDescriptionWords,
+            baseModel
           };
           
           const result = await analyzeImageWithGemini(image.file, apiKey, options);
           
-          // Check if we're in Freepik-only mode
           const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
           const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
           
@@ -208,12 +209,10 @@ const Index: React.FC = () => {
               title: result.title,
               description: result.description,
               keywords: result.keywords,
-              // Include prompt and baseModel for Freepik
               ...(isFreepikOnly && {
                 prompt: result.prompt,
-                baseModel: result.baseModel
+                baseModel: baseModel || 'None'
               }),
-              // Include categories for Shutterstock
               ...(isShutterstock && {
                 categories: result.categories
               })
@@ -242,6 +241,10 @@ const Index: React.FC = () => {
   const pendingCount = images.filter(img => img.status === 'pending').length;
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
   
+  const handleBaseModelChange = (model: AIModel | null) => {
+    setBaseModel(model);
+  };
+  
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader
@@ -267,7 +270,8 @@ const Index: React.FC = () => {
           maxDescriptionWords={maxDescriptionWords} 
           onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange} 
           selectedPlatforms={platforms} 
-          onPlatformChange={handlePlatformChange} 
+          onPlatformChange={handlePlatformChange}
+          onBaseModelChange={handleBaseModelChange}
         />
         
         <main className="flex-1 p-6 overflow-auto">
@@ -280,11 +284,6 @@ const Index: React.FC = () => {
                     selectedPlatforms={platforms}
                     onPlatformChange={handlePlatformChange}
                   />
-                </div>
-                
-                <div className="mt-4">
-                  
-                  
                 </div>
               </div>
               

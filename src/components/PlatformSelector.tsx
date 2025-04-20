@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Camera, Crown, Diamond, Box, CircleIcon } from 'lucide-react';
+import { Crown, Circle } from 'lucide-react';
 
 export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Canva' | '123RF' | 'Dreamstime';
 
@@ -13,7 +12,8 @@ interface PlatformSelectorProps {
 
 const platforms: {
   id: Platform;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  iconPath?: string;
   name: string;
 }[] = [
   {
@@ -23,32 +23,32 @@ const platforms: {
   },
   {
     id: 'AdobeStock',
-    icon: <span className="text-sm font-bold">St</span>,
+    iconPath: '/icons/adobe.png',
     name: 'AdobeStock'
   },
   {
     id: 'Shutterstock',
-    icon: <Camera className="h-5 w-5 text-blue-400" />,
+    iconPath: '/icons/shutterstock.png',
     name: 'Shutterstock'
   },
   {
     id: 'Vecteezy',
-    icon: <Diamond className="h-5 w-5 text-orange-500" />,
+    iconPath: '/icons/vecteezy.png',
     name: 'Vecteezy'
   },
   {
     id: 'Canva',
-    icon: <Diamond className="h-5 w-5 text-blue-500" />,
+    iconPath: '/icons/canva.png',
     name: 'Canva'
   },
   {
     id: '123RF',
-    icon: <Box className="h-5 w-5 text-purple-400" />,
+    iconPath: '/icons/123rf.png',
     name: '123RF'
   },
   {
     id: 'Dreamstime',
-    icon: <CircleIcon className="h-5 w-5 text-indigo-400" />,
+    icon: <Circle className="h-5 w-5 text-indigo-400 fill-indigo-400" />,
     name: 'Dreamstime'
   }
 ];
@@ -58,7 +58,6 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange
 }) => {
   const togglePlatform = (platform: Platform) => {
-    // Changed to only allow single platform selection
     onPlatformChange([platform]);
   };
 
@@ -72,7 +71,7 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                 type="button"
                 onClick={() => togglePlatform(platform.id)}
                 className={cn(
-                  "flex items-center space-x-2 rounded-lg px-4 py-2 text-sm transition-all relative overflow-hidden",
+                  "flex items-center space-x-3 rounded-lg px-4 py-2 text-sm transition-all relative overflow-hidden",
                   selectedPlatforms.includes(platform.id)
                     ? "ring-2 ring-blue-500 bg-blue-500/10"
                     : "bg-gray-800 hover:bg-gray-700"
@@ -89,8 +88,14 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
                     boxShadow: "0 0 15px 2px rgba(123, 97, 255, 0.3)",
                   }}
                 />
-                <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-700 relative z-10">
-                  {platform.icon}
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-700/50 relative z-10">
+                  {platform.icon || (
+                    <img 
+                      src={platform.iconPath}
+                      alt={platform.name}
+                      className="h-7 w-7 object-contain p-0.5"
+                    />
+                  )}
                 </div>
                 <span className="text-sm text-gray-300 relative z-10">{platform.name}</span>
               </button>

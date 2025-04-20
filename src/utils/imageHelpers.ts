@@ -61,7 +61,7 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${cleanTitle}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
             `"${img.result?.prompt || ''}"`,
-            `"leonardo"`,
+            `"${img.result?.baseModel || ''}"`,
           ].join(';');
         } else if (isShutterstock) {
           return [
