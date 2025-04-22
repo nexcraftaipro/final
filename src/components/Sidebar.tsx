@@ -10,6 +10,7 @@ import KeywordSettings from './KeywordSettings';
 import TitleCustomization from './TitleCustomization';
 import Customization from './Customization';
 import { KeywordSettings as KeywordSettingsType } from '@/utils/geminiApi';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   selectedMode: GenerationMode;

@@ -260,7 +260,7 @@ const Index: React.FC = () => {
             titleLength,
             descriptionLength,
             keywordCount,
-            platforms,
+            platform: platforms.length === 1 ? platforms[0].toLowerCase() : 'freepik',
             generationMode,
             minTitleWords,
             maxTitleWords,

@@ -104,34 +104,54 @@ export async function analyzeImageWithGemini(
   imageFile: File,
   options: AnalysisOptions = {}
 ): Promise<ImageAnalysisResult> {
-  // Validate API configuration
-  if (!API_CONFIG.token) {
-    throw new Error('GitHub token is not configured. Please check your environment variables.');
-  }
+  try {
+    // Validate API configuration
+    if (!API_CONFIG.token) {
+      return {
+        title: '',
+        description: '',
+        keywords: [],
+        categories: [],
+        baseModel: '',
+        error: 'GitHub token is not configured. Please check your environment variables.'
+      };
+    }
 
-  // Convert file to base64
-  const imageBase64 = await fileToBase64(imageFile);
+    // Convert file to base64
+    const imageBase64 = await fileToBase64(imageFile);
 
-  const {
-    titleLength = 60,
-    descriptionLength = 160,
-    keywordCount = 50,
-    keywordSettings = {
-      singleWord: true,
-      doubleWord: true,
-      mixedKeywords: true
-    },
-    platform = 'freepik',
-    generationMode = 'metadata',
-    baseModel = null,
-    customization
-  } = options;
+    const {
+      titleLength = 60,
+      descriptionLength = 160,
+      keywordCount = 50,
+      keywordSettings = {
+        singleWord: true,
+        doubleWord: true,
+        mixedKeywords: true
+      },
+      platform = 'freepik',
+      generationMode = 'metadata',
+      baseModel = null,
+      customization
+    } = options;
 
-  let prompt = '';
-  if (platform === 'freepik') {
-    if (generationMode === 'imageToPrompt') {
-      prompt = `Generate a creative prompt for this image that would be suitable for AI image generation. The prompt should be detailed and descriptive, focusing on the visual elements, style, and mood of the image. Format the response as a JSON object with a single field "prompt" containing the generated prompt string.`;
-    } else {
+    let prompt = '';
+    if (platform === 'freepik') {
+      if (generationMode === 'imageToPrompt') {
+        prompt = `Generate a creative prompt for this image that would be suitable for AI image generation. The prompt should be detailed and descriptive, focusing on the visual elements, style, and mood of the image. Format the response as a JSON object with a single field "prompt" containing the generated prompt string.`;
+      } else {
+        prompt = `Analyze this image and provide metadata in JSON format with the following fields:
+        - title: A catchy, descriptive title (max ${titleLength} characters)
+        - description: A detailed description (max ${descriptionLength} characters)
+        - keywords: An array of ${keywordCount} relevant keywords. ${
+          keywordSettings.singleWord ? 'Include single word keywords. ' : ''
+        }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
+        }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
+        }Keywords should be lowercase and comma-separated.
+        - categories: An array of relevant Freepik categories
+        ${baseModel ? `- baseModel: "${baseModel}"` : ''}`;
+      }
+    } else if (platform === 'shutterstock') {
       prompt = `Analyze this image and provide metadata in JSON format with the following fields:
       - title: A catchy, descriptive title (max ${titleLength} characters)
       - description: A detailed description (max ${descriptionLength} characters)
@@ -140,42 +160,29 @@ export async function analyzeImageWithGemini(
       }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
       }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
       }Keywords should be lowercase and comma-separated.
-      - categories: An array of relevant Freepik categories
-      ${baseModel ? `- baseModel: "${baseModel}"` : ''}`;
+      - categories: An array of relevant Shutterstock categories`;
+    } else if (platform === 'adobestock') {
+      prompt = `Analyze this image and provide metadata in JSON format with the following fields:
+      - title: A catchy, descriptive title (max ${titleLength} characters)
+      - description: A detailed description (max ${descriptionLength} characters)
+      - keywords: An array of ${keywordCount} relevant keywords. ${
+        keywordSettings.singleWord ? 'Include single word keywords. ' : ''
+      }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
+      }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
+      }Keywords should be lowercase and comma-separated.
+      - categories: An array of relevant Adobe Stock categories`;
     }
-  } else if (platform === 'shutterstock') {
-    prompt = `Analyze this image and provide metadata in JSON format with the following fields:
-    - title: A catchy, descriptive title (max ${titleLength} characters)
-    - description: A detailed description (max ${descriptionLength} characters)
-    - keywords: An array of ${keywordCount} relevant keywords. ${
-      keywordSettings.singleWord ? 'Include single word keywords. ' : ''
-    }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
-    }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
-    }Keywords should be lowercase and comma-separated.
-    - categories: An array of relevant Shutterstock categories`;
-  } else if (platform === 'adobestock') {
-    prompt = `Analyze this image and provide metadata in JSON format with the following fields:
-    - title: A catchy, descriptive title (max ${titleLength} characters)
-    - description: A detailed description (max ${descriptionLength} characters)
-    - keywords: An array of ${keywordCount} relevant keywords. ${
-      keywordSettings.singleWord ? 'Include single word keywords. ' : ''
-    }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
-    }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
-    }Keywords should be lowercase and comma-separated.
-    - categories: An array of relevant Adobe Stock categories`;
-  }
 
-  // Add custom prompt if specified
-  if (customization?.customPrompt && customization.customPromptText) {
-    prompt += `\n\nAdditional instructions: ${customization.customPromptText}`;
-  }
+    // Add custom prompt if specified
+    if (customization?.customPrompt && customization.customPromptText) {
+      prompt += `\n\nAdditional instructions: ${customization.customPromptText}`;
+    }
 
-  // Add prohibited words if specified
-  if (customization?.prohibitedWords && customization.prohibitedWordsList?.length) {
-    prompt += `\n\nPlease avoid using these words: ${customization.prohibitedWordsList.join(', ')}`;
-  }
+    // Add prohibited words if specified
+    if (customization?.prohibitedWords && customization.prohibitedWordsList?.length) {
+      prompt += `\n\nPlease avoid using these words: ${customization.prohibitedWordsList.join(', ')}`;
+    }
 
-  try {
     console.log('Analyzing image with options:', {
       platform,
       generationMode,
@@ -211,7 +218,7 @@ export async function analyzeImageWithGemini(
     if (!response.ok) {
       let errorMessage = 'Failed to analyze image';
       try {
-      const errorData = await response.json();
+        const errorData = await response.json();
         errorMessage = errorData.message || errorMessage;
         if (errorData.documentation_url) {
           console.error('API Documentation:', errorData.documentation_url);
@@ -219,14 +226,13 @@ export async function analyzeImageWithGemini(
       } catch (e) {
         console.error('Error parsing error response:', e);
       }
-      const error = new Error(`GitHub API Error: ${errorMessage}`);
       return {
         title: '',
         description: '',
         keywords: [],
         categories: [],
         baseModel: '',
-        error: error.message
+        error: `GitHub API Error: ${errorMessage}`
       };
     }
 
