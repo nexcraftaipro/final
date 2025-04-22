@@ -136,7 +136,7 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Check if file is a valid image type
+// Update isValidImageType function to explicitly support SVG
 export function isValidImageType(file: File): boolean {
   const acceptedTypes = [
     'image/jpeg', 

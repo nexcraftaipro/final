@@ -74,6 +74,7 @@ export type Database = {
           created_at: string
           credits_used: number
           email: string
+          expiration_date: string | null
           id: string
           is_premium: boolean
           updated_at: string
@@ -82,6 +83,7 @@ export type Database = {
           created_at?: string
           credits_used?: number
           email: string
+          expiration_date?: string | null
           id: string
           is_premium?: boolean
           updated_at?: string
@@ -90,6 +92,7 @@ export type Database = {
           created_at?: string
           credits_used?: number
           email?: string
+          expiration_date?: string | null
           id?: string
           is_premium?: boolean
           updated_at?: string
