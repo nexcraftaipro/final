@@ -100,10 +100,11 @@ export async function analyzeImageWithGemini(
   options: AnalysisOptions = {}
 ): Promise<ImageAnalysisResult> {
   try {
-    // Get the API key from environment variables
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    // Get the API key from localStorage or environment variable
+    let apiKey = localStorage.getItem('gemini-api-key') || import.meta.env.VITE_GEMINI_API_KEY;
     
-    if (!apiKey) {
+    // Check if API key is valid (not empty and not the placeholder)
+    if (!apiKey || apiKey === 'your_gemini_api_key_here') {
       return {
         title: '',
         description: '',
