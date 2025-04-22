@@ -1,3 +1,4 @@
+
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
@@ -9,18 +10,14 @@ export interface KeywordSettings {
   doubleWord: boolean;
   /** If true, allows both single and double word keywords regardless of other settings.
    * If false, strictly follows singleWord/doubleWord settings */
-  mixed: boolean;
+  mixedKeywords: boolean;
 }
 
 export interface AnalysisOptions {
   titleLength?: number;
   descriptionLength?: number;
   keywordCount?: number;
-  keywordSettings?: {
-    singleWord: boolean;
-    doubleWord: boolean;
-    mixedKeywords: boolean;
-  };
+  keywordSettings?: KeywordSettings;
   platform?: 'freepik' | 'shutterstock' | 'adobestock';
   generationMode?: 'metadata' | 'imageToPrompt';
   baseModel?: string | null;
@@ -44,16 +41,6 @@ export interface AnalysisOptions {
   };
 }
 
-interface AnalysisResult {
-  title: string;
-  description: string;
-  keywords: string[];
-  prompt?: string;
-  baseModel?: string;
-  categories?: string[];
-  error?: string;
-}
-
 export interface ImageAnalysisResult {
   title: string;
   description: string;
@@ -61,7 +48,7 @@ export interface ImageAnalysisResult {
   categories: string[];
   baseModel: string;
   prompt?: string;
-  error?: string; // Add error property to match expected type
+  error?: string;
 }
 
 function countWords(str: string): number {
@@ -70,7 +57,7 @@ function countWords(str: string): number {
 
 function validateAndFilterKeywords(
   keywords: string[],
-  settings: KeywordSettings = { singleWord: true, doubleWord: false, mixed: false },
+  settings: KeywordSettings = { singleWord: true, doubleWord: false, mixedKeywords: false },
   maxCount: number = 10
 ): string[] {
   if (!Array.isArray(keywords)) {
@@ -95,7 +82,7 @@ function validateAndFilterKeywords(
     
     if (wordCount > 2) return false; // Never allow more than 2 words
     
-    if (settings.mixed) return true; // Allow both single and double words
+    if (settings.mixedKeywords) return true; // Allow both single and double words
     
     if (wordCount === 1) return settings.singleWord;
     if (wordCount === 2) return settings.doubleWord;
@@ -105,16 +92,6 @@ function validateAndFilterKeywords(
 
   // Remove duplicates and limit to maxCount
   return [...new Set(filteredKeywords)].slice(0, maxCount);
-}
-
-interface ImageAnalysisResult {
-  title: string;
-  description: string;
-  keywords: string[];
-  categories: string[];
-  baseModel: string;
-  prompt?: string;
-  error?: string;
 }
 
 const API_CONFIG = {
@@ -161,7 +138,7 @@ export async function analyzeImageWithGemini(
       - keywords: An array of ${keywordCount} relevant keywords. ${
         keywordSettings.singleWord ? 'Include single word keywords. ' : ''
       }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
-      }${keywordSettings.mixed ? 'Include mixed-length keywords. ' : ''
+      }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
       }Keywords should be lowercase and comma-separated.
       - categories: An array of relevant Freepik categories
       ${baseModel ? `- baseModel: "${baseModel}"` : ''}`;
@@ -173,7 +150,7 @@ export async function analyzeImageWithGemini(
     - keywords: An array of ${keywordCount} relevant keywords. ${
       keywordSettings.singleWord ? 'Include single word keywords. ' : ''
     }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
-    }${keywordSettings.mixed ? 'Include mixed-length keywords. ' : ''
+    }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
     }Keywords should be lowercase and comma-separated.
     - categories: An array of relevant Shutterstock categories`;
   } else if (platform === 'adobestock') {
@@ -183,7 +160,7 @@ export async function analyzeImageWithGemini(
     - keywords: An array of ${keywordCount} relevant keywords. ${
       keywordSettings.singleWord ? 'Include single word keywords. ' : ''
     }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
-    }${keywordSettings.mixed ? 'Include mixed-length keywords. ' : ''
+    }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
     }Keywords should be lowercase and comma-separated.
     - categories: An array of relevant Adobe Stock categories`;
   }
@@ -273,7 +250,7 @@ export async function analyzeImageWithGemini(
 
     // Validate and format keywords based on settings
     const keywords = validateAndFilterKeywords(
-      result.keywords || [],
+      result.keywords || [], 
       keywordSettings,
       keywordCount
     );

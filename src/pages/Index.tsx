@@ -279,6 +279,15 @@ const Index: React.FC = () => {
           const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
           const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
           
+          if (result.error) {
+            setImages(prev => prev.map(img => img.id === image.id ? {
+              ...img,
+              status: 'error' as const,
+              error: result.error
+            } : img));
+            continue;
+          }
+          
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
             status: 'complete' as const,

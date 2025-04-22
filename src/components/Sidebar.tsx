@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
@@ -8,6 +9,7 @@ import AIModelSelector, { AIModel } from './AIModelSelector';
 import KeywordSettings from './KeywordSettings';
 import TitleCustomization from './TitleCustomization';
 import Customization from './Customization';
+import { KeywordSettings as KeywordSettingsType } from '@/utils/geminiApi';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -27,11 +29,7 @@ interface SidebarProps {
   selectedPlatforms: Platform[];
   onPlatformChange: (platforms: Platform[]) => void;
   onBaseModelChange: (model: AIModel | null) => void;
-  onKeywordSettingsChange: (settings: {
-    singleWord: boolean;
-    doubleWord: boolean;
-    mixedKeywords: boolean;
-  }) => void;
+  onKeywordSettingsChange: (settings: KeywordSettingsType) => void;
   onTitleCustomizationChange?: (customization: {
     beforeTitle: string;
     afterTitle: string;
@@ -72,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [aiGenerate, setAiGenerate] = useState(false);
   const [selectedAIModel, setSelectedAIModel] = useState<AIModel>('Midjourney 6');
   const isFreepikSelected = selectedPlatforms.includes('Freepik');
-  const [keywordSettings, setKeywordSettings] = useState({
+  const [keywordSettings, setKeywordSettings] = useState<KeywordSettingsType>({
     singleWord: true,
     doubleWord: false,
     mixedKeywords: false
@@ -104,11 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
-  const handleKeywordSettingChange = (setting: keyof typeof keywordSettings) => {
-    const newSettings = {
-      ...keywordSettings,
-      [setting]: !keywordSettings[setting]
-    };
+  const handleKeywordSettingChange = (newSettings: KeywordSettingsType) => {
     setKeywordSettings(newSettings);
     onKeywordSettingsChange(newSettings);
   };
