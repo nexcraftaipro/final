@@ -6,7 +6,7 @@ import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
-import { analyzeImageWithGemini } from '@/utils/geminiApi';
+import { analyzeImageWithGemini, AnalysisOptions } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Sparkles, Loader2, ShieldAlert, Image, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -256,11 +256,13 @@ const Index: React.FC = () => {
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
           
-          const options = {
+          const options: AnalysisOptions = {
             titleLength,
             descriptionLength,
             keywordCount,
-            platform: platforms.length === 1 ? platforms[0].toLowerCase() : 'freepik',
+            platform: platforms.length === 1 ? 
+              platforms[0].toLowerCase() as 'freepik' | 'shutterstock' | 'adobestock' : 
+              'freepik',
             generationMode,
             minTitleWords,
             maxTitleWords,

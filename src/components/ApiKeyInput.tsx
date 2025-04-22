@@ -63,7 +63,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg animate-fade-in">
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">API Key</h2>
+          <h2 className="text-xl font-semibold text-white">Gemini API Key</h2>
           <div className="flex items-center">
             <TooltipProvider>
               <Tooltip>
