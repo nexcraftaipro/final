@@ -274,15 +274,15 @@ const Index: React.FC = () => {
             customization
           };
           
-          const result = await analyzeImageWithGemini(image.file, apiKey, options);
+          const result = await analyzeImageWithGemini(image.file, options);
           
           const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
           const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
           
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
-            status: result.error ? 'error' as const : 'complete' as const,
-            result: result.error ? undefined : {
+            status: 'complete' as const,
+            result: {
               title: result.title,
               description: result.description,
               keywords: result.keywords,
@@ -293,8 +293,7 @@ const Index: React.FC = () => {
               ...(isShutterstock && {
                 categories: result.categories
               })
-            },
-            error: result.error
+            }
           } : img));
         } catch (error) {
           console.error(`Error processing image ${image.file.name}:`, error);

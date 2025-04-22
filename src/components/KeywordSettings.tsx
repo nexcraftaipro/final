@@ -1,15 +1,18 @@
+
 import React, { useState } from 'react';
 import { Switch } from "@/components/ui/switch";
 import { ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 interface KeywordSettingsProps {
-  onSettingsChange: (settings: {
-    singleWord: boolean;
-    doubleWord: boolean;
-    mixedKeywords: boolean;
-  }) => void;
+  onSettingsChange: (setting: keyof typeof DEFAULT_SETTINGS) => void;
 }
+
+const DEFAULT_SETTINGS = {
+  singleWord: true,
+  doubleWord: false,
+  mixedKeywords: false
+};
 
 const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) => {
   const [isExpanded, setIsExpanded] = useState(true);
@@ -18,23 +21,27 @@ const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) =
   const [mixedKeywords, setMixedKeywords] = useState(false);
 
   const handleSettingChange = (
-    type: 'singleWord' | 'doubleWord' | 'mixedKeywords',
-    value: boolean
+    type: keyof typeof DEFAULT_SETTINGS
   ) => {
     // If turning on one option, turn off others
-    const newSettings = {
-      singleWord: type === 'singleWord' ? value : false,
-      doubleWord: type === 'doubleWord' ? value : false,
-      mixedKeywords: type === 'mixedKeywords' ? value : false,
-    };
+    const newValue = !getSettingValue(type);
     
     // Update local state
-    setSingleWord(newSettings.singleWord);
-    setDoubleWord(newSettings.doubleWord);
-    setMixedKeywords(newSettings.mixedKeywords);
+    setSingleWord(type === 'singleWord' ? newValue : false);
+    setDoubleWord(type === 'doubleWord' ? newValue : false);
+    setMixedKeywords(type === 'mixedKeywords' ? newValue : false);
     
     // Notify parent component
-    onSettingsChange(newSettings);
+    onSettingsChange(type);
+  };
+
+  const getSettingValue = (type: keyof typeof DEFAULT_SETTINGS): boolean => {
+    switch (type) {
+      case 'singleWord': return singleWord;
+      case 'doubleWord': return doubleWord;
+      case 'mixedKeywords': return mixedKeywords;
+      default: return false;
+    }
   };
 
   return (
@@ -64,7 +71,7 @@ const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) =
               </div>
               <Switch
                 checked={singleWord}
-                onCheckedChange={(checked) => handleSettingChange('singleWord', checked)}
+                onCheckedChange={() => handleSettingChange('singleWord')}
                 className="data-[state=checked]:bg-blue-600"
               />
             </div>
@@ -80,7 +87,7 @@ const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) =
               </div>
               <Switch
                 checked={doubleWord}
-                onCheckedChange={(checked) => handleSettingChange('doubleWord', checked)}
+                onCheckedChange={() => handleSettingChange('doubleWord')}
                 className="data-[state=checked]:bg-blue-600"
               />
             </div>
@@ -96,7 +103,7 @@ const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) =
               </div>
               <Switch
                 checked={mixedKeywords}
-                onCheckedChange={(checked) => handleSettingChange('mixedKeywords', checked)}
+                onCheckedChange={() => handleSettingChange('mixedKeywords')}
                 className="data-[state=checked]:bg-blue-600"
               />
             </div>
@@ -107,4 +114,4 @@ const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) =
   );
 };
 
-export default KeywordSettings; 
+export default KeywordSettings;

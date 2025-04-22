@@ -19,7 +19,7 @@ export interface AnalysisOptions {
   keywordSettings?: {
     singleWord: boolean;
     doubleWord: boolean;
-    mixed: boolean;
+    mixedKeywords: boolean;
   };
   platform?: 'freepik' | 'shutterstock' | 'adobestock';
   generationMode?: 'metadata' | 'imageToPrompt';
@@ -52,6 +52,16 @@ interface AnalysisResult {
   baseModel?: string;
   categories?: string[];
   error?: string;
+}
+
+export interface ImageAnalysisResult {
+  title: string;
+  description: string;
+  keywords: string[];
+  categories: string[];
+  baseModel: string;
+  prompt?: string;
+  error?: string; // Add error property to match expected type
 }
 
 function countWords(str: string): number {
@@ -104,6 +114,7 @@ interface ImageAnalysisResult {
   categories: string[];
   baseModel: string;
   prompt?: string;
+  error?: string;
 }
 
 const API_CONFIG = {
@@ -113,13 +124,16 @@ const API_CONFIG = {
 };
 
 export async function analyzeImageWithGemini(
-  imageBase64: string,
+  imageFile: File,
   options: AnalysisOptions = {}
 ): Promise<ImageAnalysisResult> {
   // Validate API configuration
   if (!API_CONFIG.token) {
     throw new Error('GitHub token is not configured. Please check your environment variables.');
   }
+
+  // Convert file to base64
+  const imageBase64 = await fileToBase64(imageFile);
 
   const {
     titleLength = 60,
@@ -128,7 +142,7 @@ export async function analyzeImageWithGemini(
     keywordSettings = {
       singleWord: true,
       doubleWord: true,
-      mixed: true
+      mixedKeywords: true
     },
     platform = 'freepik',
     generationMode = 'metadata',
@@ -228,7 +242,15 @@ export async function analyzeImageWithGemini(
       } catch (e) {
         console.error('Error parsing error response:', e);
       }
-      throw new Error(`GitHub API Error: ${errorMessage}`);
+      const error = new Error(`GitHub API Error: ${errorMessage}`);
+      return {
+        title: '',
+        description: '',
+        keywords: [],
+        categories: [],
+        baseModel: '',
+        error: error.message
+      };
     }
 
     const data = await response.json();
@@ -239,7 +261,14 @@ export async function analyzeImageWithGemini(
       result = typeof data.result === 'string' ? JSON.parse(data.result) : data.result || data;
     } catch (e) {
       console.error('Failed to parse API response:', e);
-      throw new Error('Invalid response format from API');
+      return {
+        title: '',
+        description: '',
+        keywords: [],
+        categories: [],
+        baseModel: '',
+        error: 'Invalid response format from API'
+      };
     }
 
     // Validate and format keywords based on settings
@@ -271,7 +300,14 @@ export async function analyzeImageWithGemini(
     return finalResult;
   } catch (error) {
     console.error('Error analyzing image:', error);
-    throw error;
+    return {
+      title: '',
+      description: '',
+      keywords: [],
+      categories: [],
+      baseModel: '',
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
   }
 }
 
