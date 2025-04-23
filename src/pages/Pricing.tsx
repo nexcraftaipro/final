@@ -85,12 +85,12 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-4">
                 <h2 className="text-xl font-medium mb-2">Premium</h2>
                 <div className="flex items-baseline">
-                  <span className="text-5xl font-bold">900</span>
+                  <span className="text-5xl font-bold">750</span>
                   <span className="ml-2 text-lg text-gray-400">Tk/Year</span>
                 </div>
                 <div className="mt-1">
                   <span className="text-sm text-gray-400 line-through">1200 Tk</span>
-                  <span className="text-sm text-green-500 ml-2">Save 300Tk</span>
+                  <span className="text-sm text-green-500 ml-2">Save 450TK</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
