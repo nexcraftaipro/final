@@ -1,4 +1,3 @@
-
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
@@ -94,6 +93,74 @@ function validateAndFilterKeywords(
   return [...new Set(filteredKeywords)].slice(0, maxCount);
 }
 
+/**
+ * Convert SVG to PNG using HTML5 Canvas
+ */
+async function convertSvgToPng(file: File): Promise<File> {
+  // If it's not an SVG, just return the original file
+  if (file.type !== 'image/svg+xml') {
+    return file;
+  }
+  
+  return new Promise((resolve, reject) => {
+    // Read the SVG file
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const svgText = e.target?.result as string;
+      
+      // Create a temporary image element
+      const img = new Image();
+      img.onload = () => {
+        // Create a canvas element
+        const canvas = document.createElement('canvas');
+        // Set the canvas dimensions to match the SVG
+        canvas.width = img.width || 1024;  // Use 1024 as default if width is 0
+        canvas.height = img.height || 1024; // Use 1024 as default if height is 0
+        
+        // Draw the SVG on the canvas
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        
+        // Fill with white background to ensure opacity is handled properly
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw the SVG
+        ctx.drawImage(img, 0, 0);
+        
+        // Convert canvas to PNG as blob
+        canvas.toBlob((blob) => {
+          if (!blob) {
+            reject(new Error('Failed to convert SVG to PNG'));
+            return;
+          }
+          
+          // Create a new File from the blob
+          const convertedFile = new File([blob], file.name.replace('.svg', '.png'), {
+            type: 'image/png',
+            lastModified: new Date().getTime()
+          });
+          
+          resolve(convertedFile);
+        }, 'image/png');
+      };
+      
+      img.onerror = () => {
+        reject(new Error('Failed to load SVG'));
+      };
+      
+      // Set the source of the image to the SVG data URL
+      img.src = svgText;
+    };
+    
+    reader.onerror = () => reject(new Error('Failed to read SVG file'));
+    reader.readAsDataURL(file);
+  });
+}
+
 // Direct integration with Gemini API
 export async function analyzeImageWithGemini(
   imageFile: File,
@@ -115,8 +182,28 @@ export async function analyzeImageWithGemini(
       };
     }
 
+    // If this is an SVG file, convert it to PNG first
+    let processedFile = imageFile;
+    if (imageFile.type === 'image/svg+xml') {
+      try {
+        console.log('Converting SVG to PNG before sending to Gemini API...');
+        processedFile = await convertSvgToPng(imageFile);
+        console.log('SVG conversion complete. Using PNG format for API request.');
+      } catch (conversionError) {
+        console.error('SVG conversion failed:', conversionError);
+        return {
+          title: '',
+          description: '',
+          keywords: [],
+          categories: [],
+          baseModel: '',
+          error: 'Failed to convert SVG file for processing. Please try a different file format.'
+        };
+      }
+    }
+
     // Convert file to base64
-    const imageBase64 = await fileToBase64(imageFile);
+    const imageBase64 = await fileToBase64(processedFile);
     
     const {
       titleLength = 60,
@@ -187,6 +274,8 @@ export async function analyzeImageWithGemini(
       platform,
       generationMode,
       baseModel,
+      fileType: processedFile.type,
+      originalType: imageFile.type,
       customization: { ...customization, customPromptText: customization?.customPromptText ? 'present' : 'not present' }
     });
 
@@ -203,7 +292,7 @@ export async function analyzeImageWithGemini(
               { text: promptText },
               {
                 inline_data: {
-                  mime_type: imageFile.type,
+                  mime_type: processedFile.type,
                   data: imageBase64.split(',')[1] // Remove data:image/jpeg;base64, prefix
                 }
               }
