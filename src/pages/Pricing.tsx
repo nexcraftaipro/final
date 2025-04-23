@@ -49,7 +49,7 @@ const PricingPage: React.FC = () => {
 
             {/* Basic Plan */}
             <Card className="bg-gradient-to-br from-[#2C0B3F] via-[#451C5C] to-[#2C0B3F] border-[#333333] rounded-xl overflow-hidden backdrop-blur-3xl relative">
-              <div className="absolute -top-3 right-4 bg-amber-500 px-3 py-1 rounded-full my-[17px]">
+              <div className="absolute -top-3 right-4 px-3 py-1 rounded-full my-[17px] bg-rose-600">
                 <span className="text-xs font-semibold text-[#111111]">POPULAR</span>
               </div>
               <CardHeader className="pb-4">
