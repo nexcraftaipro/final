@@ -286,12 +286,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <>
                           <div>
                             <h4 className="text-amber-500">Prompt:</h4>
-                            <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
+                            <p className="text-white">{image.result?.description || 'Not provided'}</p>
                           </div>
                           
                           <div>
                             <h4 className="text-amber-500">Base-Model:</h4>
-                            <p className="text-white">{image.result?.baseModel || 'Not provided'}</p>
+                            <p className="text-white">{image.result?.baseModel || selectedBaseModel || 'Not provided'}</p>
                           </div>
                         </>
                       )}
