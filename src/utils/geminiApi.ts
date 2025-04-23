@@ -57,7 +57,8 @@ function countWords(str: string): number {
 function validateAndFilterKeywords(
   keywords: string[],
   settings: KeywordSettings = { singleWord: true, doubleWord: false, mixedKeywords: false },
-  maxCount: number = 10
+  maxCount: number = 10,
+  minCount: number = 5
 ): string[] {
   if (!Array.isArray(keywords)) {
     return [];
@@ -75,22 +76,52 @@ function validateAndFilterKeywords(
      .toLowerCase()
   );
 
-  // Filter based on word count and settings
-  filteredKeywords = filteredKeywords.filter(keyword => {
+  // Create separate arrays for single and double word keywords
+  const singleWordKeywords: string[] = [];
+  const doubleWordKeywords: string[] = [];
+  
+  // Sort keywords into appropriate arrays
+  filteredKeywords.forEach(keyword => {
     const wordCount = countWords(keyword);
     
-    if (wordCount > 2) return false; // Never allow more than 2 words
-    
-    if (settings.mixedKeywords) return true; // Allow both single and double words
-    
-    if (wordCount === 1) return settings.singleWord;
-    if (wordCount === 2) return settings.doubleWord;
-    
-    return false;
+    if (wordCount === 1) {
+      singleWordKeywords.push(keyword);
+    } else if (wordCount === 2) {
+      doubleWordKeywords.push(keyword);
+    }
+    // Ignore keywords with more than 2 words
   });
 
+  // Determine which keywords to include based on settings
+  let finalKeywords: string[] = [];
+  
+  if (settings.mixedKeywords) {
+    // If mixed keywords, include both single and double word keywords
+    finalKeywords = [...singleWordKeywords, ...doubleWordKeywords];
+  } else if (settings.singleWord) {
+    finalKeywords = singleWordKeywords;
+  } else if (settings.doubleWord) {
+    finalKeywords = doubleWordKeywords;
+    
+    // If we don't have enough double-word keywords and the model didn't provide enough,
+    // we'll need to generate additional ones by combining single words
+    if (finalKeywords.length < minCount && singleWordKeywords.length >= 2) {
+      const additionalNeeded = minCount - finalKeywords.length;
+      
+      // Create combinations of single words to form double-word keywords
+      for (let i = 0; i < singleWordKeywords.length && finalKeywords.length < minCount; i++) {
+        for (let j = i + 1; j < singleWordKeywords.length && finalKeywords.length < minCount; j++) {
+          const newKeyword = `${singleWordKeywords[i]} ${singleWordKeywords[j]}`;
+          if (!finalKeywords.includes(newKeyword)) {
+            finalKeywords.push(newKeyword);
+          }
+        }
+      }
+    }
+  }
+
   // Remove duplicates and limit to maxCount
-  return [...new Set(filteredKeywords)].slice(0, maxCount);
+  return [...new Set(finalKeywords)].slice(0, maxCount);
 }
 
 /**
@@ -217,7 +248,9 @@ export async function analyzeImageWithGemini(
       platform = 'freepik',
       generationMode = 'metadata',
       baseModel = null,
-      customization
+      customization,
+      minKeywords = 35,
+      maxKeywords = 45
     } = options;
 
     // Build the prompt based on the platform and mode
@@ -362,7 +395,8 @@ export async function analyzeImageWithGemini(
     const keywords = validateAndFilterKeywords(
       result.keywords || [], 
       keywordSettings,
-      keywordCount
+      maxKeywords,
+      minKeywords  // Pass the minimum keywords count to ensure we get enough
     );
 
     // Clean up the title
