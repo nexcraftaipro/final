@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Switch } from "@/components/ui/switch";
 import { ChevronDown } from 'lucide-react';
@@ -19,7 +20,8 @@ const Customization: React.FC<CustomizationProps> = ({
   onCustomPromptTextChange,
   onProhibitedWordsChange
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Start collapsed by default
+  const [isExpanded, setIsExpanded] = useState(false);
   const [customPrompt, setCustomPrompt] = useState(false);
   const [prohibitedWords, setProhibitedWords] = useState(false);
   const [transparentBackground, setTransparentBackground] = useState(false);
@@ -58,6 +60,7 @@ const Customization: React.FC<CustomizationProps> = ({
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full mb-4 group"
+        type="button"
       >
         <h3 className="text-sm font-medium text-[#f68003]">CUSTOMIZATION</h3>
         <ChevronDown 

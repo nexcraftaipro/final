@@ -54,6 +54,11 @@ function countWords(str: string): number {
   return str.trim().split(/\s+/).filter(word => word.length > 0).length;
 }
 
+/**
+ * This function has improved logic for doubleWord mode:
+ * If not enough double-word keywords from the model, it generates more
+ * by combining all unique pairs of single-word keywords, until reaching minCount/maxCount.
+ */
 function validateAndFilterKeywords(
   keywords: string[],
   settings: KeywordSettings = { singleWord: true, doubleWord: false, mixedKeywords: false },
@@ -63,58 +68,51 @@ function validateAndFilterKeywords(
   if (!Array.isArray(keywords)) {
     return [];
   }
-
-  // Remove empty strings and trim whitespace
+  // Remove empty strings and trim whitespace, normalize
   let filteredKeywords = keywords
     .map(k => k?.trim())
-    .filter(k => k && k.length > 0);
+    .filter(k => k && k.length > 0)
+    .map(k =>
+      k.replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, ' ')
+        .toLowerCase()
+    );
 
-  // Remove special characters and normalize spaces
-  filteredKeywords = filteredKeywords.map(k => 
-    k.replace(/[^\w\s-]/g, '')
-     .replace(/\s+/g, ' ')
-     .toLowerCase()
-  );
+  // Separate into single and double word sets
+  let singleWordKeywords: string[] = [];
+  let doubleWordKeywords: string[] = [];
 
-  // Create separate arrays for single and double word keywords
-  const singleWordKeywords: string[] = [];
-  const doubleWordKeywords: string[] = [];
-  
-  // Sort keywords into appropriate arrays
   filteredKeywords.forEach(keyword => {
     const wordCount = countWords(keyword);
-    
-    if (wordCount === 1) {
-      singleWordKeywords.push(keyword);
-    } else if (wordCount === 2) {
-      doubleWordKeywords.push(keyword);
-    }
-    // Ignore keywords with more than 2 words
+    if (wordCount === 1) singleWordKeywords.push(keyword);
+    if (wordCount === 2) doubleWordKeywords.push(keyword);
+    // ignore >2 words
   });
 
-  // Determine which keywords to include based on settings
   let finalKeywords: string[] = [];
-  
   if (settings.mixedKeywords) {
-    // If mixed keywords, include both single and double word keywords
     finalKeywords = [...singleWordKeywords, ...doubleWordKeywords];
   } else if (settings.singleWord) {
     finalKeywords = singleWordKeywords;
   } else if (settings.doubleWord) {
     finalKeywords = doubleWordKeywords;
-    
-    // If we don't have enough double-word keywords and the model didn't provide enough,
-    // we'll need to generate additional ones by combining single words
+    // Compose more if not enough
     if (finalKeywords.length < minCount && singleWordKeywords.length >= 2) {
-      const additionalNeeded = minCount - finalKeywords.length;
-      
-      // Create combinations of single words to form double-word keywords
-      for (let i = 0; i < singleWordKeywords.length && finalKeywords.length < minCount; i++) {
-        for (let j = i + 1; j < singleWordKeywords.length && finalKeywords.length < minCount; j++) {
-          const newKeyword = `${singleWordKeywords[i]} ${singleWordKeywords[j]}`;
-          if (!finalKeywords.includes(newKeyword)) {
-            finalKeywords.push(newKeyword);
+      // Create combinations (unordered, all pairs)
+      const pairs = new Set<string>();
+      for (let i = 0; i < singleWordKeywords.length; i++) {
+        for (let j = 0; j < singleWordKeywords.length; j++) {
+          if (i !== j) {
+            const newPair = `${singleWordKeywords[i]} ${singleWordKeywords[j]}`;
+            pairs.add(newPair);
           }
+        }
+      }
+      // Add pairs as needed
+      for (const pair of pairs) {
+        if (finalKeywords.length >= maxCount) break;
+        if (!finalKeywords.includes(pair)) {
+          finalKeywords.push(pair);
         }
       }
     }
@@ -250,7 +248,8 @@ export async function analyzeImageWithGemini(
       baseModel = null,
       customization,
       minKeywords = 35,
-      maxKeywords = 45
+      maxKeywords = 45,
+      titleCustomization
     } = options;
 
     // Build the prompt based on the platform and mode

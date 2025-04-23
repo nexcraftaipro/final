@@ -277,7 +277,7 @@ const Index: React.FC = () => {
           };
           
           const result = await analyzeImageWithGemini(image.file, options);
-          
+
           const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
           const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
           
@@ -289,16 +289,25 @@ const Index: React.FC = () => {
             } : img));
             continue;
           }
-          
+
+          // Patch result title with before/after
+          let patchedTitle = result.title || '';
+          if (titleCustomization.beforeTitle?.trim()) {
+            patchedTitle = `${titleCustomization.beforeTitle.trim()} ${patchedTitle}`;
+          }
+          if (titleCustomization.afterTitle?.trim()) {
+            patchedTitle = `${patchedTitle} ${titleCustomization.afterTitle.trim()}`;
+          }
+
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
             status: 'complete' as const,
             result: {
-              title: result.title,
+              title: patchedTitle.trim(),
               description: result.description,
               keywords: result.keywords,
               ...(isFreepikOnly && {
-                prompt: result.prompt,
+                prompt: result.description,
                 baseModel: baseModel || 'None'
               }),
               ...(isShutterstock && {
@@ -315,7 +324,6 @@ const Index: React.FC = () => {
           } : img));
         }
       }
-      
       toast.success('All images processed successfully');
     } catch (error) {
       console.error('Error during image processing:', error);

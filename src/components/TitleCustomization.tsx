@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { ChevronDown } from 'lucide-react';
@@ -12,7 +13,8 @@ const TitleCustomization: React.FC<TitleCustomizationProps> = ({
   onBeforeTitleChange,
   onAfterTitleChange
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Collapsed by default
+  const [isExpanded, setIsExpanded] = useState(false);
   const [beforeTitle, setBeforeTitle] = useState('');
   const [afterTitle, setAfterTitle] = useState('');
 
@@ -31,6 +33,7 @@ const TitleCustomization: React.FC<TitleCustomizationProps> = ({
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full mb-4 group"
+        type="button"
       >
         <h3 className="text-sm font-medium text-[#f68003]">TITLE CUSTOMIZATION</h3>
         <ChevronDown 

@@ -84,13 +84,15 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   maxDescriptionWords,
   onMaxDescriptionWordsChange
 }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  // Now collapsed by default
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
     <div>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="flex items-center justify-between w-full mb-4 group"
+        type="button"
       >
         <h3 className="text-sm font-medium text-[#f68003]">Metadata Customization</h3>
         <ChevronDown 
@@ -100,7 +102,6 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
           )}
         />
       </button>
-
       {isExpanded && (
         <div className="space-y-4">
           <SettingRow
@@ -112,7 +113,6 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
             onChange={onMinTitleWordsChange}
             currentValue={minTitleWords.toString()}
           />
-          
           <SettingRow
             label="Max Title Words"
             tooltip="Maximum number of words for the generated title"
@@ -122,7 +122,6 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
             onChange={onMaxTitleWordsChange}
             currentValue={maxTitleWords.toString()}
           />
-          
           <SettingRow
             label="Min Keywords"
             tooltip="Minimum number of keywords to generate"
@@ -132,7 +131,6 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
             onChange={onMinKeywordsChange}
             currentValue={minKeywords.toString()}
           />
-          
           <SettingRow
             label="Max Keywords"
             tooltip="Maximum number of keywords to generate"
@@ -142,7 +140,6 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
             onChange={onMaxKeywordsChange}
             currentValue={maxKeywords.toString()}
           />
-          
           <SettingRow
             label="Min Description Words"
             tooltip="Minimum number of words for the generated description"
@@ -152,7 +149,6 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
             onChange={onMinDescriptionWordsChange}
             currentValue={minDescriptionWords.toString()}
           />
-          
           <SettingRow
             label="Max Description Words"
             tooltip="Maximum number of words for the generated description"
