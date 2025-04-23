@@ -4,11 +4,9 @@ import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
-
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  return (
-    <div className="flex min-h-screen flex-col bg-black text-white">
+  return <div className="flex min-h-screen flex-col bg-black text-white">
       <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
       
       <div className="flex-1 py-10 px-4">
@@ -43,12 +41,7 @@ const PricingPage: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  size="lg"
-                  variant="outline"
-                  onClick={() => navigate('/')} 
-                  className="w-full bg-transparent border-white/20 hover:bg-white/10"
-                >
+                <Button size="lg" variant="outline" onClick={() => navigate('/')} className="w-full bg-transparent border-white/20 hover:bg-white/10">
                   Current Plan
                 </Button>
               </CardFooter>
@@ -62,7 +55,7 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-4">
                 <h2 className="text-xl font-medium mb-2">Basic</h2>
                 <div className="flex items-baseline">
-                  <span className="text-5xl font-bold">150</span>
+                  <span className="text-5xl font-bold">100</span>
                   <span className="ml-2 text-lg text-gray-400">Tk/Month</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
@@ -81,11 +74,7 @@ const PricingPage: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  size="lg"
-                  className="w-full bg-white text-black hover:bg-white/90"
-                  onClick={() => window.open('https://csvpikshine.paymently.io/default/paymentlink/pay/oj1MGLV0cgkc5yHv034GDR2WzhcT8JT2ojM71s18', '_blank')}
-                >
+                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://csvpikshine.paymently.io/default/paymentlink/pay/oj1MGLV0cgkc5yHv034GDR2WzhcT8JT2ojM71s18', '_blank')}>
                   Upgrade to Basic
                 </Button>
               </CardFooter>
@@ -119,11 +108,7 @@ const PricingPage: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button 
-                  size="lg"
-                  className="w-full bg-white text-black hover:bg-white/90"
-                  onClick={() => window.open('https://csvpikshine.paymently.io/default/paymentlink/pay/SIBUfRkJxIDgK7GhkrL4WdAJofkOdkL8hnidHQdF', '_blank')}
-                >
+                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://csvpikshine.paymently.io/default/paymentlink/pay/SIBUfRkJxIDgK7GhkrL4WdAJofkOdkL8hnidHQdF', '_blank')}>
                   Upgrade to Premium
                 </Button>
               </CardFooter>
@@ -136,8 +121,7 @@ const PricingPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
 
 // Helper component for pricing items
@@ -149,19 +133,8 @@ const PricingItem = ({
   included: boolean;
   text: string;
   showRedCross?: boolean;
-}) => (
-  <li className="flex items-start">
-    {included ? (
-      <Check className="h-5 w-5 mr-2 flex-shrink-0 text-green-500" />
-    ) : (
-      showRedCross ? (
-        <X className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" />
-      ) : (
-        <Check className="h-5 w-5 mr-2 flex-shrink-0 text-gray-600" />
-      )
-    )}
+}) => <li className="flex items-start">
+    {included ? <Check className="h-5 w-5 mr-2 flex-shrink-0 text-green-500" /> : showRedCross ? <X className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" /> : <Check className="h-5 w-5 mr-2 flex-shrink-0 text-gray-600" />}
     <span className={included ? 'text-gray-300' : 'text-gray-600'}>{text}</span>
-  </li>
-);
-
+  </li>;
 export default PricingPage;
