@@ -30,12 +30,19 @@ export function createImagePreview(file: File): Promise<string> {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false): string {
+export function formatImagesAsCSV(
+  images: ProcessedImage[],
+  isFreepikOnly: boolean = false,
+  isShutterstock: boolean = false,
+  isAdobeStock: boolean = false,
+  aiGenerate: boolean = false,
+  selectedBaseModel?: string | null
+): string {
   // Determine headers based on platform selection
   let headers;
   
   if (isFreepikOnly) {
-    headers = ['"File name"', '"Title"', '"Keywords"', '"Prompt"', '"Base-Model"'];
+    headers = ['"File name"', '"Title"', '"Keywords"', '"Prompt"', '"Model"'];
   } else if (isShutterstock) {
     headers = ['"Filename"', '"Description"', '"Keywords"', '"Categories"'];
   } else if (isAdobeStock) {
@@ -56,12 +63,16 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
         const cleanTitle = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
         
         if (isFreepikOnly) {
+          // Prompt is description, Model is current selected AI model (if aiGenerate is true).
+          const modelValue = aiGenerate
+            ? (selectedBaseModel || img.result?.baseModel || "None")
+            : "";
           return [
             `"${img.file.name}"`,
             `"${cleanTitle}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
-            `"${img.result?.prompt || ''}"`,
-            `"${img.result?.baseModel || ''}"`,
+            `"${img.result?.description || ''}"`,
+            `"${modelValue}"`
           ].join(';');
         } else if (isShutterstock) {
           return [

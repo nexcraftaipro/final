@@ -327,6 +327,12 @@ const Index: React.FC = () => {
   
   const pendingCount = images.filter(img => img.status === 'pending').length;
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
+    // Add helper to check if Freepik is selected
+    const isFreepikOnly = platforms.length === 1 && platforms[0] === "Freepik";
+    // You should thread aiGenerate and baseModel state
+    const aiGenerate =
+      isFreepikOnly &&
+      !!baseModel; // AI content is switched on only if baseModel is non-null
   
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -428,6 +434,8 @@ const Index: React.FC = () => {
                   onClearAll={handleClearAll}
                   generationMode={generationMode}
                   selectedPlatforms={platforms}
+                  aiGenerate={aiGenerate}
+                  selectedBaseModel={baseModel}
                 />
               </div>
             </div>

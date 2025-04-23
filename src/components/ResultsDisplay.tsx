@@ -14,14 +14,19 @@ interface ResultsDisplayProps {
   onClearAll: () => void;
   generationMode: GenerationMode;
   selectedPlatforms?: Platform[];
+  aiGenerate?: boolean;
+  selectedBaseModel?: string | null;
 }
+// Note: added aiGenerate and selectedBaseModel to props
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
   images, 
   onRemoveImage, 
   onClearAll, 
   generationMode,
-  selectedPlatforms = ['AdobeStock']
+  selectedPlatforms = ['AdobeStock'],
+  aiGenerate = false,
+  selectedBaseModel = null,
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -43,12 +48,22 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
 
   const handleDownloadCSV = () => {
-    const csvContent = formatImagesAsCSV(images, isFreepikOnly, isShutterstock, isAdobeStock);
-    
-    // Pass the platform name for custom folder naming
+    const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
+    const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+    const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
+
+    // Pass context for Freepik AI/model info
+    const csvContent = formatImagesAsCSV(
+      images, 
+      isFreepikOnly, 
+      isShutterstock, 
+      isAdobeStock, 
+      aiGenerate,
+      selectedBaseModel
+    );
+
     const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
     downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
-    
     toast.success('CSV file downloaded');
   };
 
