@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Switch } from "@/components/ui/switch";
 import { ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { KeywordSettings as KeywordSettingsType } from "@/utils/geminiApi";
+import { useSettingsPanel } from '@/context/SettingsPanelContext';
 
 interface KeywordSettingsProps {
   onSettingsChange: (settings: KeywordSettingsType) => void;
@@ -16,7 +16,8 @@ const DEFAULT_SETTINGS: KeywordSettingsType = {
 };
 
 const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const { expandedPanel, togglePanel } = useSettingsPanel();
+  const isExpanded = expandedPanel === 'keyword';
   const [settings, setSettings] = useState<KeywordSettingsType>(DEFAULT_SETTINGS);
 
   const handleSettingChange = (type: keyof KeywordSettingsType) => {
@@ -38,10 +39,10 @@ const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) =
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 rounded-md border border-blue-600 bg-[#111111] overflow-hidden">
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full mb-4 group"
+        onClick={() => togglePanel('keyword')}
+        className="flex items-center justify-between w-full p-3 group"
       >
         <h3 className="text-sm font-medium text-[#f68003]">KEYWORD SETTINGS</h3>
         <ChevronDown 
@@ -53,7 +54,7 @@ const KeywordSettings: React.FC<KeywordSettingsProps> = ({ onSettingsChange }) =
       </button>
 
       {isExpanded && (
-        <div className="space-y-4">
+        <div className="space-y-4 p-3 pt-0">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div>

@@ -12,6 +12,7 @@ import { KeywordSettings as KeywordSettingsType } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { SettingsPanelProvider } from '@/context/SettingsPanelContext';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -162,18 +163,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        <Customization
-          onCustomizationChange={onCustomizationChange || (() => {})}
-          onCustomPromptTextChange={onCustomPromptTextChange || (() => {})}
-          onProhibitedWordsChange={onProhibitedWordsChange || (() => {})}
-        />
+        <SettingsPanelProvider>
+          <Customization
+            onCustomizationChange={onCustomizationChange || (() => {})}
+            onCustomPromptTextChange={onCustomPromptTextChange || (() => {})}
+            onProhibitedWordsChange={onProhibitedWordsChange || (() => {})}
+          />
 
-        <TitleCustomization
-          onBeforeTitleChange={handleBeforeTitleChange}
-          onAfterTitleChange={handleAfterTitleChange}
-        />
+          <TitleCustomization
+            onBeforeTitleChange={handleBeforeTitleChange}
+            onAfterTitleChange={handleAfterTitleChange}
+          />
 
-        <KeywordSettings onSettingsChange={handleKeywordSettingChange} />
+          <KeywordSettings onSettingsChange={handleKeywordSettingChange} />
+        </SettingsPanelProvider>
       </div>
       
       <div className="p-4 border-t border-gray-700 mt-auto">

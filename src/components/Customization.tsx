@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Switch } from "@/components/ui/switch";
 import { ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Textarea } from "@/components/ui/textarea";
+import { useSettingsPanel } from '@/context/SettingsPanelContext';
 
 interface CustomizationProps {
   onCustomizationChange: (settings: {
@@ -20,8 +20,8 @@ const Customization: React.FC<CustomizationProps> = ({
   onCustomPromptTextChange,
   onProhibitedWordsChange
 }) => {
-  // Start collapsed by default
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { expandedPanel, togglePanel } = useSettingsPanel();
+  const isExpanded = expandedPanel === 'customization';
   const [customPrompt, setCustomPrompt] = useState(false);
   const [prohibitedWords, setProhibitedWords] = useState(false);
   const [transparentBackground, setTransparentBackground] = useState(false);
@@ -56,10 +56,10 @@ const Customization: React.FC<CustomizationProps> = ({
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 rounded-md border border-blue-600 bg-[#111111] overflow-hidden">
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full mb-4 group"
+        onClick={() => togglePanel('customization')}
+        className="flex items-center justify-between w-full p-3 group"
         type="button"
       >
         <h3 className="text-sm font-medium text-[#f68003]">CUSTOMIZATION</h3>
@@ -72,7 +72,7 @@ const Customization: React.FC<CustomizationProps> = ({
       </button>
 
       {isExpanded && (
-        <div className="space-y-4">
+        <div className="space-y-4 p-3 pt-0">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div>

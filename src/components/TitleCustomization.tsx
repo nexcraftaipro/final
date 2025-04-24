@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { useSettingsPanel } from '@/context/SettingsPanelContext';
 
 interface TitleCustomizationProps {
   onBeforeTitleChange: (text: string) => void;
@@ -13,8 +13,8 @@ const TitleCustomization: React.FC<TitleCustomizationProps> = ({
   onBeforeTitleChange,
   onAfterTitleChange
 }) => {
-  // Collapsed by default
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { expandedPanel, togglePanel } = useSettingsPanel();
+  const isExpanded = expandedPanel === 'title';
   const [beforeTitle, setBeforeTitle] = useState('');
   const [afterTitle, setAfterTitle] = useState('');
 
@@ -29,13 +29,13 @@ const TitleCustomization: React.FC<TitleCustomizationProps> = ({
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 rounded-md border border-blue-600 bg-[#111111] overflow-hidden">
       <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="flex items-center justify-between w-full mb-4 group"
+        onClick={() => togglePanel('title')}
+        className="flex items-center justify-between w-full p-3 group"
         type="button"
       >
-        <h3 className="text-sm font-medium text-[#f68003]">TITLE CUSTOMIZATION</h3>
+        <h3 className="text-sm font-medium text-[#f68003]">TITLE SETTINGS</h3>
         <ChevronDown 
           className={cn(
             "h-4 w-4 text-[#f68003] transition-transform duration-200",
@@ -45,7 +45,7 @@ const TitleCustomization: React.FC<TitleCustomizationProps> = ({
       </button>
 
       {isExpanded && (
-        <div className="space-y-4">
+        <div className="space-y-4 p-3 pt-0">
           <div className="space-y-2">
             <div className="text-sm text-gray-200">Before Title</div>
             <Input
