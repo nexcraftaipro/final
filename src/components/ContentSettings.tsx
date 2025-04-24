@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Progress } from '@/components/ui/progress';
-import { Info } from 'lucide-react';
 
 interface ContentSettingsProps {
   titleLength: number;
@@ -40,18 +39,18 @@ const SettingRow: React.FC<SettingRowProps> = ({
   const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
 
   return (
-    <div className="bg-[#222222] rounded-lg p-4 mb-3">
+    <div className="bg-[#2C2C2C] rounded-xl p-3 mb-3">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-gray-400">{label}</span>
-        <span className="text-white font-medium">{value} {suffix}</span>
+        <span className="text-gray-300 text-sm">{label}</span>
+        <span className="text-white text-sm font-medium">{value} {suffix}</span>
       </div>
       <div 
-        className="relative h-2.5 bg-gray-700 rounded-full cursor-pointer"
+        className="relative h-2 rounded-full cursor-pointer"
         onClick={handleClick}
       >
         <Progress
           value={percentage}
-          className="h-2.5 rounded-full"
+          className="h-2 rounded-full"
           indicatorClassName="bg-green-500"
         />
       </div>
@@ -68,7 +67,7 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
   onKeywordsCountChange
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <SettingRow 
         label="Title Length" 
         value={titleLength} 
