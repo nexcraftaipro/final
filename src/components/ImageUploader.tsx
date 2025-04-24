@@ -14,7 +14,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'images' | 'videos' | 'vectors'>('images');
+  const [selectedTab, setSelectedTab] = useState<'svg' | 'images' | 'videos'>('svg');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -31,14 +31,28 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     const promises: Promise<ProcessedImage>[] = [];
     const filesToProcess = Array.from(files);
 
-    for (const file of filesToProcess) {
-      const promise = (async () => {
-        // Validate file is an image
-        if (!isValidImageType(file)) {
-          toast.error(`${file.name} is not a valid image file. Only JPEG, PNG, SVG, AI, and EPS files are supported.`);
-          return null;
-        }
+    // Filter files based on selected tab
+    const filteredFiles = filesToProcess.filter(file => {
+      const fileType = file.type.toLowerCase();
+      
+      if (selectedTab === 'svg' && fileType === 'image/svg+xml') {
+        return true;
+      } else if (selectedTab === 'images' && (fileType === 'image/jpeg' || fileType === 'image/png' || fileType === 'image/jpg')) {
+        return true;
+      } else if (selectedTab === 'videos' && fileType.startsWith('video/')) {
+        return true;
+      }
+      
+      return false;
+    });
 
+    if (filteredFiles.length === 0) {
+      toast.error(`Please select files that match the selected type: ${selectedTab}`);
+      return;
+    }
+
+    for (const file of filteredFiles) {
+      const promise = (async () => {
         // Validate file size
         if (!isValidFileSize(file)) {
           toast.error(`${file.name} exceeds the 10GB size limit.`);
@@ -70,11 +84,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     
     if (validResults.length > 0) {
       onImagesSelected(validResults);
-      toast.success(`${validResults.length} image${validResults.length !== 1 ? 's' : ''} added`);
+      toast.success(`${validResults.length} file${validResults.length !== 1 ? 's' : ''} added`);
     } else if (files.length > 0) {
-      toast.error('No valid images were found to process.');
+      toast.error('No valid files were found to process.');
     }
-  }, [onImagesSelected]);
+  }, [onImagesSelected, selectedTab]);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -99,6 +113,20 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       fileInputRef.current.click();
     }
   }, []);
+
+  // Set the accept type based on selected tab
+  const getAcceptTypes = () => {
+    switch(selectedTab) {
+      case 'svg':
+        return 'image/svg+xml';
+      case 'images':
+        return 'image/jpeg,image/png,image/jpg';
+      case 'videos':
+        return 'video/*';
+      default:
+        return 'image/jpeg,image/png,image/jpg,image/svg+xml,video/*';
+    }
+  };
 
   return (
     <div 
@@ -125,8 +153,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           Drag and Drop
         </h2>
         
-        {/* Tabs */}
+        {/* Tabs - Updated order: SVG, JPG/PNG, Videos */}
         <div className="flex space-x-2 mb-6">
+          <Button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedTab('svg');
+            }}
+            variant="outline" 
+            className={`rounded-full px-6 ${selectedTab === 'svg' ? 'bg-purple-600 text-white border-transparent hover:bg-purple-700' : 'bg-gray-800 text-gray-300 border-transparent hover:bg-gray-700'}`}
+          >
+            SVG
+          </Button>
           <Button 
             onClick={(e) => {
               e.stopPropagation();
@@ -135,7 +173,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             variant="outline" 
             className={`rounded-full px-6 ${selectedTab === 'images' ? 'bg-blue-600 text-white border-transparent hover:bg-blue-700' : 'bg-gray-800 text-gray-300 border-transparent hover:bg-gray-700'}`}
           >
-            Images
+            JPG/PNG
           </Button>
           <Button 
             onClick={(e) => {
@@ -146,16 +184,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             className={`rounded-full px-6 ${selectedTab === 'videos' ? 'bg-red-600 text-white border-transparent hover:bg-red-700' : 'bg-gray-800 text-gray-300 border-transparent hover:bg-gray-700'}`}
           >
             Videos
-          </Button>
-          <Button 
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedTab('vectors');
-            }}
-            variant="outline" 
-            className={`rounded-full px-6 ${selectedTab === 'vectors' ? 'bg-purple-600 text-white border-transparent hover:bg-purple-700' : 'bg-gray-800 text-gray-300 border-transparent hover:bg-gray-700'}`}
-          >
-            Vectors
           </Button>
         </div>
         
@@ -176,7 +204,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           type="file" 
           ref={fileInputRef} 
           onChange={handleFileInputChange} 
-          accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator" 
+          accept={getAcceptTypes()}
           multiple 
           className="hidden" 
           disabled={isProcessing} 
