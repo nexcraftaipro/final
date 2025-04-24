@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import ContentSettings from '@/components/ContentSettings';
@@ -11,6 +10,8 @@ import TitleCustomization from './TitleCustomization';
 import Customization from './Customization';
 import { KeywordSettings as KeywordSettingsType } from '@/utils/geminiApi';
 import { toast } from 'sonner';
+import { ChevronDown } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -65,7 +66,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     mixedKeywords: false
   });
 
-  // Reset AI state when Freepik is deselected
+  // State for section visibility
+  const [metadataCustomizationExpanded, setMetadataCustomizationExpanded] = useState(true);
+
   useEffect(() => {
     if (!isFreepikSelected) {
       setAiGenerate(false);
@@ -132,6 +135,33 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
+        <div className="mb-6">
+          <button
+            onClick={() => setMetadataCustomizationExpanded(!metadataCustomizationExpanded)}
+            className="flex items-center justify-between w-full mb-4 group"
+            type="button"
+          >
+            <h3 className="text-sm font-medium text-[#f68003]">METADATA CUSTOMIZATION</h3>
+            <ChevronDown 
+              className={cn(
+                "h-4 w-4 text-[#f68003] transition-transform duration-200",
+                metadataCustomizationExpanded ? "transform rotate-180" : ""
+              )}
+            />
+          </button>
+
+          {metadataCustomizationExpanded && (
+            <ContentSettings
+              titleLength={titleLength}
+              onTitleLengthChange={onTitleLengthChange}
+              descriptionLength={descriptionLength}
+              onDescriptionLengthChange={onDescriptionLengthChange}
+              keywordsCount={keywordsCount}
+              onKeywordsCountChange={onKeywordsCountChange}
+            />
+          )}
+        </div>
+
         <Customization
           onCustomizationChange={onCustomizationChange || (() => {})}
           onCustomPromptTextChange={onCustomPromptTextChange || (() => {})}
@@ -144,15 +174,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
 
         <KeywordSettings onSettingsChange={handleKeywordSettingChange} />
-
-        <ContentSettings
-          titleLength={titleLength}
-          onTitleLengthChange={onTitleLengthChange}
-          descriptionLength={descriptionLength}
-          onDescriptionLengthChange={onDescriptionLengthChange}
-          keywordsCount={keywordsCount}
-          onKeywordsCountChange={onKeywordsCountChange}
-        />
       </div>
       
       <div className="p-4 border-t border-gray-700 mt-auto">

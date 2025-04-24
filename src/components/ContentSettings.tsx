@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Slider } from '@/components/ui/slider';
+import { Progress } from '@/components/ui/progress';
 import { Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ContentSettingsProps {
   titleLength: number;
@@ -30,20 +29,32 @@ const SettingRow: React.FC<SettingRowProps> = ({
   suffix,
   onChange
 }) => {
+  const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const percentage = Math.min(Math.max(x / rect.width, 0), 1);
+    const newValue = Math.round(minValue + percentage * (maxValue - minValue));
+    onChange([newValue]);
+  };
+
+  const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
+
   return (
-    <div className="relative bg-gray-800/50 rounded-lg p-4 mb-4">
+    <div className="bg-[#222222] rounded-lg p-4 mb-3">
       <div className="flex items-center justify-between mb-2">
         <span className="text-gray-400">{label}</span>
         <span className="text-white font-medium">{value} {suffix}</span>
       </div>
-      <Slider 
-        value={[value]} 
-        min={minValue} 
-        max={maxValue} 
-        step={1} 
-        onValueChange={onChange}
-        className="w-full"
-      />
+      <div 
+        className="relative h-2.5 bg-gray-700 rounded-full cursor-pointer"
+        onClick={handleClick}
+      >
+        <Progress
+          value={percentage}
+          className="h-2.5 rounded-full"
+          indicatorClassName="bg-green-500"
+        />
+      </div>
     </div>
   );
 };
