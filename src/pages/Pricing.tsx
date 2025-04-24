@@ -74,7 +74,7 @@ const PricingPage: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://csvpikshine.paymently.io/default/paymentlink/pay/oj1MGLV0cgkc5yHv034GDR2WzhcT8JT2ojM71s18', '_blank')}>
+                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/d8SXoLqYdFiYKuI1krkrAojZPDCTpmdu38g3IOgs', '_blank')}>
                   Upgrade to Basic
                 </Button>
               </CardFooter>
@@ -108,7 +108,7 @@ const PricingPage: React.FC = () => {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://csvpikshine.paymently.io/default/paymentlink/pay/SIBUfRkJxIDgK7GhkrL4WdAJofkOdkL8hnidHQdF', '_blank')}>
+                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}>
                   Upgrade to Premium
                 </Button>
               </CardFooter>
