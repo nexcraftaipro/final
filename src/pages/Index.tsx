@@ -54,9 +54,9 @@ const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [titleLength, setTitleLength] = useState(200);
-  const [descriptionLength, setDescriptionLength] = useState(200);
-  const [keywordCount, setKeywordCount] = useState(50);
+  const [titleLength, setTitleLength] = useState(100);
+  const [descriptionLength, setDescriptionLength] = useState(124);
+  const [keywordCount, setKeywordCount] = useState(31);
   const [baseModel, setBaseModel] = useState<AIModel | null>(null);
   
   // Updated to only have one platform selected by default
@@ -67,7 +67,7 @@ const Index: React.FC = () => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
 
-  // Updated default values for title and description
+  // Keep these values for API compatibility but they won't be directly managed in UI
   const [minTitleWords, setMinTitleWords] = useState(12);
   const [maxTitleWords, setMaxTitleWords] = useState(15);
   const [minKeywords, setMinKeywords] = useState(35);
@@ -353,19 +353,13 @@ const Index: React.FC = () => {
       <div className="flex flex-1">
         <Sidebar 
           selectedMode={generationMode} 
-          onModeChange={handleModeChange} 
-          minTitleWords={minTitleWords} 
-          onMinTitleWordsChange={handleMinTitleWordsChange} 
-          maxTitleWords={maxTitleWords} 
-          onMaxTitleWordsChange={handleMaxTitleWordsChange} 
-          minKeywords={minKeywords} 
-          onMinKeywordsChange={handleMinKeywordsChange} 
-          maxKeywords={maxKeywords} 
-          onMaxKeywordsChange={handleMaxKeywordsChange} 
-          minDescriptionWords={minDescriptionWords} 
-          onMinDescriptionWordsChange={handleMinDescriptionWordsChange} 
-          maxDescriptionWords={maxDescriptionWords} 
-          onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange} 
+          onModeChange={handleModeChange}
+          titleLength={titleLength}
+          onTitleLengthChange={handleTitleLengthChange}
+          descriptionLength={descriptionLength}
+          onDescriptionLengthChange={handleDescriptionLengthChange}
+          keywordsCount={keywordCount}
+          onKeywordsCountChange={handleKeywordCountChange}
           selectedPlatforms={platforms} 
           onPlatformChange={handlePlatformChange}
           onBaseModelChange={setBaseModel}

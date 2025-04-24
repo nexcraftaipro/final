@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
-import CustomizationControls from '@/components/CustomizationControls';
+import ContentSettings from '@/components/ContentSettings';
 import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
 import AIGenerateToggle from './AIGenerateToggle';
@@ -15,18 +15,12 @@ import { toast } from 'sonner';
 interface SidebarProps {
   selectedMode: GenerationMode;
   onModeChange: (mode: GenerationMode) => void;
-  minTitleWords: number;
-  onMinTitleWordsChange: (value: number[]) => void;
-  maxTitleWords: number;
-  onMaxTitleWordsChange: (value: number[]) => void;
-  minKeywords: number;
-  onMinKeywordsChange: (value: number[]) => void;
-  maxKeywords: number;
-  onMaxKeywordsChange: (value: number[]) => void;
-  minDescriptionWords: number;
-  onMinDescriptionWordsChange: (value: number[]) => void;
-  maxDescriptionWords: number;
-  onMaxDescriptionWordsChange: (value: number[]) => void;
+  titleLength: number;
+  onTitleLengthChange: (value: number[]) => void;
+  descriptionLength: number;
+  onDescriptionLengthChange: (value: number[]) => void;
+  keywordsCount: number;
+  onKeywordsCountChange: (value: number[]) => void;
   selectedPlatforms: Platform[];
   onPlatformChange: (platforms: Platform[]) => void;
   onBaseModelChange: (model: AIModel | null) => void;
@@ -47,18 +41,12 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({
   selectedMode,
   onModeChange,
-  minTitleWords,
-  onMinTitleWordsChange,
-  maxTitleWords,
-  onMaxTitleWordsChange,
-  minKeywords,
-  onMinKeywordsChange,
-  maxKeywords,
-  onMaxKeywordsChange,
-  minDescriptionWords,
-  onMinDescriptionWordsChange,
-  maxDescriptionWords,
-  onMaxDescriptionWordsChange,
+  titleLength,
+  onTitleLengthChange,
+  descriptionLength,
+  onDescriptionLengthChange,
+  keywordsCount,
+  onKeywordsCountChange,
   selectedPlatforms,
   onPlatformChange,
   onBaseModelChange,
@@ -157,19 +145,13 @@ const Sidebar: React.FC<SidebarProps> = ({
 
         <KeywordSettings onSettingsChange={handleKeywordSettingChange} />
 
-        <CustomizationControls 
-          minTitleWords={minTitleWords} 
-          onMinTitleWordsChange={onMinTitleWordsChange} 
-          maxTitleWords={maxTitleWords} 
-          onMaxTitleWordsChange={onMaxTitleWordsChange} 
-          minKeywords={minKeywords} 
-          onMinKeywordsChange={onMinKeywordsChange} 
-          maxKeywords={maxKeywords} 
-          onMaxKeywordsChange={onMaxKeywordsChange} 
-          minDescriptionWords={minDescriptionWords} 
-          onMinDescriptionWordsChange={onMinDescriptionWordsChange} 
-          maxDescriptionWords={maxDescriptionWords} 
-          onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} 
+        <ContentSettings
+          titleLength={titleLength}
+          onTitleLengthChange={onTitleLengthChange}
+          descriptionLength={descriptionLength}
+          onDescriptionLengthChange={onDescriptionLengthChange}
+          keywordsCount={keywordsCount}
+          onKeywordsCountChange={onKeywordsCountChange}
         />
       </div>
       
