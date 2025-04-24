@@ -7,7 +7,6 @@ import AIGenerateToggle from './AIGenerateToggle';
 import AIModelSelector, { AIModel } from './AIModelSelector';
 import KeywordSettings from './KeywordSettings';
 import TitleCustomization from './TitleCustomization';
-import Customization from './Customization';
 import { KeywordSettings as KeywordSettingsType } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { ChevronDown } from 'lucide-react';
@@ -68,7 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   });
 
   // State for section visibility
-  const [metadataCustomizationExpanded, setMetadataCustomizationExpanded] = useState(true);
+  const [metadataCustomizationExpanded, setMetadataCustomizationExpanded] = useState(false);
 
   useEffect(() => {
     if (!isFreepikSelected) {
@@ -136,10 +135,10 @@ const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
 
-        <div className="mb-6">
+        <div className="mb-6 rounded-md border border-blue-600 bg-[#111111] overflow-hidden">
           <button
             onClick={() => setMetadataCustomizationExpanded(!metadataCustomizationExpanded)}
-            className="flex items-center justify-between w-full mb-4 group"
+            className="flex items-center justify-between w-full p-3 group"
             type="button"
           >
             <h3 className="text-sm font-medium text-[#f68003]">METADATA CUSTOMIZATION</h3>
@@ -152,24 +151,20 @@ const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           {metadataCustomizationExpanded && (
-            <ContentSettings
-              titleLength={titleLength}
-              onTitleLengthChange={onTitleLengthChange}
-              descriptionLength={descriptionLength}
-              onDescriptionLengthChange={onDescriptionLengthChange}
-              keywordsCount={keywordsCount}
-              onKeywordsCountChange={onKeywordsCountChange}
-            />
+            <div className="p-3 pt-0">
+              <ContentSettings
+                titleLength={titleLength}
+                onTitleLengthChange={onTitleLengthChange}
+                descriptionLength={descriptionLength}
+                onDescriptionLengthChange={onDescriptionLengthChange}
+                keywordsCount={keywordsCount}
+                onKeywordsCountChange={onKeywordsCountChange}
+              />
+            </div>
           )}
         </div>
 
         <SettingsPanelProvider>
-          <Customization
-            onCustomizationChange={onCustomizationChange || (() => {})}
-            onCustomPromptTextChange={onCustomPromptTextChange || (() => {})}
-            onProhibitedWordsChange={onProhibitedWordsChange || (() => {})}
-          />
-
           <TitleCustomization
             onBeforeTitleChange={handleBeforeTitleChange}
             onAfterTitleChange={handleAfterTitleChange}

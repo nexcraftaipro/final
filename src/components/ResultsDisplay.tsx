@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check } from 'lucide-react';
-import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle } from '@/utils/imageHelpers';
+import { Download, Copy, X, Check, Video } from 'lucide-react';
+import { ProcessedImage, formatImagesAsCSV, formatVideoAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, isVideo } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
@@ -67,6 +66,20 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     toast.success('CSV file downloaded');
   };
 
+  // Add a new handler for video downloads
+  const handleDownloadVideoCSV = () => {
+    const csvContent = formatVideoAsCSV(images);
+    downloadCSV(csvContent, 'video-metadata.csv');
+    toast.success('Video metadata CSV file downloaded');
+  };
+
+  // Check if we have any completed video files
+  const hasCompletedVideos = images.some(img => 
+    img.status === 'complete' && 
+    img.result && 
+    isVideo(img.file)
+  );
+
   const downloadPromptText = (text: string, filename: string) => {
     const element = document.createElement("a");
     const file = new Blob([text], {type: 'text/plain'});
@@ -88,15 +101,26 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
         <div className="flex gap-2">
-          {hasCompletedImages && generationMode === 'metadata' && (
+          {completedImages.length > 0 && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleDownloadCSV}
-              className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
+              className="flex items-center gap-1"
             >
               <Download className="h-4 w-4" />
-              <span>Download CSV</span>
+              <span>Download Images CSV</span>
+            </Button>
+          )}
+          {hasCompletedVideos && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadVideoCSV}
+              className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white border-none"
+            >
+              <Video className="h-4 w-4" />
+              <span>Download Videos CSV</span>
             </Button>
           )}
           <Button
@@ -173,23 +197,32 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       )}
 
       {/* Metadata mode display */}
-      {generationMode === 'metadata' && hasCompletedImages && (
+      {generationMode === 'metadata' && completedImages.length > 0 && (
         <div className="overflow-auto">
           {completedImages.map((image) => {
             // Clean title by removing symbols
             const cleanTitle = image.result?.title ? removeSymbolsFromTitle(image.result.title) : '';
+            const isVideoFile = isVideo(image.file);
             
             return (
-              <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
+              <div key={image.id} className={`mb-6 ${isVideoFile ? 'bg-red-900/20' : 'bg-gray-800/30'} border ${isVideoFile ? 'border-red-700/50' : 'border-gray-700/50'} rounded-lg overflow-hidden`}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-6 border-r border-gray-700/50">
-                    <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
+                    <h3 className="text-amber-500 text-lg mb-2">{isVideoFile ? 'Video Preview' : 'Image Preview'}</h3>
                     <div className="rounded-lg overflow-hidden mb-4">
-                      <img
-                        src={image.previewUrl}
-                        alt={image.file.name}
-                        className="w-full object-cover max-h-[400px]"
-                      />
+                      {isVideoFile ? (
+                        <video 
+                          src={image.previewUrl} 
+                          controls 
+                          className="w-full object-cover max-h-[400px]"
+                        ></video>
+                      ) : (
+                        <img
+                          src={image.previewUrl}
+                          alt={image.file.name}
+                          className="w-full object-cover max-h-[400px]"
+                        />
+                      )}
                     </div>
                     <div className="text-gray-400">{image.file.name}</div>
                   </div>
@@ -197,15 +230,27 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleDownloadCSV}
-                        className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
-                      >
-                        <Download className="h-4 w-4" />
-                        <span>Download CSV</span>
-                      </Button>
+                      {isVideoFile ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadVideoCSV}
+                          className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white border-none"
+                        >
+                          <Video className="h-4 w-4" />
+                          <span>Download Video CSV</span>
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDownloadCSV}
+                          className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
+                        >
+                          <Download className="h-4 w-4" />
+                          <span>Download CSV</span>
+                        </Button>
+                      )}
                     </div>
                     
                     <div className="space-y-4">

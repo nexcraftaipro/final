@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type PanelType = 'customization' | 'title' | 'keyword' | null;
+type PanelType = 'title' | 'keyword' | null;
 
 interface SettingsPanelContextType {
   expandedPanel: PanelType;
@@ -22,6 +22,7 @@ interface SettingsPanelProviderProps {
 }
 
 export function SettingsPanelProvider({ children }: SettingsPanelProviderProps) {
+  // All panels collapsed by default (null means no panel is expanded)
   const [expandedPanel, setExpandedPanel] = useState<PanelType>(null);
 
   const togglePanel = (panel: PanelType) => {

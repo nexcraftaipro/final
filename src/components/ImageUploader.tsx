@@ -14,7 +14,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedTab, setSelectedTab] = useState<'svg' | 'images' | 'videos'>('svg');
+  const [selectedTab, setSelectedTab] = useState<'svg' | 'images' | 'videos'>('videos');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {

@@ -16,7 +16,7 @@ export interface ProcessedImage {
 
 // Generate a unique ID for each image
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 9);
+  return Math.random().toString(36).substring(2, 15);
 }
 
 // Create preview URLs for images
@@ -164,10 +164,43 @@ export function isValidImageType(file: File): boolean {
   return acceptedTypes.includes(file.type);
 }
 
+// Function to check if file is a video
+export function isVideo(file: File): boolean {
+  return file.type.startsWith('video/');
+}
+
 // Check if file size is within limits (10GB max)
 export function isValidFileSize(file: File, maxSizeGB = 10): boolean {
   const maxSizeBytes = maxSizeGB * 1024 * 1024 * 1024;
   return file.size <= maxSizeBytes;
+}
+
+// Format for Video CSV export (Filename,Title,Keywords,Category)
+export function formatVideoAsCSV(images: ProcessedImage[]): string {
+  // Use the format: Filename,Title,Keywords,Category
+  // Headers
+  const csvContent = [
+    'Filename,Title,Keywords,Category',
+    // Add data rows
+    ...images
+      .filter(img => img.status === 'complete' && img.result && isVideo(img.file))
+      .map(img => {
+        // Clean title by removing symbols
+        const cleanTitle = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
+        
+        // Get the first category or use a default number (e.g., 8)
+        const category = img.result?.categories?.length ? img.result.categories[0] : '8';
+        
+        return [
+          img.file.name,
+          cleanTitle,
+          `"${img.result?.keywords?.join(',') || ''}"`,
+          category
+        ].join(',');
+      })
+  ].join('\n');
+
+  return csvContent;
 }
 
 // Shutterstock Categories

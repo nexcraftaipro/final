@@ -312,6 +312,10 @@ const Index: React.FC = () => {
               }),
               ...(isShutterstock && {
                 categories: result.categories
+              }),
+              // Ensure all videos have a category (default to '8' if none is provided)
+              ...(image.file.type.startsWith('video/') && {
+                categories: result.categories && result.categories.length > 0 ? result.categories : ['8']
               })
             }
           } : img));
@@ -405,7 +409,7 @@ const Index: React.FC = () => {
                     ) : (
                       <>
                         <Sparkles className="mr-2 h-5 w-5" />
-                        Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
+                        Process {pendingCount} {pendingCount !== 1 ? 'Files' : 'File'}
                       </>
                     )}
                   </Button>
