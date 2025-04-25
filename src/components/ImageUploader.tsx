@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize } from '@/utils/imageHelpers';
 
@@ -15,6 +15,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [selectedType, setSelectedType] = useState<'svg' | 'image' | 'video'>('svg');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -38,13 +39,22 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     for (const file of filesToProcess) {
       const fileType = file.type.toLowerCase();
-      // Accept SVG, JPG/PNG, and video files
-      if (!(fileType === 'image/svg+xml' || 
-            fileType === 'image/jpeg' || 
-            fileType === 'image/png' || 
-            fileType === 'image/jpg' ||
-            fileType.startsWith('video/'))) {
-        toast.error(`${file.name} is not a supported file type`);
+      let isValid = false;
+
+      switch (selectedType) {
+        case 'svg':
+          isValid = fileType === 'image/svg+xml';
+          break;
+        case 'image':
+          isValid = ['image/jpeg', 'image/png', 'image/jpg'].includes(fileType);
+          break;
+        case 'video':
+          isValid = fileType.startsWith('video/');
+          break;
+      }
+
+      if (!isValid) {
+        toast.error(`${file.name} is not a supported file type for ${selectedType} format`);
         continue;
       }
 
@@ -79,7 +89,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     } else if (files.length > 0) {
       toast.error('No valid files were found to process.');
     }
-  }, [onImagesSelected]);
+  }, [onImagesSelected, selectedType]);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -92,7 +102,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
-      // Reset the file input so the same file can be selected again if needed
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -106,39 +115,71 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, []);
 
   return (
-    <div 
-      className="bg-[#121212] border border-dashed border-gray-700 rounded-lg overflow-hidden cursor-pointer" 
-      onClick={handleBrowseClick}
-    >
+    <div className="space-y-4">
+      <div className="flex gap-2 justify-center">
+        <Button
+          variant={selectedType === 'svg' ? 'default' : 'secondary'}
+          onClick={() => setSelectedType('svg')}
+          className={selectedType === 'svg' ? 'bg-blue-600' : ''}
+        >
+          SVG
+        </Button>
+        <Button
+          variant={selectedType === 'image' ? 'default' : 'secondary'}
+          onClick={() => setSelectedType('image')}
+          className={selectedType === 'image' ? 'bg-red-600' : ''}
+        >
+          JPG/PNG
+        </Button>
+        <Button
+          variant={selectedType === 'video' ? 'default' : 'secondary'}
+          onClick={() => setSelectedType('video')}
+          className={selectedType === 'video' ? 'bg-purple-600' : ''}
+        >
+          Videos
+        </Button>
+      </div>
+      
       <div 
-        className={`w-full min-h-[300px] flex flex-col items-center justify-center p-8 transition-all duration-300 ${isDragging ? 'bg-blue-900/10' : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        className="bg-[#121212] border border-dashed border-gray-700 rounded-lg overflow-hidden cursor-pointer" 
+        onClick={handleBrowseClick}
       >
-        <div className="mb-5">
-          <div className="p-5 rounded-lg bg-gray-800">
-            <ImageIcon className="h-12 w-12 text-gray-400" />
+        <div 
+          className={`w-full min-h-[300px] flex flex-col items-center justify-center p-8 transition-all duration-300 ${isDragging ? 'bg-blue-900/10' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <div className="mb-5">
+            <div className="p-5 rounded-lg bg-[#1a1a1a]">
+              <Upload className="h-12 w-12 text-gray-400" />
+            </div>
           </div>
-        </div>
-        
-        <h2 className="text-2xl font-semibold text-white mb-6">
-          Drag and Drop Upto unlimited File
-        </h2>
+          
+          <h2 className="text-2xl font-semibold text-white mb-6">
+            Drag and Drop Upto unlimited File
+          </h2>
 
-        <p className="text-center text-sm text-gray-400 max-w-md mt-4">
-          NOTE: Directly EPS Format Not Supported
-        </p>
-        
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileInputChange}
-          accept="image/svg+xml,image/jpeg,image/png,image/jpg,video/*"
-          multiple
-          className="hidden"
-          disabled={isProcessing}
-        />
+          <p className="text-center text-sm text-gray-400 max-w-md mt-4">
+            NOTE: Directly EPS Format Not Supported
+          </p>
+          
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            accept={
+              selectedType === 'svg' 
+                ? 'image/svg+xml' 
+                : selectedType === 'image' 
+                  ? 'image/jpeg,image/png,image/jpg' 
+                  : 'video/*'
+            }
+            multiple
+            className="hidden"
+            disabled={isProcessing}
+          />
+        </div>
       </div>
     </div>
   );

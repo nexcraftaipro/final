@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import ContentSettings from '@/components/ContentSettings';
@@ -13,7 +12,6 @@ import { toast } from 'sonner';
 import { ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { SettingsPanelProvider } from '@/context/SettingsPanelContext';
-import Customization from './Customization';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -32,13 +30,6 @@ interface SidebarProps {
     beforeTitle: string;
     afterTitle: string;
   }) => void;
-  onCustomizationChange?: (settings: {
-    customPrompt: boolean;
-    prohibitedWords: boolean;
-    transparentBackground: boolean;
-  }) => void;
-  onCustomPromptTextChange?: (text: string) => void;
-  onProhibitedWordsChange?: (words: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -55,9 +46,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onBaseModelChange,
   onKeywordSettingsChange,
   onTitleCustomizationChange,
-  onCustomizationChange,
-  onCustomPromptTextChange,
-  onProhibitedWordsChange
 }) => {
   const [aiGenerate, setAiGenerate] = useState(false);
   const [selectedAIModel, setSelectedAIModel] = useState<AIModel>('Midjourney 6');
@@ -173,12 +161,6 @@ const Sidebar: React.FC<SidebarProps> = ({
           />
 
           <KeywordSettings onSettingsChange={handleKeywordSettingChange} />
-          
-          <Customization
-            onCustomizationChange={onCustomizationChange || (() => {})}
-            onCustomPromptTextChange={onCustomPromptTextChange || (() => {})}
-            onProhibitedWordsChange={onProhibitedWordsChange || (() => {})}
-          />
         </SettingsPanelProvider>
       </div>
       
