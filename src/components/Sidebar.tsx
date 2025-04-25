@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import ContentSettings from '@/components/ContentSettings';
@@ -12,6 +13,7 @@ import { toast } from 'sonner';
 import { ChevronDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { SettingsPanelProvider } from '@/context/SettingsPanelContext';
+import Customization from './Customization';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -67,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   });
 
   // State for section visibility
-  const [metadataCustomizationExpanded, setMetadataCustomizationExpanded] = useState(false);
+  const [metadataCustomizationExpanded, setMetadataCustomizationExpanded] = useState(true);
 
   useEffect(() => {
     if (!isFreepikSelected) {
@@ -171,6 +173,12 @@ const Sidebar: React.FC<SidebarProps> = ({
           />
 
           <KeywordSettings onSettingsChange={handleKeywordSettingChange} />
+          
+          <Customization
+            onCustomizationChange={onCustomizationChange || (() => {})}
+            onCustomPromptTextChange={onCustomPromptTextChange || (() => {})}
+            onProhibitedWordsChange={onProhibitedWordsChange || (() => {})}
+          />
         </SettingsPanelProvider>
       </div>
       
