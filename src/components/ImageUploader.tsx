@@ -15,7 +15,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
-  const [selectedType, setSelectedType] = useState<'svg' | 'image' | 'video'>('svg');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -41,20 +40,17 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       const fileType = file.type.toLowerCase();
       let isValid = false;
 
-      switch (selectedType) {
-        case 'svg':
-          isValid = fileType === 'image/svg+xml';
-          break;
-        case 'image':
-          isValid = ['image/jpeg', 'image/png', 'image/jpg'].includes(fileType);
-          break;
-        case 'video':
-          isValid = fileType.startsWith('video/');
-          break;
+      // Accept all supported file types without requiring selection
+      if (
+        fileType === 'image/svg+xml' || 
+        ['image/jpeg', 'image/png', 'image/jpg'].includes(fileType) ||
+        fileType.startsWith('video/')
+      ) {
+        isValid = true;
       }
 
       if (!isValid) {
-        toast.error(`${file.name} is not a supported file type for ${selectedType} format`);
+        toast.error(`${file.name} is not a supported file type`);
         continue;
       }
 
@@ -89,7 +85,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     } else if (files.length > 0) {
       toast.error('No valid files were found to process.');
     }
-  }, [onImagesSelected, selectedType]);
+  }, [onImagesSelected]);
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -116,30 +112,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 justify-center">
-        <Button
-          variant={selectedType === 'svg' ? 'default' : 'secondary'}
-          onClick={() => setSelectedType('svg')}
-          className={selectedType === 'svg' ? 'bg-blue-600' : ''}
-        >
-          SVG
-        </Button>
-        <Button
-          variant={selectedType === 'image' ? 'default' : 'secondary'}
-          onClick={() => setSelectedType('image')}
-          className={selectedType === 'image' ? 'bg-red-600' : ''}
-        >
-          JPG/PNG
-        </Button>
-        <Button
-          variant={selectedType === 'video' ? 'default' : 'secondary'}
-          onClick={() => setSelectedType('video')}
-          className={selectedType === 'video' ? 'bg-purple-600' : ''}
-        >
-          Videos
-        </Button>
-      </div>
-      
       <div 
         className="bg-[#121212] border border-dashed border-gray-700 rounded-lg overflow-hidden cursor-pointer" 
         onClick={handleBrowseClick}
@@ -159,8 +131,30 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           <h2 className="text-2xl font-semibold text-white mb-6">
             Drag and Drop Upto unlimited File
           </h2>
+          
+          {/* File type buttons moved inside the drag area */}
+          <div className="flex gap-2 justify-center mb-6">
+            <Button
+              variant="default"
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              SVG
+            </Button>
+            <Button
+              variant="default"
+              className="bg-red-600 hover:bg-red-700"
+            >
+              JPG/PNG
+            </Button>
+            <Button
+              variant="default"
+              className="bg-purple-600 hover:bg-purple-700"
+            >
+              Videos
+            </Button>
+          </div>
 
-          <p className="text-center text-sm text-gray-400 max-w-md mt-4">
+          <p className="text-center text-sm text-gray-400 max-w-md">
             NOTE: Directly EPS Format Not Supported
           </p>
           
@@ -168,13 +162,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             type="file"
             ref={fileInputRef}
             onChange={handleFileInputChange}
-            accept={
-              selectedType === 'svg' 
-                ? 'image/svg+xml' 
-                : selectedType === 'image' 
-                  ? 'image/jpeg,image/png,image/jpg' 
-                  : 'video/*'
-            }
+            accept="image/svg+xml,image/jpeg,image/png,image/jpg,video/*"
             multiple
             className="hidden"
             disabled={isProcessing}
