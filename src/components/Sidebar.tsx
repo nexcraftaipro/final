@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import ContentSettings from '@/components/ContentSettings';
@@ -30,6 +31,14 @@ interface SidebarProps {
     beforeTitle: string;
     afterTitle: string;
   }) => void;
+  // Add the missing props that are being passed in Index.tsx
+  onCustomizationChange?: (settings: {
+    customPrompt: boolean;
+    prohibitedWords: boolean;
+    transparentBackground: boolean;
+  }) => void;
+  onCustomPromptTextChange?: (text: string) => void;
+  onProhibitedWordsChange?: (words: string) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -46,6 +55,10 @@ const Sidebar: React.FC<SidebarProps> = ({
   onBaseModelChange,
   onKeywordSettingsChange,
   onTitleCustomizationChange,
+  // Add the missing props to the component parameters
+  onCustomizationChange,
+  onCustomPromptTextChange,
+  onProhibitedWordsChange,
 }) => {
   const [aiGenerate, setAiGenerate] = useState(false);
   const [selectedAIModel, setSelectedAIModel] = useState<AIModel>('Midjourney 6');
