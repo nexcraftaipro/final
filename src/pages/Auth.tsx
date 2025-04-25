@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -6,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, FileType } from 'lucide-react';
-
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +20,6 @@ const Auth: React.FC = () => {
   if (!isLoading && user) {
     return <Navigate to="/" replace />;
   }
-  
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -32,7 +29,6 @@ const Auth: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -42,19 +38,21 @@ const Auth: React.FC = () => {
       setIsSubmitting(false);
     }
   };
-  
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>;
   }
-  
   return <div className="flex min-h-screen flex-col bg-gradient-to-b from-blue-50 to-blue-100 dark:from-slate-950 dark:to-slate-900">
       <header className="sticky top-0 z-10 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-transparent py-4">
         <div className="container">
           <h1 className="text-2xl font-bold flex items-center justify-center">
-            <FileType className="h-6 w-6 mr-2" style={{color: '#f14010'}} />
-            <span style={{color: '#f14010'}}>Meta CSV Generator Pro</span>
+            <FileType className="h-6 w-6 mr-2" style={{
+            color: '#f14010'
+          }} />
+            <span style={{
+            color: '#f14010'
+          }}>Meta CSV Generator Pro</span>
           </h1>
         </div>
       </header>
@@ -96,9 +94,7 @@ const Auth: React.FC = () => {
                       Signing in...
                     </> : "Sign In"}
                 </Button>
-                <p className="text-xs text-center text-gray-500 dark:text-gray-400">
-                  Upon sign in, you'll be assigned a Gemini API key automatically
-                </p>
+                
               </form>
             </TabsContent>
             
@@ -137,5 +133,4 @@ const Auth: React.FC = () => {
       </div>
     </div>;
 };
-
 export default Auth;
