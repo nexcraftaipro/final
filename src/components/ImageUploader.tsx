@@ -149,7 +149,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         <div className="text-center text-sm text-gray-400 max-w-md mt-2">
           
           <p>NOTE: Directly EPS Format Not Supported</p>
-          <p className="text-blue-400 mt-2">Upload up to 1000 files at once</p>
+          
         </div>
         
         <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept={getAcceptTypes()} multiple className="hidden" disabled={isProcessing} />
