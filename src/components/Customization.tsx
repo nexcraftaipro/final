@@ -150,4 +150,4 @@ const Customization: React.FC<CustomizationProps> = ({
   );
 };
 
-export default Customization; 
+export default Customization;

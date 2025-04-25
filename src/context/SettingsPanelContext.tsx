@@ -1,6 +1,7 @@
+
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-type PanelType = 'title' | 'keyword' | null;
+type PanelType = 'title' | 'keyword' | 'customization' | null;
 
 interface SettingsPanelContextType {
   expandedPanel: PanelType;
