@@ -72,7 +72,7 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
         label="Title Length" 
         value={titleLength} 
         minValue={5} 
-        maxValue={200} 
+        maxValue={50} 
         suffix="chars"
         onChange={onTitleLengthChange} 
       />
@@ -90,7 +90,7 @@ const ContentSettings: React.FC<ContentSettingsProps> = ({
         label="Description Length" 
         value={descriptionLength} 
         minValue={15} 
-        maxValue={200} 
+        maxValue={100} 
         suffix="chars"
         onChange={onDescriptionLengthChange} 
       />

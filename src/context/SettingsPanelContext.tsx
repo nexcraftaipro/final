@@ -23,8 +23,8 @@ interface SettingsPanelProviderProps {
 }
 
 export function SettingsPanelProvider({ children }: SettingsPanelProviderProps) {
-  // All panels collapsed by default (null means no panel is expanded)
-  const [expandedPanel, setExpandedPanel] = useState<PanelType>(null);
+  // Set 'customization' as the default expanded panel
+  const [expandedPanel, setExpandedPanel] = useState<PanelType>('customization');
 
   const togglePanel = (panel: PanelType) => {
     // If clicking the currently expanded panel, collapse it
@@ -41,4 +41,4 @@ export function SettingsPanelProvider({ children }: SettingsPanelProviderProps) 
       {children}
     </SettingsPanelContext.Provider>
   );
-} 
+}

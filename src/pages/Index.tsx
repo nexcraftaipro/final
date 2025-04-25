@@ -54,9 +54,9 @@ const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [titleLength, setTitleLength] = useState(100);
-  const [descriptionLength, setDescriptionLength] = useState(124);
-  const [keywordCount, setKeywordCount] = useState(31);
+  const [titleLength, setTitleLength] = useState(20);
+  const [descriptionLength, setDescriptionLength] = useState(35);
+  const [keywordCount, setKeywordCount] = useState(48);
   const [baseModel, setBaseModel] = useState<AIModel | null>(null);
   
   // Updated to only have one platform selected by default
