@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, X, Check, Video } from 'lucide-react';
@@ -294,51 +295,52 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       </div>
 
-                    {isAdobeStock && image.result?.categories && (
-                      <div>
-                        <h4 className="text-amber-500">Category:</h4>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {image.result.categories.map((category, index) => (
-                            <span 
-                              key={index} 
-                              className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
-                            >
-                              {category}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {isShutterstock && (
-                      <div>
-                        <h4 className="text-amber-500">Categories:</h4>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {displayCategories.map((category, index) => (
-                            <span 
-                              key={index} 
-                              className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
-                            >
-                              {category}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {isFreepikOnly && (
-                      <>
+                      {isAdobeStock && image.result?.categories && (
                         <div>
-                          <h4 className="text-amber-500">Prompt:</h4>
-                          <p className="text-white">{image.result?.description || 'Not provided'}</p>
+                          <h4 className="text-amber-500">Category:</h4>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {image.result.categories.map((category, index) => (
+                              <span 
+                                key={index} 
+                                className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
+                              >
+                                {category}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                        
+                      )}
+
+                      {isShutterstock && (
                         <div>
-                          <h4 className="text-amber-500">Base-Model:</h4>
-                          <p className="text-white">{image.result?.baseModel || selectedBaseModel || 'Not provided'}</p>
+                          <h4 className="text-amber-500">Categories:</h4>
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {displayCategories.map((category, index) => (
+                              <span 
+                                key={index} 
+                                className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
+                              >
+                                {category}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                      </>
-                    )}
+                      )}
+
+                      {isFreepikOnly && (
+                        <>
+                          <div>
+                            <h4 className="text-amber-500">Prompt:</h4>
+                            <p className="text-white">{image.result?.description || 'Not provided'}</p>
+                          </div>
+                          
+                          <div>
+                            <h4 className="text-amber-500">Base-Model:</h4>
+                            <p className="text-white">{image.result?.baseModel || selectedBaseModel || 'Not provided'}</p>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
