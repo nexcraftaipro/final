@@ -147,14 +147,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         {/* Privacy notice */}
         <div className="text-center text-sm text-gray-400 max-w-md mt-2">
-          <div className="flex justify-center items-center mb-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-              <rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-            </svg>
-            Privacy Notice
-          </div>
-          <p>Your Files are processed locally and not stored on any server. Files are automatically deleted after metadata generation.</p>
+          
+          <p>NOTE: Directly EPS Format Not Supported</p>
           <p className="text-blue-400 mt-2">Upload up to 1000 files at once</p>
         </div>
         
