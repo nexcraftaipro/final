@@ -75,11 +75,24 @@ export function formatImagesAsCSV(
             `"${modelValue}"`
           ].join(';');
         } else if (isShutterstock) {
+          // Ensure we have exactly 2 categories
+          let categories = img.result?.categories || [];
+          if (categories.length !== 2) {
+            if (categories.length > 2) {
+              categories = categories.slice(0, 2);
+            } else {
+              // Add default categories if needed
+              while (categories.length < 2) {
+                categories.push(categories.length === 0 ? 'Nature' : 'Miscellaneous');
+              }
+            }
+          }
+
           return [
             `"${img.file.name}"`,
             `"${img.result?.description || ''}"`,
             `"${img.result?.keywords?.join(',') || ''}"`,
-            `"${img.result?.categories?.join(',') || ''}"`,
+            `"${categories.join(',')}"`,
           ].join(',');
         } else if (isAdobeStock) {
           return [
@@ -746,10 +759,16 @@ export function suggestCategoriesForShutterstock(title: string, description: str
     .sort((a, b) => b[1] - a[1])
     .map(entry => entry[0]);
   
-  // Return top 2 categories, or default to "Miscellaneous" and "Objects" if none found
-  return sortedCategories.length >= 2 
-    ? sortedCategories.slice(0, 2) 
-    : sortedCategories.concat(["Miscellaneous", "Objects"]).slice(0, 2);
+  // Always return exactly 2 categories
+  if (sortedCategories.length >= 2) {
+    return sortedCategories.slice(0, 2);
+  } else if (sortedCategories.length === 1) {
+    // If we have only one match, add a default second category
+    return [...sortedCategories, "Nature"];
+  } else {
+    // If no matches, return two default categories
+    return ["Nature", "Miscellaneous"];
+  }
 }
 
 // Get relevant keywords for Freepik based on image content

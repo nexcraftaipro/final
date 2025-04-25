@@ -279,7 +279,7 @@ export async function analyzeImageWithGemini(
       }${keywordSettings.doubleWord ? 'Include two-word keywords. ' : ''
       }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
       }Keywords should be lowercase and comma-separated.
-      - categories: An array of relevant Shutterstock categories`;
+      - categories: An array of EXACTLY 2 relevant Shutterstock categories from this list: Abstract, Animals/Wildlife, Arts, Backgrounds/Textures, Beauty/Fashion, Buildings/Landmarks, Business/Finance, Celebrities, Education, Food and drink, Healthcare/Medical, Holidays, Industrial, Interiors, Miscellaneous, Nature, Objects, Parks/Outdoor, People, Religion, Science, Signs/Symbols, Sports/Recreation, Technology, Transportation, Vintage`;
     } else if (platform === 'adobestock') {
       promptText = `Analyze this image and provide metadata in JSON format with the following fields:
       - title: A catchy, descriptive title (max ${titleLength} characters)
@@ -395,17 +395,42 @@ export async function analyzeImageWithGemini(
       result.keywords || [], 
       keywordSettings,
       maxKeywords,
-      minKeywords  // Pass the minimum keywords count to ensure we get enough
+      minKeywords
     );
 
     // Clean up the title
     const cleanTitle = removeSymbolsFromTitle(result.title || '');
 
+    // Ensure that Shutterstock has exactly 2 categories
+    let categories = result.categories || [];
+    if (platform === 'shutterstock') {
+      // If we have less than 2 categories or more than 2 categories, fix it
+      if (categories.length !== 2) {
+        // If we have more than 2, take only the first 2
+        if (categories.length > 2) {
+          categories = categories.slice(0, 2);
+        } 
+        // If we have less than 2, add default ones to reach exactly 2
+        else {
+          const defaultCategories = ['Nature', 'Miscellaneous'];
+          while (categories.length < 2) {
+            const defaultCategory = defaultCategories.find(cat => !categories.includes(cat));
+            if (defaultCategory) {
+              categories.push(defaultCategory);
+            } else {
+              // If somehow all default categories are used, just add "Miscellaneous"
+              categories.push('Miscellaneous');
+            }
+          }
+        }
+      }
+    }
+
     const finalResult = {
       title: cleanTitle,
       description: result.description || '',
       keywords: keywords,
-      categories: result.categories || [],
+      categories: categories,
       baseModel: result.baseModel || baseModel || '',
       prompt: generationMode === 'imageToPrompt' ? result.prompt : undefined
     };
@@ -414,7 +439,8 @@ export async function analyzeImageWithGemini(
       hasTitle: !!finalResult.title,
       keywordCount: finalResult.keywords.length,
       hasDescription: !!finalResult.description,
-      baseModel: finalResult.baseModel
+      baseModel: finalResult.baseModel,
+      categoryCount: finalResult.categories.length
     });
 
     return finalResult;

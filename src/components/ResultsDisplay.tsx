@@ -16,7 +16,6 @@ interface ResultsDisplayProps {
   aiGenerate?: boolean;
   selectedBaseModel?: string | null;
 }
-// Note: added aiGenerate and selectedBaseModel to props
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
   images, 
@@ -41,17 +40,25 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }, 2000);
   };
 
-  // Check for specific platforms
   const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
   const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
+
+  const ensureExactlyTwoCategories = (categories: string[] = []): string[] => {
+    if (categories.length === 2) return categories;
+    if (categories.length > 2) return categories.slice(0, 2);
+    
+    if (categories.length === 1) {
+      return [...categories, 'Miscellaneous'];
+    }
+    return ['Nature', 'Miscellaneous'];
+  };
 
   const handleDownloadCSV = () => {
     const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
     const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
     const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
 
-    // Pass context for Freepik AI/model info
     const csvContent = formatImagesAsCSV(
       images, 
       isFreepikOnly, 
@@ -66,14 +73,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     toast.success('CSV file downloaded');
   };
 
-  // Add a new handler for video downloads
   const handleDownloadVideoCSV = () => {
     const csvContent = formatVideoAsCSV(images);
     downloadCSV(csvContent, 'video-metadata.csv');
     toast.success('Video metadata CSV file downloaded');
   };
 
-  // Check if we have any completed video files
   const hasCompletedVideos = images.some(img => 
     img.status === 'complete' && 
     img.result && 
@@ -93,8 +98,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
-
-  // Removed duplicate platform declarations that were here
 
   return (
     <div className="w-full space-y-4">
@@ -135,13 +138,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       </div>
 
-      {/* Image to Prompt mode display - Updated to show image with prompt */}
       {generationMode === 'imageToPrompt' && completedImages.length > 0 && (
         <div className="grid grid-cols-1 gap-6">
           {completedImages.map((image) => (
             <div key={image.id} className="bg-black rounded-lg border border-gray-800 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                {/* Left column - Source Image */}
                 <div className="p-4 border border-gray-800 rounded-lg">
                   <h3 className="text-xl font-semibold mb-4">Source Image:</h3>
                   <div className="rounded-lg overflow-hidden mb-4">
@@ -154,7 +155,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <div className="text-gray-400">{image.file.name}</div>
                 </div>
                 
-                {/* Right column - Generated Prompt */}
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
                   <div className="bg-black border border-gray-800 rounded-lg p-6">
@@ -196,13 +196,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
 
-      {/* Metadata mode display */}
       {generationMode === 'metadata' && completedImages.length > 0 && (
         <div className="overflow-auto">
           {completedImages.map((image) => {
-            // Clean title by removing symbols
             const cleanTitle = image.result?.title ? removeSymbolsFromTitle(image.result.title) : '';
             const isVideoFile = isVideo(image.file);
+            
+            let displayCategories = image.result?.categories || [];
+            if (isShutterstock) {
+              displayCategories = ensureExactlyTwoCategories(displayCategories);
+            }
             
             return (
               <div key={image.id} className={`mb-6 ${isVideoFile ? 'bg-red-900/20' : 'bg-gray-800/30'} border ${isVideoFile ? 'border-red-700/50' : 'border-gray-700/50'} rounded-lg overflow-hidden`}>
@@ -259,7 +262,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <p className="text-white">{image.file.name}</p>
                       </div>
                       
-                      {/* Show title for all platforms except Shutterstock */}
                       {!isShutterstock && (
                         <div>
                           <h4 className="text-amber-500">Title:</h4>
@@ -267,7 +269,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       )}
                       
-                      {/* Show description for platforms other than Freepik and AdobeStock */}
                       {!isFreepikOnly && !isAdobeStock && (
                         <div>
                           <h4 className="text-amber-500">Description:</h4>
@@ -293,54 +294,51 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       </div>
 
-                      {/* Show categories for AdobeStock */}
-                      {isAdobeStock && image.result?.categories && (
-                        <div>
-                          <h4 className="text-amber-500">Category:</h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result.categories.map((category, index) => (
-                              <span 
-                                key={index} 
-                                className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
-                              >
-                                {category}
-                              </span>
-                            ))}
-                          </div>
+                    {isAdobeStock && image.result?.categories && (
+                      <div>
+                        <h4 className="text-amber-500">Category:</h4>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {image.result.categories.map((category, index) => (
+                            <span 
+                              key={index} 
+                              className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
+                            >
+                              {category}
+                            </span>
+                          ))}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {/* Show categories for Shutterstock */}
-                      {isShutterstock && image.result?.categories && (
-                        <div>
-                          <h4 className="text-amber-500">Categories:</h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result.categories.map((category, index) => (
-                              <span 
-                                key={index} 
-                                className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
-                              >
-                                {category}
-                              </span>
-                            ))}
-                          </div>
+                    {isShutterstock && (
+                      <div>
+                        <h4 className="text-amber-500">Categories:</h4>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {displayCategories.map((category, index) => (
+                            <span 
+                              key={index} 
+                              className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
+                            >
+                              {category}
+                            </span>
+                          ))}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                      {isFreepikOnly && (
-                        <>
-                          <div>
-                            <h4 className="text-amber-500">Prompt:</h4>
-                            <p className="text-white">{image.result?.description || 'Not provided'}</p>
-                          </div>
-                          
-                          <div>
-                            <h4 className="text-amber-500">Base-Model:</h4>
-                            <p className="text-white">{image.result?.baseModel || selectedBaseModel || 'Not provided'}</p>
-                          </div>
-                        </>
-                      )}
-                    </div>
+                    {isFreepikOnly && (
+                      <>
+                        <div>
+                          <h4 className="text-amber-500">Prompt:</h4>
+                          <p className="text-white">{image.result?.description || 'Not provided'}</p>
+                        </div>
+                        
+                        <div>
+                          <h4 className="text-amber-500">Base-Model:</h4>
+                          <p className="text-white">{image.result?.baseModel || selectedBaseModel || 'Not provided'}</p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -349,7 +347,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
       
-      {/* Pending/Processing Images */}
       {images.filter(img => img.status !== 'complete').length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {images.filter(img => img.status !== 'complete').map((image) => (
