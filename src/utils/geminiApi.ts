@@ -1,3 +1,4 @@
+
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
@@ -18,7 +19,7 @@ export interface AnalysisOptions {
   keywordCount?: number;
   keywordSettings?: KeywordSettings;
   platform?: 'freepik' | 'shutterstock' | 'adobestock';
-  generationMode?: 'metadata' | 'imageToPrompt';
+  generationMode?: GenerationMode;
   baseModel?: string | null;
   platforms?: Platform[];
   minTitleWords?: number;
@@ -337,6 +338,33 @@ export async function analyzeImageWithGemini(
         }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
         }Keywords should be lowercase and comma-separated.
         - categories: An array of EXACTLY 2 relevant Shutterstock categories from this list: Abstract, Animals/Wildlife, Arts, Backgrounds/Textures, Beauty/Fashion, Buildings/Landmarks, Business/Finance, Celebrities, Education, Food and drink, Healthcare/Medical, Holidays, Industrial, Interiors, Miscellaneous, Nature, Objects, Parks/Outdoor, People, Religion, Science, Signs/Symbols, Sports/Recreation, Technology, Transportation, Vintage`;
+      } else if (generationMode === 'imageToPrompt') {
+        // Add image-to-prompt instructions for Shutterstock
+        promptText = `Create an extremely detailed and comprehensive prompt for AI image generation that would recreate this exact image with high fidelity. Your analysis should be exhaustive and include:
+
+        1. Subject Description: Precisely identify all subjects in the image, their exact positions, sizes, and arrangements.
+        2. Colors and Palette: List all colors with proper color names, their relationships, gradients, and overall palette.
+        3. Lighting Details: Describe light sources, shadows, reflections, highlights, and how light interacts with objects.
+        4. Style and Artistic Technique: Identify the art style, rendering technique, filters or effects applied.
+        5. Composition Elements: Detail the focal points, perspective, depth, foreground/background relationships, and overall layout.
+        6. Texture and Materials: Describe all visible textures, surface qualities, and material properties.
+        7. Mood and Atmosphere: Explain the emotional tone and atmosphere created.
+        8. Technical Specifications: Include any relevant technical details like resolution quality, rendering style, or medium.
+        9. Small Details: Capture minute elements that contribute to overall realism or uniqueness.
+        10. Background Elements: Thoroughly describe settings, environments, and contextual elements.
+
+        The prompt should be at least 200 words long to ensure it captures every relevant detail required to recreate this exact image.
+        
+        Format your response ONLY as a detailed JSON object with these fields:
+        {
+          "prompt": "The complete, exhaustive prompt to recreate this image",
+          "subject": "Brief description of the main subject(s)",
+          "style": "The artistic style of the image",
+          "colors": "Key color palette information",
+          "lighting": "Lighting characteristics",
+          "perspective": "Camera angle and perspective",
+          "context": "Background and setting information"
+        }`;
       }
     } else if (platform === 'adobestock') {
       if (generationMode === 'metadata') {
@@ -349,6 +377,33 @@ export async function analyzeImageWithGemini(
         }${keywordSettings.mixedKeywords ? 'Include mixed-length keywords. ' : ''
         }Keywords should be lowercase and comma-separated.
         - categories: An array of relevant Adobe Stock categories`;
+      } else if (generationMode === 'imageToPrompt') {
+        // Add image-to-prompt instructions for AdobeStock
+        promptText = `Create an extremely detailed and comprehensive prompt for AI image generation that would recreate this exact image with high fidelity. Your analysis should be exhaustive and include:
+
+        1. Subject Description: Precisely identify all subjects in the image, their exact positions, sizes, and arrangements.
+        2. Colors and Palette: List all colors with proper color names, their relationships, gradients, and overall palette.
+        3. Lighting Details: Describe light sources, shadows, reflections, highlights, and how light interacts with objects.
+        4. Style and Artistic Technique: Identify the art style, rendering technique, filters or effects applied.
+        5. Composition Elements: Detail the focal points, perspective, depth, foreground/background relationships, and overall layout.
+        6. Texture and Materials: Describe all visible textures, surface qualities, and material properties.
+        7. Mood and Atmosphere: Explain the emotional tone and atmosphere created.
+        8. Technical Specifications: Include any relevant technical details like resolution quality, rendering style, or medium.
+        9. Small Details: Capture minute elements that contribute to overall realism or uniqueness.
+        10. Background Elements: Thoroughly describe settings, environments, and contextual elements.
+
+        The prompt should be at least 200 words long to ensure it captures every relevant detail required to recreate this exact image.
+        
+        Format your response ONLY as a detailed JSON object with these fields:
+        {
+          "prompt": "The complete, exhaustive prompt to recreate this image",
+          "subject": "Brief description of the main subject(s)",
+          "style": "The artistic style of the image",
+          "colors": "Key color palette information",
+          "lighting": "Lighting characteristics",
+          "perspective": "Camera angle and perspective",
+          "context": "Background and setting information"
+        }`;
       }
     }
 
