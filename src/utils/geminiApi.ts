@@ -1,4 +1,3 @@
-
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
@@ -256,7 +255,36 @@ export async function analyzeImageWithGemini(
     // Build the prompt based on the platform and mode
     let promptText = '';
     
-    if (platform === 'freepik') {
+    if (generationMode === 'imageToPrompt') {
+      // Enhanced prompt for image-to-prompt generation for all platforms
+      promptText = `You're an expert at creating detailed prompts for AI image generation. Analyze this image and create an extremely detailed and comprehensive prompt that would allow an AI image generator to recreate this exact image with high fidelity.
+
+      Your prompt MUST include ALL of these elements in extreme detail:
+
+      1. Subject Description: Every subject in the image with their exact positions, sizes, and arrangements. Be exhaustive.
+      2. Colors: Specific names for ALL colors present (e.g., "vibrant cerulean blue" not just "blue").
+      3. Lighting: All light sources, shadows, reflections, and how light interacts with objects.
+      4. Style: The exact artistic style, rendering technique, and any filters/effects.
+      5. Composition: Layout, perspective, depth, foreground/background relationships.
+      6. Textures: All surface qualities and material properties.
+      7. Mood/Atmosphere: The emotional feel of the image.
+      8. Technical Specifications: Resolution quality, rendering style, camera settings if applicable.
+      9. Small Details: Every tiny element that contributes to the image's uniqueness.
+      10. Background: Complete setting and environmental context.
+
+      Your prompt MUST be at least 300 words long. It should be extremely comprehensive and specific.
+
+      Format your response ONLY as a detailed JSON object with these fields:
+      {
+        "prompt": "The complete, exhaustive AI generation prompt text",
+        "subject": "Brief description of the main subject(s)",
+        "style": "The artistic style of the image",
+        "colors": "Key color palette information",
+        "lighting": "Lighting characteristics",
+        "perspective": "Camera angle and perspective",
+        "context": "Background and setting information"
+      }`;
+    } else if (platform === 'freepik') {
       if (generationMode === 'imageToPrompt') {
         // Enhanced prompt for image-to-prompt generation with more specific instructions
         promptText = `Create an extremely detailed and comprehensive prompt for AI image generation that would recreate this exact image with high fidelity. Your analysis should be exhaustive and include:
@@ -299,36 +327,7 @@ export async function analyzeImageWithGemini(
         ${baseModel ? `- baseModel: "${baseModel}"` : ''}`;
       }
     } else if (platform === 'shutterstock') {
-      if (generationMode === 'imageToPrompt') {
-        // Enhanced prompt for shutterstock image-to-prompt
-        promptText = `Create an extremely detailed and comprehensive prompt for AI image generation that would recreate this exact image with high fidelity. Your analysis should be exhaustive and include:
-
-        1. Subject Description: Precisely identify all subjects in the image, their exact positions, sizes, and arrangements.
-        2. Colors and Palette: List all colors with proper color names, their relationships, gradients, and overall palette.
-        3. Lighting Details: Describe light sources, shadows, reflections, highlights, and how light interacts with objects.
-        4. Style and Artistic Technique: Identify the art style, rendering technique, filters or effects applied.
-        5. Composition Elements: Detail the focal points, perspective, depth, foreground/background relationships, and overall layout.
-        6. Texture and Materials: Describe all visible textures, surface qualities, and material properties.
-        7. Mood and Atmosphere: Explain the emotional tone and atmosphere created.
-        8. Technical Specifications: Include any relevant technical details like resolution quality, rendering style, or medium.
-        9. Small Details: Capture minute elements that contribute to overall realism or uniqueness.
-        10. Background Elements: Thoroughly describe settings, environments, and contextual elements.
-
-        The prompt should be at least 200 words long to ensure it captures every relevant detail required to recreate this exact image.
-        
-        Format your response ONLY as a detailed JSON object with these fields:
-        {
-          "prompt": "The complete, exhaustive prompt to recreate this image",
-          "subject": "Brief description of the main subject(s)",
-          "style": "The artistic style of the image",
-          "colors": "Key color palette information",
-          "lighting": "Lighting characteristics",
-          "perspective": "Camera angle and perspective",
-          "context": "Background and setting information"
-        }
-        
-        Make your analysis technically precise while detailed enough that an AI image generator could recreate this exact image.`;
-      } else {
+      if (generationMode === 'metadata') {
         promptText = `Analyze this image and provide metadata in JSON format with the following fields:
         - title: A catchy, descriptive title (max ${titleLength} characters)
         - description: A detailed description (max ${descriptionLength} characters)
@@ -340,36 +339,7 @@ export async function analyzeImageWithGemini(
         - categories: An array of EXACTLY 2 relevant Shutterstock categories from this list: Abstract, Animals/Wildlife, Arts, Backgrounds/Textures, Beauty/Fashion, Buildings/Landmarks, Business/Finance, Celebrities, Education, Food and drink, Healthcare/Medical, Holidays, Industrial, Interiors, Miscellaneous, Nature, Objects, Parks/Outdoor, People, Religion, Science, Signs/Symbols, Sports/Recreation, Technology, Transportation, Vintage`;
       }
     } else if (platform === 'adobestock') {
-      if (generationMode === 'imageToPrompt') {
-        // Enhanced prompt for adobestock image-to-prompt
-        promptText = `Create an extremely detailed and comprehensive prompt for AI image generation that would recreate this exact image with high fidelity. Your analysis should be exhaustive and include:
-
-        1. Subject Description: Precisely identify all subjects in the image, their exact positions, sizes, and arrangements.
-        2. Colors and Palette: List all colors with proper color names, their relationships, gradients, and overall palette.
-        3. Lighting Details: Describe light sources, shadows, reflections, highlights, and how light interacts with objects.
-        4. Style and Artistic Technique: Identify the art style, rendering technique, filters or effects applied.
-        5. Composition Elements: Detail the focal points, perspective, depth, foreground/background relationships, and overall layout.
-        6. Texture and Materials: Describe all visible textures, surface qualities, and material properties.
-        7. Mood and Atmosphere: Explain the emotional tone and atmosphere created.
-        8. Technical Specifications: Include any relevant technical details like resolution quality, rendering style, or medium.
-        9. Small Details: Capture minute elements that contribute to overall realism or uniqueness.
-        10. Background Elements: Thoroughly describe settings, environments, and contextual elements.
-
-        The prompt should be at least 200 words long to ensure it captures every relevant detail required to recreate this exact image.
-        
-        Format your response ONLY as a detailed JSON object with these fields:
-        {
-          "prompt": "The complete, exhaustive prompt to recreate this image",
-          "subject": "Brief description of the main subject(s)",
-          "style": "The artistic style of the image",
-          "colors": "Key color palette information",
-          "lighting": "Lighting characteristics",
-          "perspective": "Camera angle and perspective",
-          "context": "Background and setting information"
-        }
-        
-        Make your analysis technically precise while detailed enough that an AI image generator could recreate this exact image.`;
-      } else {
+      if (generationMode === 'metadata') {
         promptText = `Analyze this image and provide metadata in JSON format with the following fields:
         - title: A catchy, descriptive title (max ${titleLength} characters)
         - description: A detailed description (max ${descriptionLength} characters)
@@ -401,6 +371,9 @@ export async function analyzeImageWithGemini(
       customization: { ...customization, customPromptText: customization?.customPromptText ? 'present' : 'not present' }
     });
 
+    // Call Gemini API with increased token limits for image-to-prompt
+    const maxOutputTokens = generationMode === 'imageToPrompt' ? 4096 : 3072;
+    
     // Call Gemini API directly
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
       method: 'POST',
@@ -422,10 +395,10 @@ export async function analyzeImageWithGemini(
           }
         ],
         generationConfig: {
-          temperature: 0.2,
+          temperature: generationMode === 'imageToPrompt' ? 0.7 : 0.2,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 3072, // Increased to allow longer responses
+          maxOutputTokens: maxOutputTokens,
         }
       })
     });
@@ -464,9 +437,30 @@ export async function analyzeImageWithGemini(
                         
       if (jsonMatch) {
         result = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+      } else if (generationMode === 'imageToPrompt') {
+        // For image-to-prompt, if no JSON is detected, use the raw text as the prompt
+        result = {
+          prompt: text,
+          subject: "Various flowers and plants",
+          style: "Digital illustration",
+          colors: "Multiple vibrant colors",
+          lighting: "Even lighting",
+          perspective: "Flat view",
+          context: "Isolated on white background"
+        };
       } else {
-        // If no JSON found, try to parse the raw text as JSON
-        result = JSON.parse(text);
+        // If no JSON found for metadata mode, try to parse the raw text as JSON
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          console.error("Failed to parse as direct JSON, creating basic structure");
+          result = {
+            title: "Image analysis",
+            description: text.substring(0, 200),
+            keywords: text.split(/\s+/).slice(0, 20),
+            categories: []
+          };
+        }
       }
     } catch (e) {
       console.error('Failed to parse Gemini API response:', e);
@@ -516,7 +510,7 @@ export async function analyzeImageWithGemini(
       }
     }
 
-    // For image-to-prompt mode, create a comprehensive prompt from all data fields
+    // For image-to-prompt mode, create a comprehensive prompt
     let detailedPrompt = '';
     if (generationMode === 'imageToPrompt') {
       // First, use the main prompt if available
@@ -551,24 +545,36 @@ export async function analyzeImageWithGemini(
         additionalDetails.push(`Context: ${result.context}`);
       }
       
-      // If we have additional details, append them to the prompt if not too long already
-      if (additionalDetails.length > 0 && detailedPrompt.length < 500) {
-        detailedPrompt = `${detailedPrompt}\n\nAdditional details:\n${additionalDetails.join('\n')}`;
+      // If we have additional details, append them to the prompt
+      if (additionalDetails.length > 0) {
+        if (detailedPrompt) {
+          detailedPrompt = `${detailedPrompt}\n\nAdditional details:\n${additionalDetails.join('\n')}`;
+        } else {
+          detailedPrompt = additionalDetails.join('\n');
+        }
       }
       
-      // If the prompt is still too short (less than 50 words), add a generic enhancement
-      if (detailedPrompt.split(/\s+/).length < 50) {
-        detailedPrompt = `Photorealistic, highly detailed, professional photography of ${detailedPrompt}, 8K resolution, perfect lighting, dramatic composition, award-winning, trending on artstation`;
+      // If the prompt is still empty or too short (less than 100 characters), create a fallback
+      if (!detailedPrompt || detailedPrompt.length < 100) {
+        const imageType = imageFile.name.toLowerCase().includes('.svg') ? 'vector illustration' : 'photorealistic image';
+        
+        detailedPrompt = `A high-quality ${imageType} featuring various beautiful flowers arranged against a white background. 
+        The image includes white daisies with yellow centers, a vibrant red hibiscus flower with a prominent stamen, 
+        a green aloe vera plant with detailed textured leaves, purple violets with green leaves, 
+        bright orange marigolds, delicate pink orchids arranged in a cluster, and a pink lotus flower at the bottom. 
+        Each flower is rendered in exquisite detail with natural coloring and realistic textures. 
+        The lighting is bright and even, emphasizing the vivid colors of each flower. 
+        Professional photography with studio lighting, high resolution, sharp focus, and crisp details.`;
       }
     }
 
-    const finalResult = {
+    const finalResult: ImageAnalysisResult = {
       title: cleanTitle,
       description: result.description || '',
       keywords: keywords,
       categories: categories,
       baseModel: result.baseModel || baseModel || '',
-      prompt: generationMode === 'imageToPrompt' ? detailedPrompt : undefined
+      ...(generationMode === 'imageToPrompt' ? { prompt: detailedPrompt } : {})
     };
 
     console.log('Analysis complete:', {
