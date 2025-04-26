@@ -257,7 +257,16 @@ export async function analyzeImageWithGemini(
     
     if (platform === 'freepik') {
       if (generationMode === 'imageToPrompt') {
-        promptText = `Generate a creative prompt for this image that would be suitable for AI image generation. The prompt should be detailed and descriptive, focusing on the visual elements, style, and mood of the image. Format the response as a JSON object with a single field "prompt" containing the generated prompt string.`;
+        promptText = `Analyze this image and provide an extremely detailed prompt that would allow recreating this exact image using AI image generation. Include:
+        1. Main subjects and their arrangement
+        2. Colors, lighting, and shading details
+        3. Style and technique specifications
+        4. Background and composition details
+        5. Specific artistic elements and effects
+        6. Textures and materials
+        7. Important small details and nuances
+        
+        Format the response as a JSON object with a single field "prompt" containing a thorough and well-structured prompt that would generate a nearly identical image.`;
       } else {
         promptText = `Analyze this image and provide metadata in JSON format with the following fields:
         - title: A catchy, descriptive title (max ${titleLength} characters)
@@ -434,6 +443,12 @@ export async function analyzeImageWithGemini(
       baseModel: result.baseModel || baseModel || '',
       prompt: generationMode === 'imageToPrompt' ? result.prompt : undefined
     };
+
+    // For image-to-prompt mode, ensure the prompt is detailed enough
+    if (generationMode === 'imageToPrompt' && finalResult.prompt) {
+      // Add prefix to ensure high-quality output
+      finalResult.prompt = `Create a highly detailed and professional ${finalResult.prompt}`
+    }
 
     console.log('Analysis complete:', {
       hasTitle: !!finalResult.title,
