@@ -61,7 +61,7 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="text-xs">Generate detailed AI image prompt to recreate this image</p>
+              <p className="text-xs">Generate highly detailed AI image prompt to recreate this exact image</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

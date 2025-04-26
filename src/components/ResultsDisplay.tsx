@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, Copy, X, Check, Video } from 'lucide-react';
@@ -159,13 +158,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
                   <div className="bg-black border border-gray-800 rounded-lg p-6">
-                    <p className="text-gray-300 whitespace-pre-wrap">{image.result?.description || ''}</p>
+                    <p className="text-gray-300 whitespace-pre-wrap">{image.result?.prompt || ''}</p>
                   </div>
                   <div className="flex justify-end mt-4 gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)}
+                      onClick={() => handleCopyToClipboard(image.result?.prompt || '', image.id)}
                       className="flex items-center gap-1"
                     >
                       {copiedId === image.id ? (
@@ -183,7 +182,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => downloadPromptText(image.result?.description || '', image.file.name)}
+                      onClick={() => downloadPromptText(image.result?.prompt || '', image.file.name)}
                       className="flex items-center gap-1"
                     >
                       <Download className="h-4 w-4" />
