@@ -79,7 +79,7 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">1000</span>
+                  <span className="text-5xl font-extrabold tracking-tight">750</span>
                   <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Yearly</span>
                 </div>
                 <div className="flex items-center mt-1">
