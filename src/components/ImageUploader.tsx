@@ -1,9 +1,9 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload } from 'lucide-react';
+import { Upload, X, FileIcon, Image, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize } from '@/utils/imageHelpers';
+import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;
@@ -31,34 +31,20 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     const promises: Promise<ProcessedImage>[] = [];
     const filesToProcess = Array.from(files);
 
-    if (filesToProcess.length === 0) {
-      toast.error('Please select valid files');
-      return;
-    }
-
     for (const file of filesToProcess) {
-      const fileType = file.type.toLowerCase();
-      let isValid = false;
-
-      // Accept all supported file types without requiring selection
-      if (
-        fileType === 'image/svg+xml' || 
-        ['image/jpeg', 'image/png', 'image/jpg'].includes(fileType) ||
-        fileType.startsWith('video/')
-      ) {
-        isValid = true;
-      }
-
-      if (!isValid) {
-        toast.error(`${file.name} is not a supported file type`);
-        continue;
-      }
-
       const promise = (async () => {
+        // Validate file is an image
+        if (!isValidImageType(file)) {
+          toast.error(`${file.name} is not a valid image file. Only JPEG, PNG, SVG, AI, and EPS files are supported.`);
+          return null;
+        }
+
+        // Validate file size
         if (!isValidFileSize(file)) {
           toast.error(`${file.name} exceeds the 10GB size limit.`);
           return null;
         }
+
         try {
           const previewUrl = await createImagePreview(file);
           return {
@@ -73,17 +59,20 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           return null;
         }
       })();
+      
       promises.push(promise as Promise<ProcessedImage>);
     }
 
     const results = await Promise.all(promises);
+
+    // Filter out any null results from failed processing
     const validResults = results.filter(Boolean) as ProcessedImage[];
     
     if (validResults.length > 0) {
       onImagesSelected(validResults);
-      toast.success(`${validResults.length} file${validResults.length !== 1 ? 's' : ''} added`);
+      toast.success(`${validResults.length} image${validResults.length !== 1 ? 's' : ''} added`);
     } else if (files.length > 0) {
-      toast.error('No valid files were found to process.');
+      toast.error('No valid images were found to process.');
     }
   }, [onImagesSelected]);
 
@@ -98,6 +87,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
+      // Reset the file input so the same file can be selected again if needed
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -111,63 +101,44 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, []);
 
   return (
-    <div className="space-y-4">
+    <div className="bg-gray-800 border border-dashed border-gray-600 rounded-lg overflow-hidden">      
       <div 
-        className="bg-[#121212] border border-dashed border-gray-700 rounded-lg overflow-hidden cursor-pointer" 
-        onClick={handleBrowseClick}
+        className={`drop-zone flex flex-col items-center justify-center p-10 transition-all duration-300 ${
+          isDragging ? 'border-blue-500 bg-blue-500/10' : 'bg-gray-800/50 hover:bg-gray-800/70'
+        }`} 
+        onDragOver={handleDragOver} 
+        onDragLeave={handleDragLeave} 
+        onDrop={handleDrop}
       >
-        <div 
-          className={`w-full min-h-[300px] flex flex-col items-center justify-center p-8 transition-all duration-300 ${isDragging ? 'bg-blue-900/10' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          <div className="mb-5">
-            <div className="p-5 rounded-lg bg-[#1a1a1a]">
-              <Upload className="h-12 w-12 text-gray-400" />
-            </div>
-          </div>
-          
-          <h2 className="text-2xl font-semibold text-white mb-6">
-            Drag and Drop Upto unlimited File
-          </h2>
-          
-          {/* File type buttons moved inside the drag area */}
-          <div className="flex gap-2 justify-center mb-6">
-            <Button
-              variant="default"
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              SVG
-            </Button>
-            <Button
-              variant="default"
-              className="bg-red-600 hover:bg-red-700"
-            >
-              JPG/PNG
-            </Button>
-            <Button
-              variant="default"
-              className="bg-purple-600 hover:bg-purple-700"
-            >
-              Videos
-            </Button>
-          </div>
-
-          <p className="text-center text-sm text-gray-400 max-w-md">
-            NOTE: Directly EPS Format Not Supported
-          </p>
-          
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileInputChange}
-            accept="image/svg+xml,image/jpeg,image/png,image/jpg,video/*"
-            multiple
-            className="hidden"
-            disabled={isProcessing}
-          />
+        <div className="mb-4 bg-blue-900/30 p-3 rounded-full">
+          <Upload className="h-6 w-6 text-blue-400" />
         </div>
+        
+        <div className="text-center mb-6">
+          <p className="text-lg font-medium text-white mb-2">Drag and drop unlimited images here</p>
+          <p className="text-sm text-gray-400">
+            or click to upload (JPEG, PNG, SVG, AI, EPS up to 10GB each)
+          </p>
+        </div>
+        
+        <Button 
+          onClick={handleBrowseClick} 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md border-none flex items-center" 
+          disabled={isProcessing}
+        >
+          <Image className="h-5 w-5 mr-2" />
+          Browse Files
+        </Button>
+        
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileInputChange} 
+          accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator" 
+          multiple 
+          className="hidden" 
+          disabled={isProcessing} 
+        />
       </div>
     </div>
   );

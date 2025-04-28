@@ -1,114 +1,106 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, X } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  return <div className="flex min-h-screen flex-col bg-black text-white">
+  return <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader remainingCredits="0" apiKey="" onApiKeyChange={() => {}} />
       
       <div className="flex-1 py-10 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h1 className="text-3xl font-bold tracking-tight">Choose Your Plan</h1>
-            <p className="text-gray-400 mt-2">Simple, transparent pricing to meet your needs</p>
+            <p className="text-muted-foreground mt-2">Simple, transparent pricing to meet your needs</p>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8 mt-8">
             {/* Free Plan */}
-            <Card className="bg-[#111111] border-[#333333] rounded-xl overflow-hidden">
-              <CardHeader className="pb-4">
-                <h2 className="text-xl font-medium mb-2">Free</h2>
-                <div className="flex items-baseline">
-                  <span className="text-5xl font-bold">0</span>
-                  <span className="ml-2 text-lg text-gray-400">Tk</span>
+            <Card className="bg-gray-900 border-gray-800 shadow-xl relative overflow-hidden">
+              <CardHeader className="pb-0">
+                <h2 className="text-2xl font-bold text-white">Free</h2>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-5xl font-extrabold tracking-tight">0</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-4xl">Tk</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">Limited features to get started</p>
               </CardHeader>
-              <CardContent>
-                <div className="mt-4 mb-8">
-                  <ul className="space-y-3">
-                    <PricingItem included text="Limited Metadata Generation" />
-                    <PricingItem included text="Basic Image to Prompt Features" />
-                    <PricingItem included text="Limited Access to Metadata Customization" />
-                    <PricingItem included={false} text="More Fast Processing" showRedCross />
-                    <PricingItem included={false} text="Fully Custom Support" showRedCross />
-                    <PricingItem included={false} text="All Future Features" showRedCross />
-                    <PricingItem included={false} text="Commercial License" showRedCross />
-                  </ul>
-                </div>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <PricingItem included text="Limited Metadata Generation" />
+                  <PricingItem included text="Basic Image to Prompt Features" />
+                  <PricingItem included text="Limited Access to Metadata Customization" />
+                  <PricingItem included={false} text="More Fast Processing" />
+                  <PricingItem included={false} text="Fully Custom Support" />
+                  <PricingItem included={false} text="All Future Features" />
+                  <PricingItem included={false} text="Commercial License" />
+                </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" variant="outline" onClick={() => navigate('/')} className="w-full bg-transparent border-white/20 hover:bg-white/10">
-                  Current Plan
-                </Button>
+                <Button size="lg" onClick={() => navigate('/')} className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-inherit">Current Plan</Button>
               </CardFooter>
             </Card>
-
+            
             {/* Basic Plan */}
-            <Card className="bg-gradient-to-br from-[#2C0B3F] via-[#451C5C] to-[#2C0B3F] border-[#333333] rounded-xl overflow-hidden backdrop-blur-3xl relative">
-              <div className="absolute -top-3 right-4 px-3 py-1 rounded-full my-[17px] bg-rose-600">
-                <span className="text-xs font-semibold text-[#111111]">POPULAR</span>
+            <Card className="bg-gray-900 border-gray-800 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-medium">
+                POPULAR
               </div>
-              <CardHeader className="pb-4">
-                <h2 className="text-xl font-medium mb-2">Basic</h2>
-                <div className="flex items-baseline">
-                  <span className="text-5xl font-bold">100</span>
-                  <span className="ml-2 text-lg text-gray-400">Tk/Month</span>
+              <CardHeader className="pb-0">
+                <h2 className="text-2xl font-bold text-white">Basic</h2>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-5xl font-extrabold tracking-tight">200</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Month</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
-              <CardContent>
-                <div className="mt-4 mb-8">
-                  <ul className="space-y-3">
-                    <PricingItem included text="Unlimited Metadata Generation" />
-                    <PricingItem included text="Full Image to Prompt Features" />
-                    <PricingItem included text="Full Access to Metadata Customization" />
-                    <PricingItem included text="More Fast Processing" />
-                    <PricingItem included text="Fully Custom Support" />
-                    <PricingItem included text="All Future Features" />
-                    <PricingItem included text="Commercial License" />
-                  </ul>
-                </div>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <PricingItem included text="Unlimited Metadata Generation" />
+                  <PricingItem included text="Full Image to Prompt Features" />
+                  <PricingItem included text="Full Access to Metadata Customization" />
+                  <PricingItem included text="More Fast Processing" />
+                  <PricingItem included text="Fully Custom Support" />
+                  <PricingItem included text="All Future Features" />
+                  <PricingItem included text="Commercial License" />
+                </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/d8SXoLqYdFiYKuI1krkrAojZPDCTpmdu38g3IOgs', '_blank')}>
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/d8SXoLqYdFiYKuI1krkrAojZPDCTpmdu38g3IOgs', '_blank')}>
                   Upgrade to Basic
                 </Button>
               </CardFooter>
             </Card>
-
+            
             {/* Premium Plan */}
-            <Card className="bg-[#111111] border-[#333333] rounded-xl overflow-hidden">
-              <CardHeader className="pb-4">
-                <h2 className="text-xl font-medium mb-2">Premium</h2>
-                <div className="flex items-baseline">
-                  <span className="text-5xl font-bold">750</span>
-                  <span className="ml-2 text-lg text-gray-400">Tk/Year</span>
+            <Card className="bg-gray-900 border-gray-800 shadow-xl relative overflow-hidden">
+              <CardHeader className="pb-0">
+                <h2 className="text-2xl font-bold text-white">Premium</h2>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-5xl font-extrabold tracking-tight">1000</span>
+                  <span className="ml-1 mx-[10px] text-slate-50 text-xl">Tk/Yearly</span>
                 </div>
-                <div className="mt-1">
-                  <span className="text-sm text-gray-400 line-through">1200 Tk</span>
-                  <span className="text-sm text-green-500 ml-2">Save 450TK</span>
+                <div className="flex items-center mt-1">
+                  <span className="text-sm text-amber-500 line-through">9990 Tk</span>
+                  <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-500">Save 2000 Tk</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
-              <CardContent>
-                <div className="mt-4 mb-8">
-                  <ul className="space-y-3">
-                    <PricingItem included text="Unlimited Metadata Generation" />
-                    <PricingItem included text="Full Image to Prompt Features" />
-                    <PricingItem included text="Full Access to Metadata Customization" />
-                    <PricingItem included text="More Fast Processing" />
-                    <PricingItem included text="Fully Custom Support" />
-                    <PricingItem included text="All Future Features" />
-                    <PricingItem included text="Commercial License" />
-                  </ul>
-                </div>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <PricingItem included text="Unlimited Metadata Generation" />
+                  <PricingItem included text="Full Image to Prompt Features" />
+                  <PricingItem included text="Full Access to Metadata Customization" />
+                  <PricingItem included text="More Fast Processing" />
+                  <PricingItem included text="Fully Custom Support" />
+                  <PricingItem included text="All Future Features" />
+                  <PricingItem included text="Commercial License" />
+                </ul>
               </CardContent>
               <CardFooter>
-                <Button size="lg" className="w-full bg-white text-black hover:bg-white/90" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}>
+                <Button size="lg" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white" onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}>
                   Upgrade to Premium
                 </Button>
               </CardFooter>
@@ -127,14 +119,12 @@ const PricingPage: React.FC = () => {
 // Helper component for pricing items
 const PricingItem = ({
   included,
-  text,
-  showRedCross = false
+  text
 }: {
   included: boolean;
   text: string;
-  showRedCross?: boolean;
 }) => <li className="flex items-start">
-    {included ? <Check className="h-5 w-5 mr-2 flex-shrink-0 text-green-500" /> : showRedCross ? <X className="h-5 w-5 mr-2 flex-shrink-0 text-red-500" /> : <Check className="h-5 w-5 mr-2 flex-shrink-0 text-gray-600" />}
-    <span className={included ? 'text-gray-300' : 'text-gray-600'}>{text}</span>
+    {included ? <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" /> : null}
+    <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
   </li>;
 export default PricingPage;

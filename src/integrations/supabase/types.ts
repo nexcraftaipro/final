@@ -11,136 +11,49 @@ export type Database = {
     Tables: {
       image_metadata_generations: {
         Row: {
-          created_at: string
-          id: string
-          prompt: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          prompt: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          prompt?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      images: {
-        Row: {
           created_at: string | null
           id: string
-          image_url: string
-          is_favorite: boolean | null
           prompt: string
-          size: string
-          steps: number | null
-          style: string | null
-          updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
-          image_url: string
-          is_favorite?: boolean | null
           prompt: string
-          size?: string
-          steps?: number | null
-          style?: string | null
-          updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
-          image_url?: string
-          is_favorite?: boolean | null
           prompt?: string
-          size?: string
-          steps?: number | null
-          style?: string | null
-          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
       }
       profiles: {
         Row: {
-          created_at: string
-          credits_used: number
+          created_at: string | null
+          credits_used: number | null
           email: string
-          expiration_date: string | null
           id: string
-          is_premium: boolean
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          credits_used?: number
-          email: string
-          expiration_date?: string | null
-          id: string
-          is_premium?: boolean
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          credits_used?: number
-          email?: string
-          expiration_date?: string | null
-          id?: string
-          is_premium?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      users: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          credits: string | null
-          email: string | null
-          full_name: string | null
-          id: string
-          image: string | null
-          name: string | null
-          subscription: string | null
-          token_identifier: string
+          is_premium: boolean | null
           updated_at: string | null
-          user_id: string | null
         }
         Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          credits?: string | null
-          email?: string | null
-          full_name?: string | null
+          created_at?: string | null
+          credits_used?: number | null
+          email: string
           id: string
-          image?: string | null
-          name?: string | null
-          subscription?: string | null
-          token_identifier: string
+          is_premium?: boolean | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Update: {
-          avatar_url?: string | null
-          created_at?: string
-          credits?: string | null
-          email?: string | null
-          full_name?: string | null
+          created_at?: string | null
+          credits_used?: number | null
+          email?: string
           id?: string
-          image?: string | null
-          name?: string | null
-          subscription?: string | null
-          token_identifier?: string
+          is_premium?: boolean | null
           updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: []
       }

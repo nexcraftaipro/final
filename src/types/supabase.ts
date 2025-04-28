@@ -1,3 +1,4 @@
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -5,7 +6,6 @@ export interface UserProfile {
   is_premium: boolean;
   created_at?: string;
   updated_at?: string;
-  expiration_date?: string;
 }
 
 export interface ImageMetadataGeneration {
@@ -21,16 +21,4 @@ export interface ActiveSession {
   email: string;
   session_id: string;
   last_activity: string;
-}
-
-export interface UserSession {
-  id: string;
-  user_id: string;
-  ip_address: string;
-  user_agent: string;
-  last_seen: string;
-  created_at: string;
-  session_id: string;
-  country?: string;
-  city?: string;
 }

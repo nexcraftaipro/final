@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Video } from 'lucide-react';
-import { ProcessedImage, formatImagesAsCSV, formatVideoAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, isVideo } from '@/utils/imageHelpers';
+import { Download, Copy, X, Check } from 'lucide-react';
+import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
@@ -13,8 +14,6 @@ interface ResultsDisplayProps {
   onClearAll: () => void;
   generationMode: GenerationMode;
   selectedPlatforms?: Platform[];
-  aiGenerate?: boolean;
-  selectedBaseModel?: string | null;
 }
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
@@ -22,9 +21,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   onRemoveImage, 
   onClearAll, 
   generationMode,
-  selectedPlatforms = ['AdobeStock'],
-  aiGenerate = false,
-  selectedBaseModel = null,
+  selectedPlatforms = ['AdobeStock']
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -40,50 +37,20 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }, 2000);
   };
 
+  // Check for specific platforms
   const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
   const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
 
-  const ensureExactlyTwoCategories = (categories: string[] = []): string[] => {
-    if (categories.length === 2) return categories;
-    if (categories.length > 2) return categories.slice(0, 2);
-    
-    if (categories.length === 1) {
-      return [...categories, 'Miscellaneous'];
-    }
-    return ['Nature', 'Miscellaneous'];
-  };
-
   const handleDownloadCSV = () => {
-    const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
-    const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
-    const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
-
-    const csvContent = formatImagesAsCSV(
-      images, 
-      isFreepikOnly, 
-      isShutterstock, 
-      isAdobeStock, 
-      aiGenerate,
-      selectedBaseModel
-    );
-
+    const csvContent = formatImagesAsCSV(images, isFreepikOnly, isShutterstock, isAdobeStock);
+    
+    // Pass the platform name for custom folder naming
     const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
     downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
+    
     toast.success('CSV file downloaded');
   };
-
-  const handleDownloadVideoCSV = () => {
-    const csvContent = formatVideoAsCSV(images);
-    downloadCSV(csvContent, 'video-metadata.csv');
-    toast.success('Video metadata CSV file downloaded');
-  };
-
-  const hasCompletedVideos = images.some(img => 
-    img.status === 'complete' && 
-    img.result && 
-    isVideo(img.file)
-  );
 
   const downloadPromptText = (text: string, filename: string) => {
     const element = document.createElement("a");
@@ -99,31 +66,22 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
+  // Removed duplicate platform declarations that were here
+
   return (
     <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
         <div className="flex gap-2">
-          {completedImages.length > 0 && (
+          {hasCompletedImages && generationMode === 'metadata' && (
             <Button
               variant="outline"
               size="sm"
               onClick={handleDownloadCSV}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
             >
               <Download className="h-4 w-4" />
-              <span>Download Images CSV</span>
-            </Button>
-          )}
-          {hasCompletedVideos && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadVideoCSV}
-              className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white border-none"
-            >
-              <Video className="h-4 w-4" />
-              <span>Download Videos CSV</span>
+              <span>Download CSV</span>
             </Button>
           )}
           <Button
@@ -138,11 +96,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       </div>
 
+      {/* Image to Prompt mode display - Updated to show image with prompt */}
       {generationMode === 'imageToPrompt' && completedImages.length > 0 && (
         <div className="grid grid-cols-1 gap-6">
           {completedImages.map((image) => (
             <div key={image.id} className="bg-black rounded-lg border border-gray-800 overflow-hidden">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+                {/* Left column - Source Image */}
                 <div className="p-4 border border-gray-800 rounded-lg">
                   <h3 className="text-xl font-semibold mb-4">Source Image:</h3>
                   <div className="rounded-lg overflow-hidden mb-4">
@@ -155,16 +115,17 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <div className="text-gray-400">{image.file.name}</div>
                 </div>
                 
+                {/* Right column - Generated Prompt */}
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
                   <div className="bg-black border border-gray-800 rounded-lg p-6">
-                    <p className="text-gray-300 whitespace-pre-wrap">{image.result?.prompt || ''}</p>
+                    <p className="text-gray-300 whitespace-pre-wrap">{image.result?.description || ''}</p>
                   </div>
                   <div className="flex justify-end mt-4 gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleCopyToClipboard(image.result?.prompt || '', image.id)}
+                      onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)}
                       className="flex items-center gap-1"
                     >
                       {copiedId === image.id ? (
@@ -182,7 +143,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => downloadPromptText(image.result?.prompt || '', image.file.name)}
+                      onClick={() => downloadPromptText(image.result?.description || '', image.file.name)}
                       className="flex items-center gap-1"
                     >
                       <Download className="h-4 w-4" />
@@ -196,36 +157,24 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
 
-      {generationMode === 'metadata' && completedImages.length > 0 && (
+      {/* Metadata mode display */}
+      {generationMode === 'metadata' && hasCompletedImages && (
         <div className="overflow-auto">
           {completedImages.map((image) => {
+            // Clean title by removing symbols
             const cleanTitle = image.result?.title ? removeSymbolsFromTitle(image.result.title) : '';
-            const isVideoFile = isVideo(image.file);
-            
-            let displayCategories = image.result?.categories || [];
-            if (isShutterstock) {
-              displayCategories = ensureExactlyTwoCategories(displayCategories);
-            }
             
             return (
-              <div key={image.id} className={`mb-6 ${isVideoFile ? 'bg-red-900/20' : 'bg-gray-800/30'} border ${isVideoFile ? 'border-red-700/50' : 'border-gray-700/50'} rounded-lg overflow-hidden`}>
+              <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-6 border-r border-gray-700/50">
-                    <h3 className="text-amber-500 text-lg mb-2">{isVideoFile ? 'Video Preview' : 'Image Preview'}</h3>
+                    <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
                     <div className="rounded-lg overflow-hidden mb-4">
-                      {isVideoFile ? (
-                        <video 
-                          src={image.previewUrl} 
-                          controls 
-                          className="w-full object-cover max-h-[400px]"
-                        ></video>
-                      ) : (
-                        <img
-                          src={image.previewUrl}
-                          alt={image.file.name}
-                          className="w-full object-cover max-h-[400px]"
-                        />
-                      )}
+                      <img
+                        src={image.previewUrl}
+                        alt={image.file.name}
+                        className="w-full object-cover max-h-[400px]"
+                      />
                     </div>
                     <div className="text-gray-400">{image.file.name}</div>
                   </div>
@@ -233,27 +182,15 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
-                      {isVideoFile ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDownloadVideoCSV}
-                          className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white border-none"
-                        >
-                          <Video className="h-4 w-4" />
-                          <span>Download Video CSV</span>
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={handleDownloadCSV}
-                          className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
-                        >
-                          <Download className="h-4 w-4" />
-                          <span>Download CSV</span>
-                        </Button>
-                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDownloadCSV}
+                        className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
+                      >
+                        <Download className="h-4 w-4" />
+                        <span>Download CSV</span>
+                      </Button>
                     </div>
                     
                     <div className="space-y-4">
@@ -262,6 +199,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <p className="text-white">{image.file.name}</p>
                       </div>
                       
+                      {/* Show title for all platforms except Shutterstock */}
                       {!isShutterstock && (
                         <div>
                           <h4 className="text-amber-500">Title:</h4>
@@ -269,6 +207,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       )}
                       
+                      {/* Show description for platforms other than Freepik and AdobeStock */}
                       {!isFreepikOnly && !isAdobeStock && (
                         <div>
                           <h4 className="text-amber-500">Description:</h4>
@@ -294,6 +233,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       </div>
 
+                      {/* Show categories for AdobeStock */}
                       {isAdobeStock && image.result?.categories && (
                         <div>
                           <h4 className="text-amber-500">Category:</h4>
@@ -310,11 +250,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       )}
 
-                      {isShutterstock && (
+                      {/* Show categories for Shutterstock */}
+                      {isShutterstock && image.result?.categories && (
                         <div>
                           <h4 className="text-amber-500">Categories:</h4>
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {displayCategories.map((category, index) => (
+                            {image.result.categories.map((category, index) => (
                               <span 
                                 key={index} 
                                 className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full"
@@ -330,12 +271,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <>
                           <div>
                             <h4 className="text-amber-500">Prompt:</h4>
-                            <p className="text-white">{image.result?.description || 'Not provided'}</p>
+                            <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
                           </div>
                           
                           <div>
                             <h4 className="text-amber-500">Base-Model:</h4>
-                            <p className="text-white">{image.result?.baseModel || selectedBaseModel || 'Not provided'}</p>
+                            <p className="text-white">{image.result?.baseModel || 'Not provided'}</p>
                           </div>
                         </>
                       )}
@@ -348,6 +289,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       )}
       
+      {/* Pending/Processing Images */}
       {images.filter(img => img.status !== 'complete').length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {images.filter(img => img.status !== 'complete').map((image) => (

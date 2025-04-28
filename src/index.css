@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -52,9 +53,6 @@
 @layer base {
   * {
     @apply border-border;
-  }
-  html, body, #root {
-    @apply h-full w-full m-0 p-0;
   }
   body {
     @apply bg-background text-foreground;

@@ -55,24 +55,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return API_KEYS[randomIndex];
   };
 
-  const trackUserSession = async (user: User, sessionId: string) => {
-    try {
-      const response = await fetch('https://api.ipify.org?format=json');
-      const { ip } = await response.json();
-      
-      await supabase.functions.invoke('track_user_session', {
-        body: {
-          user_id: user.id,
-          ip_address: ip,
-          user_agent: navigator.userAgent,
-          session_id: sessionId,
-        },
-      });
-    } catch (error) {
-      console.error('Error tracking user session:', error);
-    }
-  };
-
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -108,12 +90,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const storedApiKey = localStorage.getItem('gemini-api-key');
     if (storedApiKey) {
       setApiKey(storedApiKey);
-    }
-
-    // Track user session when logged in
-    if (session?.user) {
-      const sessionId = session.access_token.slice(-10) || Date.now().toString();
-      trackUserSession(session.user, sessionId);
     }
 
     return () => {

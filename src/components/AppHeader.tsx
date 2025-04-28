@@ -26,8 +26,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     apiKey: authApiKey
   } = useAuth();
   useEffect(() => {
+    // Initialize from props apiKey
     setInputKey(apiKey);
   }, [apiKey]);
+
+  // Update when authApiKey changes (e.g., when a user logs in)
   useEffect(() => {
     if (authApiKey && !apiKey) {
       setInputKey(authApiKey);
@@ -61,6 +64,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const openEpsProcessVideo = () => {
     window.open("https://youtu.be/FJL8F1vn55Q?si=dUpFZQlYSFg6Xvi8", "_blank");
   };
+
+  // Generate consistent avatar URL
   const getAvatarUrl = () => {
     if (!user) return '';
     const avatarSeed = user.email || 'default';
@@ -78,9 +83,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           }} />
             <span style={{
             color: '#f14010'
-          }} className="text-blue-700">Meta CSV Generator Pro</span>
+          }} className="text-blue-700">META CSV GENERATOR PRO</span>
           </h1>
-          
+          <div className="ml-4 text-xs text-gray-400">Developed by Pikshine</div>
         </div>
         
         <div className="flex items-center space-x-4">

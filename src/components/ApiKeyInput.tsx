@@ -25,7 +25,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
   // Initialize from localStorage or authContext when component mounts
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
-    if (savedKey && savedKey !== 'your_gemini_api_key_here') {
+    if (savedKey) {
       setInputKey(savedKey);
       onApiKeyChange(savedKey);
     }
@@ -33,7 +33,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
 
   // Update when apiKey prop changes
   useEffect(() => {
-    if (apiKey && apiKey !== 'your_gemini_api_key_here') {
+    if (apiKey) {
       setInputKey(apiKey);
     }
   }, [apiKey]);
@@ -43,14 +43,13 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
   };
 
   const handleSaveKey = () => {
-    if (!inputKey || inputKey === 'your_gemini_api_key_here') {
-      toast.error('Please enter a valid API key');
-      return;
+    if (inputKey) {
+      localStorage.setItem('gemini-api-key', inputKey);
+      onApiKeyChange(inputKey);
+      toast.success('API key saved successfully');
+    } else {
+      toast.error('Please enter an API key');
     }
-    
-    localStorage.setItem('gemini-api-key', inputKey);
-    onApiKeyChange(inputKey);
-    toast.success('API key saved successfully');
   };
 
   const handleClearKey = () => {
@@ -64,7 +63,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg animate-fade-in">
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-white">Gemini API Key</h2>
+          <h2 className="text-xl font-semibold text-white">API Key</h2>
           <div className="flex items-center">
             <TooltipProvider>
               <Tooltip>
@@ -91,9 +90,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
               placeholder="Enter your Gemini API key"
               value={inputKey}
               onChange={(e) => setInputKey(e.target.value)}
-              className={`bg-gray-800 border-gray-700 text-gray-200 focus:ring-amber-500/30 pr-10 ${
-                inputKey === 'your_gemini_api_key_here' ? 'border-red-500' : ''
-              }`}
+              className="bg-gray-800 border-gray-700 text-gray-200 focus:ring-amber-500/30 pr-10"
             />
             <Button
               type="button"
@@ -118,7 +115,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ apiKey, onApiKeyChange }) => 
           >
             Save
           </Button>
-          {apiKey && apiKey !== 'your_gemini_api_key_here' && (
+          {apiKey && (
             <Button 
               variant="outline" 
               onClick={handleClearKey}

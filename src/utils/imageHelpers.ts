@@ -16,7 +16,7 @@ export interface ProcessedImage {
 
 // Generate a unique ID for each image
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 15);
+  return Math.random().toString(36).substring(2, 9);
 }
 
 // Create preview URLs for images
@@ -30,19 +30,12 @@ export function createImagePreview(file: File): Promise<string> {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(
-  images: ProcessedImage[],
-  isFreepikOnly: boolean = false,
-  isShutterstock: boolean = false,
-  isAdobeStock: boolean = false,
-  aiGenerate: boolean = false,
-  selectedBaseModel?: string | null
-): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false): string {
   // Determine headers based on platform selection
   let headers;
   
   if (isFreepikOnly) {
-    headers = ['"File name"', '"Title"', '"Keywords"', '"Prompt"', '"Model"'];
+    headers = ['"File name"', '"Title"', '"Keywords"', '"Prompt"', '"Base-Model"'];
   } else if (isShutterstock) {
     headers = ['"Filename"', '"Description"', '"Keywords"', '"Categories"'];
   } else if (isAdobeStock) {
@@ -63,36 +56,19 @@ export function formatImagesAsCSV(
         const cleanTitle = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
         
         if (isFreepikOnly) {
-          // Prompt is description, Model is current selected AI model (if aiGenerate is true).
-          const modelValue = aiGenerate
-            ? (selectedBaseModel || img.result?.baseModel || "None")
-            : "";
           return [
             `"${img.file.name}"`,
             `"${cleanTitle}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
-            `"${img.result?.description || ''}"`,
-            `"${modelValue}"`
+            `"${img.result?.prompt || ''}"`,
+            `"leonardo"`,
           ].join(';');
         } else if (isShutterstock) {
-          // Ensure we have exactly 2 categories
-          let categories = img.result?.categories || [];
-          if (categories.length !== 2) {
-            if (categories.length > 2) {
-              categories = categories.slice(0, 2);
-            } else {
-              // Add default categories if needed
-              while (categories.length < 2) {
-                categories.push(categories.length === 0 ? 'Nature' : 'Miscellaneous');
-              }
-            }
-          }
-
           return [
             `"${img.file.name}"`,
             `"${img.result?.description || ''}"`,
             `"${img.result?.keywords?.join(',') || ''}"`,
-            `"${categories.join(',')}"`,
+            `"${img.result?.categories?.join(',') || ''}"`,
           ].join(',');
         } else if (isAdobeStock) {
           return [
@@ -160,7 +136,7 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Update isValidImageType function to explicitly support SVG
+// Check if file is a valid image type
 export function isValidImageType(file: File): boolean {
   const acceptedTypes = [
     'image/jpeg', 
@@ -177,43 +153,10 @@ export function isValidImageType(file: File): boolean {
   return acceptedTypes.includes(file.type);
 }
 
-// Function to check if file is a video
-export function isVideo(file: File): boolean {
-  return file.type.startsWith('video/');
-}
-
 // Check if file size is within limits (10GB max)
 export function isValidFileSize(file: File, maxSizeGB = 10): boolean {
   const maxSizeBytes = maxSizeGB * 1024 * 1024 * 1024;
   return file.size <= maxSizeBytes;
-}
-
-// Format for Video CSV export (Filename,Title,Keywords,Category)
-export function formatVideoAsCSV(images: ProcessedImage[]): string {
-  // Use the format: Filename,Title,Keywords,Category
-  // Headers
-  const csvContent = [
-    'Filename,Title,Keywords,Category',
-    // Add data rows
-    ...images
-      .filter(img => img.status === 'complete' && img.result && isVideo(img.file))
-      .map(img => {
-        // Clean title by removing symbols
-        const cleanTitle = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
-        
-        // Get the first category or use a default number (e.g., 8)
-        const category = img.result?.categories?.length ? img.result.categories[0] : '8';
-        
-        return [
-          img.file.name,
-          cleanTitle,
-          `"${img.result?.keywords?.join(',') || ''}"`,
-          category
-        ].join(',');
-      })
-  ].join('\n');
-
-  return csvContent;
 }
 
 // Shutterstock Categories
@@ -759,16 +702,10 @@ export function suggestCategoriesForShutterstock(title: string, description: str
     .sort((a, b) => b[1] - a[1])
     .map(entry => entry[0]);
   
-  // Always return exactly 2 categories
-  if (sortedCategories.length >= 2) {
-    return sortedCategories.slice(0, 2);
-  } else if (sortedCategories.length === 1) {
-    // If we have only one match, add a default second category
-    return [...sortedCategories, "Nature"];
-  } else {
-    // If no matches, return two default categories
-    return ["Nature", "Miscellaneous"];
-  }
+  // Return top 2 categories, or default to "Miscellaneous" and "Objects" if none found
+  return sortedCategories.length >= 2 
+    ? sortedCategories.slice(0, 2) 
+    : sortedCategories.concat(["Miscellaneous", "Objects"]).slice(0, 2);
 }
 
 // Get relevant keywords for Freepik based on image content

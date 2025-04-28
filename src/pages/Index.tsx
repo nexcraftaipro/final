@@ -6,7 +6,7 @@ import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
-import { analyzeImageWithGemini, AnalysisOptions } from '@/utils/geminiApi';
+import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Sparkles, Loader2, ShieldAlert, Image, Info } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -17,29 +17,9 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
-import { AIModel } from '@/components/AIModelSelector';
 
 // Updated payment gateway link
 const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
-
-interface KeywordSettings {
-  singleWord: boolean;
-  doubleWord: boolean;
-  mixedKeywords: boolean;
-}
-
-interface TitleCustomization {
-  beforeTitle: string;
-  afterTitle: string;
-}
-
-interface CustomizationSettings {
-  customPrompt: boolean;
-  customPromptText: string;
-  prohibitedWords: boolean;
-  prohibitedWordsList: string[];
-  transparentBackground: boolean;
-}
 
 const Index: React.FC = () => {
   const {
@@ -54,10 +34,9 @@ const Index: React.FC = () => {
   const [apiKey, setApiKey] = useState('');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [titleLength, setTitleLength] = useState(20);
-  const [descriptionLength, setDescriptionLength] = useState(35);
-  const [keywordCount, setKeywordCount] = useState(48);
-  const [baseModel, setBaseModel] = useState<AIModel | null>(null);
+  const [titleLength, setTitleLength] = useState(200);
+  const [descriptionLength, setDescriptionLength] = useState(200);
+  const [keywordCount, setKeywordCount] = useState(50);
   
   // Updated to only have one platform selected by default
   const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
@@ -67,32 +46,13 @@ const Index: React.FC = () => {
   const [shouldRedirect, setShouldRedirect] = useState(false);
   const navigate = useNavigate();
 
-  // Keep these values for API compatibility but they won't be directly managed in UI
+  // Updated default values for title and description
   const [minTitleWords, setMinTitleWords] = useState(12);
   const [maxTitleWords, setMaxTitleWords] = useState(15);
   const [minKeywords, setMinKeywords] = useState(35);
   const [maxKeywords, setMaxKeywords] = useState(45);
-  const [minDescriptionWords, setMinDescriptionWords] = useState(12);
+  const [minDescriptionWords, setMinDescriptionWords] = useState(12); // Updated to 12
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
-  
-  const [keywordSettings, setKeywordSettings] = useState<KeywordSettings>({
-    singleWord: true,
-    doubleWord: false,
-    mixedKeywords: false
-  });
-  
-  const [titleCustomization, setTitleCustomization] = useState<TitleCustomization>({
-    beforeTitle: '',
-    afterTitle: ''
-  });
-  
-  const [customization, setCustomization] = useState<CustomizationSettings>({
-    customPrompt: false,
-    customPromptText: '',
-    prohibitedWords: false,
-    prohibitedWordsList: [],
-    transparentBackground: false
-  });
   
   // Get API key from localStorage or auth context
   useEffect(() => {
@@ -178,42 +138,6 @@ const Index: React.FC = () => {
     setMaxDescriptionWords(value[0]);
   };
   
-  const handleKeywordSettingsChange = (settings: KeywordSettings) => {
-    setKeywordSettings(settings);
-  };
-  
-  const handleTitleCustomizationChange = (customization: TitleCustomization) => {
-    setTitleCustomization(prev => ({
-      ...prev,
-      ...customization
-    }));
-  };
-  
-  const handleCustomizationChange = (settings: {
-    customPrompt: boolean;
-    prohibitedWords: boolean;
-    transparentBackground: boolean;
-  }) => {
-    setCustomization(prev => ({
-      ...prev,
-      ...settings
-    }));
-  };
-  
-  const handleCustomPromptTextChange = (text: string) => {
-    setCustomization(prev => ({
-      ...prev,
-      customPromptText: text
-    }));
-  };
-  
-  const handleProhibitedWordsChange = (words: string) => {
-    setCustomization(prev => ({
-      ...prev,
-      prohibitedWordsList: words.split('\n').map(word => word.trim()).filter(Boolean)
-    }));
-  };
-  
   const handleUpgradePlan = () => {
     window.location.href = PAYMENT_GATEWAY_URL;
   };
@@ -253,71 +177,48 @@ const Index: React.FC = () => {
       for (const image of pendingImages) {
         try {
           if (pendingImages.indexOf(image) > 0) {
+            // Add a 2-second delay between processing images to respect the 15 RPM limit
             await new Promise(resolve => setTimeout(resolve, 2000));
           }
           
-          const options: AnalysisOptions = {
+          const options = {
             titleLength,
             descriptionLength,
             keywordCount,
-            platform: platforms.length === 1 ? 
-              platforms[0].toLowerCase() as 'freepik' | 'shutterstock' | 'adobestock' : 
-              'freepik',
+            platforms,
             generationMode,
             minTitleWords,
             maxTitleWords,
             minKeywords,
             maxKeywords,
             minDescriptionWords,
-            maxDescriptionWords,
-            baseModel,
-            keywordSettings,
-            titleCustomization,
-            customization
+            maxDescriptionWords
           };
           
-          const result = await analyzeImageWithGemini(image.file, options);
-
+          const result = await analyzeImageWithGemini(image.file, apiKey, options);
+          
+          // Check if we're in Freepik-only mode
           const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
           const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
           
-          if (result.error) {
-            setImages(prev => prev.map(img => img.id === image.id ? {
-              ...img,
-              status: 'error' as const,
-              error: result.error
-            } : img));
-            continue;
-          }
-
-          // Patch result title with before/after
-          let patchedTitle = result.title || '';
-          if (titleCustomization.beforeTitle?.trim()) {
-            patchedTitle = `${titleCustomization.beforeTitle.trim()} ${patchedTitle}`;
-          }
-          if (titleCustomization.afterTitle?.trim()) {
-            patchedTitle = `${patchedTitle} ${titleCustomization.afterTitle.trim()}`;
-          }
-
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
-            status: 'complete' as const,
-            result: {
-              title: patchedTitle.trim(),
+            status: result.error ? 'error' as const : 'complete' as const,
+            result: result.error ? undefined : {
+              title: result.title,
               description: result.description,
               keywords: result.keywords,
+              // Include prompt and baseModel for Freepik
               ...(isFreepikOnly && {
-                prompt: result.description,
-                baseModel: baseModel || 'None'
+                prompt: result.prompt,
+                baseModel: result.baseModel
               }),
+              // Include categories for Shutterstock
               ...(isShutterstock && {
                 categories: result.categories
-              }),
-              // Ensure all videos have a category (default to '8' if none is provided)
-              ...(image.file.type.startsWith('video/') && {
-                categories: result.categories && result.categories.length > 0 ? result.categories : ['8']
               })
-            }
+            },
+            error: result.error
           } : img));
         } catch (error) {
           console.error(`Error processing image ${image.file.name}:`, error);
@@ -328,6 +229,7 @@ const Index: React.FC = () => {
           } : img));
         }
       }
+      
       toast.success('All images processed successfully');
     } catch (error) {
       console.error('Error during image processing:', error);
@@ -339,12 +241,6 @@ const Index: React.FC = () => {
   
   const pendingCount = images.filter(img => img.status === 'pending').length;
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
-    // Add helper to check if Freepik is selected
-    const isFreepikOnly = platforms.length === 1 && platforms[0] === "Freepik";
-    // You should thread aiGenerate and baseModel state
-    const aiGenerate =
-      isFreepikOnly &&
-      !!baseModel; // AI content is switched on only if baseModel is non-null
   
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -357,21 +253,21 @@ const Index: React.FC = () => {
       <div className="flex flex-1">
         <Sidebar 
           selectedMode={generationMode} 
-          onModeChange={handleModeChange}
-          titleLength={titleLength}
-          onTitleLengthChange={handleTitleLengthChange}
-          descriptionLength={descriptionLength}
-          onDescriptionLengthChange={handleDescriptionLengthChange}
-          keywordsCount={keywordCount}
-          onKeywordsCountChange={handleKeywordCountChange}
+          onModeChange={handleModeChange} 
+          minTitleWords={minTitleWords} 
+          onMinTitleWordsChange={handleMinTitleWordsChange} 
+          maxTitleWords={maxTitleWords} 
+          onMaxTitleWordsChange={handleMaxTitleWordsChange} 
+          minKeywords={minKeywords} 
+          onMinKeywordsChange={handleMinKeywordsChange} 
+          maxKeywords={maxKeywords} 
+          onMaxKeywordsChange={handleMaxKeywordsChange} 
+          minDescriptionWords={minDescriptionWords} 
+          onMinDescriptionWordsChange={handleMinDescriptionWordsChange} 
+          maxDescriptionWords={maxDescriptionWords} 
+          onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange} 
           selectedPlatforms={platforms} 
-          onPlatformChange={handlePlatformChange}
-          onBaseModelChange={setBaseModel}
-          onKeywordSettingsChange={handleKeywordSettingsChange}
-          onTitleCustomizationChange={handleTitleCustomizationChange}
-          onCustomizationChange={handleCustomizationChange}
-          onCustomPromptTextChange={handleCustomPromptTextChange}
-          onProhibitedWordsChange={handleProhibitedWordsChange}
+          onPlatformChange={handlePlatformChange} 
         />
         
         <main className="flex-1 p-6 overflow-auto">
@@ -384,6 +280,11 @@ const Index: React.FC = () => {
                     selectedPlatforms={platforms}
                     onPlatformChange={handlePlatformChange}
                   />
+                </div>
+                
+                <div className="mt-4">
+                  
+                  
                 </div>
               </div>
               
@@ -409,7 +310,7 @@ const Index: React.FC = () => {
                     ) : (
                       <>
                         <Sparkles className="mr-2 h-5 w-5" />
-                        Process {pendingCount} {pendingCount !== 1 ? 'Files' : 'File'}
+                        Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
                       </>
                     )}
                   </Button>
@@ -440,8 +341,6 @@ const Index: React.FC = () => {
                   onClearAll={handleClearAll}
                   generationMode={generationMode}
                   selectedPlatforms={platforms}
-                  aiGenerate={aiGenerate}
-                  selectedBaseModel={baseModel}
                 />
               </div>
             </div>
