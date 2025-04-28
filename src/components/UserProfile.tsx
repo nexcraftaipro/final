@@ -2,9 +2,10 @@
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LogOut, Crown, Infinity } from 'lucide-react';
+import { LogOut, Crown, Infinity, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatDistanceToNow } from 'date-fns';
 
 const UserProfile: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -17,6 +18,16 @@ const UserProfile: React.FC = () => {
   // Generate avatar URL based on user email for consistency
   const avatarSeed = user.email || 'default';
   const avatarUrl = `https://api.dicebear.com/7.x/personas/svg?seed=${avatarSeed}`;
+
+  // Calculate time remaining if premium user
+  const getTimeRemaining = () => {
+    if (!profile.expiration_date) return null;
+    const expirationDate = new Date(profile.expiration_date);
+    if (expirationDate < new Date()) return null;
+    return formatDistanceToNow(expirationDate, { addSuffix: true });
+  };
+
+  const timeRemaining = getTimeRemaining();
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden shadow-lg">
@@ -35,6 +46,12 @@ const UserProfile: React.FC = () => {
                 <div className="flex items-center text-amber-400">
                   <Crown className="h-3 w-3 mr-1 bg-[#0d0e0d]" />
                   <span className="text-[#01fa01]">Premium User</span>
+                  {timeRemaining && (
+                    <div className="flex items-center ml-2 text-orange-500">
+                      <Clock className="h-3 w-3 mr-1" />
+                      <span>{timeRemaining}</span>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <span>Free User</span>
