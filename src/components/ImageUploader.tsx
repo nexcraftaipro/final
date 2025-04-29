@@ -4,44 +4,37 @@ import { Upload, Image, Film } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
-
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;
   isProcessing: boolean;
 }
-
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImagesSelected,
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
-
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
-
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   }, []);
-
   const processFiles = useCallback(async (files: FileList) => {
     const processedImages: ProcessedImage[] = [];
     const promises: Promise<ProcessedImage>[] = [];
     const filesToProcess = Array.from(files);
     let videoCount = 0;
     let imageCount = 0;
-
     for (const file of filesToProcess) {
       const promise = (async () => {
         // Validate file is an image or video
@@ -62,7 +55,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         } else {
           imageCount++;
         }
-
         try {
           const previewUrl = await createImagePreview(file);
           return {
@@ -77,18 +69,15 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           return null;
         }
       })();
-      
       promises.push(promise as Promise<ProcessedImage>);
     }
-
     const results = await Promise.all(promises);
 
     // Filter out any null results from failed processing
     const validResults = results.filter(Boolean) as ProcessedImage[];
-    
     if (validResults.length > 0) {
       onImagesSelected(validResults);
-      
+
       // Create a more specific success message
       let successMsg = '';
       if (imageCount > 0 && videoCount > 0) {
@@ -98,23 +87,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       } else {
         successMsg = `${validResults.length} image${validResults.length !== 1 ? 's' : ''} added`;
       }
-      
       toast.success(successMsg);
     } else if (files.length > 0) {
       toast.error('No valid files were found to process.');
     }
   }, [onImagesSelected]);
-
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       processFiles(e.dataTransfer.files);
     }
   }, [processFiles]);
-
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
@@ -124,25 +109,13 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       }
     }
   }, [processFiles]);
-
   const handleBrowseClick = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   }, []);
-
-  return (
-    <div className="bg-gray-900 border border-dashed border-gray-700 rounded-lg overflow-hidden">      
-      <div 
-        className={`drop-zone flex flex-col items-center justify-center p-10 transition-all duration-300 ${
-          isDragging ? 'border-blue-500 bg-blue-900/20' : 'hover:bg-gray-800/70'
-        }`} 
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        data-testid="drop-zone"
-      >
+  return <div className="bg-gray-900 border border-dashed border-gray-700 rounded-lg overflow-hidden">      
+      <div className={`drop-zone flex flex-col items-center justify-center p-10 transition-all duration-300 ${isDragging ? 'border-blue-500 bg-blue-900/20' : 'hover:bg-gray-800/70'}`} onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDrop={handleDrop} data-testid="drop-zone">
         <div className="mb-6 flex gap-4">
           <div className="bg-blue-900/30 p-5 rounded-full">
             <Image className="h-7 w-7 text-blue-400" />
@@ -156,46 +129,24 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           Drag and drop images or videos here
         </h3>
         
-        <p className="text-gray-400 mb-3">
-          Supported formats: JPEG, PNG, SVG, MP4, MOV, AVI, and more (up to 10GB each)
-        </p>
         
-        <p className="text-amber-400 mb-8 text-sm max-w-md text-center">
-          Video files will be analyzed by extracting a thumbnail frame. The original video remains unchanged.
-        </p>
+        
+        <p className="text-amber-400 mb-8 text-sm max-w-md text-center">Supported formats: JPEG, PNG, SVG, MP4, MOV, AVI, and more (up to 10GB each)</p>
         
         <div className="flex gap-4">
-          <Button 
-            onClick={handleBrowseClick} 
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2" 
-            disabled={isProcessing}
-          >
+          <Button onClick={handleBrowseClick} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
             <Image className="h-5 w-5" />
             Browse Image Files
           </Button>
           
-          <Button 
-            onClick={handleBrowseClick} 
-            className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md flex items-center gap-2" 
-            disabled={isProcessing}
-          >
+          <Button onClick={handleBrowseClick} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
             <Film className="h-5 w-5" />
             Browse Video Files
           </Button>
         </div>
         
-        <input 
-          type="file" 
-          ref={fileInputRef} 
-          onChange={handleFileInputChange} 
-          accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
-          multiple 
-          className="hidden" 
-          disabled={isProcessing} 
-        />
+        <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" multiple className="hidden" disabled={isProcessing} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default ImageUploader;
