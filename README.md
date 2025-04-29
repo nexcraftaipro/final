@@ -1,4 +1,3 @@
-
 # Meta CSV Generator Pro
 
 A powerful CSV generator for creating metadata for your images. Works with multiple platforms including Freepik, Shutterstock, and Adobe Stock.
@@ -10,6 +9,7 @@ A powerful CSV generator for creating metadata for your images. Works with multi
 - Customize metadata fields
 - Process multiple images at once
 - AI-powered title, description and keyword generation
+- SVG-to-PNG conversion for Gemini API compatibility
 
 ## Technologies Used
 
@@ -31,6 +31,10 @@ npm i
 # Start the development server
 npm run dev
 ```
+
+## Recent Updates
+
+- **SVG Support**: Added SVG-to-PNG conversion functionality to resolve compatibility issues with the Gemini API. The app now automatically converts SVG files to PNG format before sending them to the API, while preserving the original SVG file in the UI.
 
 ## Deployment
 

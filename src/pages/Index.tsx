@@ -17,6 +17,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
+import { isSvgFile } from '@/utils/svgToPng';
 
 // Updated payment gateway link
 const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
@@ -173,6 +174,12 @@ const Index: React.FC = () => {
         ...img,
         status: 'processing' as const
       } : img));
+      
+      // Check if any SVG files are being processed and notify the user
+      const hasSvgFiles = pendingImages.some(img => isSvgFile(img.file));
+      if (hasSvgFiles) {
+        toast.info('SVG files detected - automatically converting to PNG for Gemini API compatibility while preserving original files');
+      }
       
       for (const image of pendingImages) {
         try {

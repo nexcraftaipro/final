@@ -1,7 +1,7 @@
-
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
+import { convertSvgToPng, isSvgFile } from './svgToPng';
 
 interface AnalysisOptions {
   titleLength?: number;
@@ -48,8 +48,24 @@ export async function analyzeImageWithGemini(
   const isAdobeStock = platforms.length === 1 && platforms[0] === 'AdobeStock';
   
   try {
+    // Check if we need to convert SVG to PNG for Gemini API
+    let fileToProcess = imageFile;
+    let originalIsSvg = false;
+
+    if (isSvgFile(imageFile)) {
+      try {
+        originalIsSvg = true;
+        console.log('Converting SVG to PNG for Gemini API compatibility...');
+        fileToProcess = await convertSvgToPng(imageFile);
+        console.log('SVG conversion successful');
+      } catch (conversionError) {
+        console.error('SVG conversion failed:', conversionError);
+        throw new Error('Failed to convert SVG to PNG format: ' + (conversionError instanceof Error ? conversionError.message : 'Unknown error'));
+      }
+    }
+    
     // Convert image file to base64
-    const base64Image = await fileToBase64(imageFile);
+    const base64Image = await fileToBase64(fileToProcess);
     
     // Define prompt based on platform
     let prompt = `Analyze this image and generate:`;
@@ -101,7 +117,7 @@ export async function analyzeImageWithGemini(
               { text: prompt },
               {
                 inline_data: {
-                  mime_type: imageFile.type,
+                  mime_type: fileToProcess.type,
                   data: base64Image.split(',')[1],
                 },
               },
