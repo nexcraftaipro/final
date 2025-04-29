@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, X, FileIcon, Image, AlertCircle } from 'lucide-react';
+import { Upload, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 
@@ -19,10 +19,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(true);
   }, []);
 
-  const handleDragLeave = useCallback(() => {
+  const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
   }, []);
 
@@ -78,7 +87,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsDragging(false);
+    
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       processFiles(e.dataTransfer.files);
     }
@@ -101,32 +112,35 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, []);
 
   return (
-    <div className="bg-gray-800 border border-dashed border-gray-600 rounded-lg overflow-hidden">      
+    <div className="bg-gray-900 border border-dashed border-gray-700 rounded-lg overflow-hidden">      
       <div 
         className={`drop-zone flex flex-col items-center justify-center p-10 transition-all duration-300 ${
-          isDragging ? 'border-blue-500 bg-blue-500/10' : 'bg-gray-800/50 hover:bg-gray-800/70'
+          isDragging ? 'border-blue-500 bg-blue-900/20' : 'hover:bg-gray-800/70'
         }`} 
-        onDragOver={handleDragOver} 
-        onDragLeave={handleDragLeave} 
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
         onDrop={handleDrop}
+        data-testid="drop-zone"
       >
-        <div className="mb-4 bg-blue-900/30 p-3 rounded-full">
-          <Upload className="h-6 w-6 text-blue-400" />
+        <div className="mb-6 bg-blue-900/30 p-5 rounded-full">
+          <Upload className="h-7 w-7 text-blue-400" />
         </div>
         
-        <div className="text-center mb-6">
-          <p className="text-lg font-medium text-white mb-2">Drag and drop unlimited images here</p>
-          <p className="text-sm text-gray-400">
-            or click to upload (JPEG, PNG, SVG, AI, EPS up to 10GB each)
-          </p>
-        </div>
+        <h3 className="text-xl font-medium text-white mb-2">
+          Drag and drop unlimited images here
+        </h3>
+        
+        <p className="text-gray-400 mb-8">
+          or click to upload (JPEG, PNG, SVG, AI, EPS up to 10GB each)
+        </p>
         
         <Button 
           onClick={handleBrowseClick} 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md border-none flex items-center" 
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2" 
           disabled={isProcessing}
         >
-          <Image className="h-5 w-5 mr-2" />
+          <Image className="h-5 w-5" />
           Browse Files
         </Button>
         
