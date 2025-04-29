@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check } from 'lucide-react';
-import { ProcessedImage, formatImagesAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle } from '@/utils/imageHelpers';
+import { Download, Copy, X, Check, Film } from 'lucide-react';
+import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
@@ -43,13 +42,25 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
 
   const handleDownloadCSV = () => {
-    const csvContent = formatImagesAsCSV(images, isFreepikOnly, isShutterstock, isAdobeStock);
+    // Check if there are any videos to process
+    const videoImages = images.filter(img => img.result?.isVideo);
+    const regularImages = images.filter(img => !img.result?.isVideo);
     
-    // Pass the platform name for custom folder naming
-    const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
-    downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
+    // Process videos if they exist
+    if (videoImages.length > 0) {
+      const videoCsvContent = formatVideosAsCSV(videoImages);
+      downloadCSV(videoCsvContent, 'video-metadata.csv', 'VideoMetadata');
+      toast.success('Video metadata CSV file downloaded');
+    }
     
-    toast.success('CSV file downloaded');
+    // Process regular images if they exist
+    if (regularImages.length > 0) {
+      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock);
+      // Pass the platform name for custom folder naming
+      const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
+      downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
+      toast.success('Image metadata CSV file downloaded');
+    }
   };
 
   const downloadPromptText = (text: string, filename: string) => {
@@ -106,11 +117,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 <div className="p-4 border border-gray-800 rounded-lg">
                   <h3 className="text-xl font-semibold mb-4">Source Image:</h3>
                   <div className="rounded-lg overflow-hidden mb-4">
-                    <img
-                      src={image.previewUrl}
-                      alt={image.file.name}
-                      className="w-full object-cover max-h-[400px]"
-                    />
+                    {image.result?.isVideo ? (
+                      <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
+                        <Film className="h-16 w-16 text-gray-400" />
+                        <span className="ml-2 text-gray-400">Video File</span>
+                      </div>
+                    ) : (
+                      <img
+                        src={image.previewUrl}
+                        alt={image.file.name}
+                        className="w-full object-cover max-h-[400px]"
+                      />
+                    )}
                   </div>
                   <div className="text-gray-400">{image.file.name}</div>
                 </div>
@@ -170,11 +188,18 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <div className="p-6 border-r border-gray-700/50">
                     <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
                     <div className="rounded-lg overflow-hidden mb-4">
-                      <img
-                        src={image.previewUrl}
-                        alt={image.file.name}
-                        className="w-full object-cover max-h-[400px]"
-                      />
+                      {image.result?.isVideo ? (
+                        <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
+                          <Film className="h-16 w-16 text-gray-400" />
+                          <span className="ml-2 text-gray-400">Video File</span>
+                        </div>
+                      ) : (
+                        <img
+                          src={image.previewUrl}
+                          alt={image.file.name}
+                          className="w-full object-cover max-h-[400px]"
+                        />
+                      )}
                     </div>
                     <div className="text-gray-400">{image.file.name}</div>
                   </div>

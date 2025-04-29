@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
-import { Sparkles, Loader2, ShieldAlert, Image, Info } from 'lucide-react';
+import { Sparkles, Loader2, ShieldAlert, Image, Info, Film } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Platform } from '@/components/PlatformSelector';
 import PlatformSelector from '@/components/PlatformSelector';
@@ -18,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppHeader from '@/components/AppHeader';
 import Sidebar from '@/components/Sidebar';
 import { isSvgFile } from '@/utils/svgToPng';
+import { isVideoFile } from '@/utils/videoProcessor';
+import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
 
 // Updated payment gateway link
 const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
@@ -156,6 +158,10 @@ const Index: React.FC = () => {
       return;
     }
     
+    // Count video files for better messaging
+    const videoFiles = pendingImages.filter(img => isVideoFile(img.file));
+    const imageFiles = pendingImages.filter(img => !isVideoFile(img.file));
+    
     if (!canGenerateMetadata) {
       toast.error('You have reached your free limit. Please upgrade to premium.');
       return;
@@ -175,17 +181,22 @@ const Index: React.FC = () => {
         status: 'processing' as const
       } : img));
       
-      // Check if any SVG files are being processed and notify the user
+      // Check for special file types
       const hasSvgFiles = pendingImages.some(img => isSvgFile(img.file));
+      const hasVideoFiles = pendingImages.some(img => isVideoFile(img.file));
+      
+      // Show notifications for special file types
       if (hasSvgFiles) {
         toast.info('SVG files detected - automatically converting to PNG for Gemini API compatibility while preserving original files');
       }
       
+      // Process files with a short delay between each
       for (const image of pendingImages) {
         try {
           if (pendingImages.indexOf(image) > 0) {
-            // Add a 2-second delay between processing images to respect the 15 RPM limit
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Add a longer delay for video files to prevent overwhelming the browser
+            const delayTime = isVideoFile(image.file) ? 3000 : 2000;
+            await new Promise(resolve => setTimeout(resolve, delayTime));
           }
           
           const options = {
@@ -202,12 +213,10 @@ const Index: React.FC = () => {
             maxDescriptionWords
           };
           
+          // Process the image/video with Gemini API
           const result = await analyzeImageWithGemini(image.file, apiKey, options);
           
-          // Check if we're in Freepik-only mode
-          const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
-          const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
-          
+          // Update UI on success
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
             status: result.error ? 'error' as const : 'complete' as const,
@@ -215,20 +224,27 @@ const Index: React.FC = () => {
               title: result.title,
               description: result.description,
               keywords: result.keywords,
+              // Include fields for video files
+              ...(result.isVideo && {
+                isVideo: true,
+                category: result.category,
+                filename: result.filename
+              }),
               // Include prompt and baseModel for Freepik
-              ...(isFreepikOnly && {
+              ...(platforms.length === 1 && platforms[0] === 'Freepik' && {
                 prompt: result.prompt,
                 baseModel: result.baseModel
               }),
               // Include categories for Shutterstock
-              ...(isShutterstock && {
+              ...(platforms.length === 1 && platforms[0] === 'Shutterstock' && {
                 categories: result.categories
               })
             },
             error: result.error
           } : img));
         } catch (error) {
-          console.error(`Error processing image ${image.file.name}:`, error);
+          console.error(`Error processing file ${image.file.name}:`, error);
+          
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
             status: 'error' as const,
@@ -237,9 +253,16 @@ const Index: React.FC = () => {
         }
       }
       
-      toast.success('All images processed successfully');
+      // Success message based on what was processed
+      if (videoFiles.length > 0 && imageFiles.length > 0) {
+        toast.success(`Processing complete`);
+      } else if (videoFiles.length > 0) {
+        toast.success(`Processing complete`);
+      } else {
+        toast.success('Processing complete');
+      }
     } catch (error) {
-      console.error('Error during image processing:', error);
+      console.error('Error during processing:', error);
       toast.error('An error occurred during processing');
     } finally {
       setIsProcessing(false);

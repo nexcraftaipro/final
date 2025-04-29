@@ -10,6 +10,9 @@ export interface ProcessedImage {
     prompt?: string;
     baseModel?: string;
     categories?: string[]; // Added categories field for Shutterstock and AdobeStock
+    isVideo?: boolean;    // Flag to identify video files
+    category?: number;    // Category number for videos (1-10)
+    filename?: string;    // Original filename
   };
   error?: string;
 }
@@ -136,9 +139,10 @@ export function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-// Check if file is a valid image type
+// Check if file is a valid image or video type
 export function isValidImageType(file: File): boolean {
   const acceptedTypes = [
+    // Image types
     'image/jpeg', 
     'image/png', 
     'image/jpg', 
@@ -148,9 +152,23 @@ export function isValidImageType(file: File): boolean {
     'application/eps', // EPS files
     'application/x-eps',
     'image/eps',
-    'application/illustrator' // Adobe Illustrator
+    'application/illustrator', // Adobe Illustrator
+    
+    // Video types
+    'video/mp4',
+    'video/quicktime',
+    'video/x-msvideo',
+    'video/x-ms-wmv',
+    'video/mpeg',
+    'video/webm',
+    'video/ogg'
   ];
-  return acceptedTypes.includes(file.type);
+  
+  // Check file extension for videos that might not have proper MIME type
+  const videoExtensions = ['.mp4', '.mov', '.avi', '.wmv', '.flv', '.mkv', '.webm', '.ogg'];
+  const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  
+  return acceptedTypes.includes(file.type) || videoExtensions.includes(fileExtension);
 }
 
 // Check if file size is within limits (10GB max)
@@ -773,4 +791,33 @@ export function getRelevantFreepikKeywords(imageDescription: string): string[] {
   
   // Deduplicate again and limit to 30 keywords
   return Array.from(new Set(keywords)).slice(0, 30);
+}
+
+// Format videos for CSV export (special format for videos)
+export function formatVideosAsCSV(images: ProcessedImage[]): string {
+  // Headers for video export: Filename,Title,Keywords,Category
+  const headers = ['"Filename"', '"Title"', '"Keywords"', '"Category"'];
+  
+  // Add headers
+  const csvContent = [
+    // Headers
+    headers.join(','),
+    // Add data rows
+    ...images
+      .filter(img => img.status === 'complete' && img.result && img.result.isVideo)
+      .map(img => {
+        // Ensure title has no symbols before writing to CSV
+        const cleanTitle = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
+        const category = img.result?.category || 10; // Default to category 10 (Other) if not provided
+        
+        return [
+          `"${img.file.name}"`,
+          `"${cleanTitle}"`,
+          `"${img.result?.keywords?.join(',') || ''}"`,
+          `"${category}"`,
+        ].join(',');
+      })
+  ].join('\n');
+
+  return csvContent;
 }

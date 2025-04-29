@@ -2,6 +2,7 @@ import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
 import { convertSvgToPng, isSvgFile } from './svgToPng';
+import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
 
 interface AnalysisOptions {
   titleLength?: number;
@@ -25,6 +26,9 @@ interface AnalysisResult {
   baseModel?: string;
   categories?: string[];
   error?: string;
+  filename?: string;
+  isVideo?: boolean;
+  category?: number;
 }
 
 export async function analyzeImageWithGemini(
@@ -48,10 +52,15 @@ export async function analyzeImageWithGemini(
   const isAdobeStock = platforms.length === 1 && platforms[0] === 'AdobeStock';
   
   try {
-    // Check if we need to convert SVG to PNG for Gemini API
+    // Store original filename
+    const originalFilename = imageFile.name;
+    
+    // Check if we need to process special file types
     let fileToProcess = imageFile;
     let originalIsSvg = false;
+    let originalIsVideo = false;
 
+    // Handle SVG files
     if (isSvgFile(imageFile)) {
       try {
         originalIsSvg = true;
@@ -63,6 +72,15 @@ export async function analyzeImageWithGemini(
         throw new Error('Failed to convert SVG to PNG format: ' + (conversionError instanceof Error ? conversionError.message : 'Unknown error'));
       }
     }
+    // Handle video files
+    else if (isVideoFile(imageFile)) {
+      try {
+        originalIsVideo = true;
+        fileToProcess = await extractVideoThumbnail(imageFile);
+      } catch (extractionError) {
+        throw new Error('Failed to extract thumbnail from video: ' + (extractionError instanceof Error ? extractionError.message : 'Unknown error'));
+      }
+    }
     
     // Convert image file to base64
     const base64Image = await fileToBase64(fileToProcess);
@@ -70,8 +88,17 @@ export async function analyzeImageWithGemini(
     // Define prompt based on platform
     let prompt = `Analyze this image and generate:`;
     
+    // Modify prompt for video files
+    if (originalIsVideo) {
+      prompt = `This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:`;
+    }
+    
     if (generationMode === 'imageToPrompt') {
-      prompt = `Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
+      if (originalIsVideo) {
+        prompt = `This is a thumbnail from a video file named "${originalFilename}". Generate a detailed description of what this video appears to contain based on this frame. Include details about content, style, colors, movement, and composition. The description should be at least 50 words but not more than 150 words.`;
+      } else {
+        prompt = `Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
+      }
     } else if (isFreepikOnly) {
       prompt = `Analyze this image and generate metadata for the Freepik platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.
@@ -86,10 +113,18 @@ export async function analyzeImageWithGemini(
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
     } else {
-      prompt = `Analyze this image and generate:
+      if (originalIsVideo) {
+        prompt = `This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:
+1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the video. Don't use any symbols.
+2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this video.
+3. A category number between 1-10, where:
+   1=Animations, 2=Backgrounds, 3=Business, 4=Education, 5=Food, 6=Lifestyle, 7=Nature, 8=Presentations, 9=Technology, 10=Other`;
+      } else {
+        prompt = `Analyze this image and generate:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
 2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
 3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
+      }
     }
     
     if (generationMode === 'imageToPrompt') {
@@ -101,7 +136,11 @@ export async function analyzeImageWithGemini(
     } else if (isAdobeStock) {
       prompt += `\n\nFormat your response as a JSON object with the fields "title" and "keywords" (as an array).`;
     } else {
-      prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
+      if (originalIsVideo) {
+        prompt += `\n\nFormat your response as a JSON object with the fields "title", "keywords" (as an array), and "category" (as a number from 1-10).`;
+      } else {
+        prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
+      }
     }
     
     // Updated to use the newer Gemini 1.5 Flash model
@@ -148,6 +187,8 @@ export async function analyzeImageWithGemini(
         title: '',
         description: text.trim(),
         keywords: [],
+        filename: originalFilename,
+        isVideo: originalIsVideo,
       };
     }
     
@@ -202,6 +243,19 @@ export async function analyzeImageWithGemini(
       );
     }
     
+    // For video-specific responses
+    if (originalIsVideo) {
+      return {
+        title: result.title || '',
+        description: result.description || '',
+        keywords: result.keywords || [],
+        category: result.category || 10, // Default to "Other" if not specified
+        filename: originalFilename,
+        isVideo: true,
+        ...(!isFreepikOnly && !isShutterstock && !isAdobeStock ? { categories: result.categories } : {}),
+      };
+    }
+    
     return {
       title: result.title || '',
       description: result.description || '',
@@ -209,14 +263,19 @@ export async function analyzeImageWithGemini(
       prompt: result.prompt,
       baseModel: result.baseModel || "leonardo",
       categories: result.categories,
+      filename: originalFilename,
+      isVideo: false,
     };
   } catch (error) {
-    console.error('Error analyzing image:', error);
+    console.error('Processing error:', error instanceof Error ? error.message : 'Unknown error');
+    
     return {
       title: '',
       description: '',
       keywords: [],
       error: error instanceof Error ? error.message : 'Unknown error occurred',
+      isVideo: isVideoFile(imageFile),
+      filename: imageFile.name,
     };
   }
 }
