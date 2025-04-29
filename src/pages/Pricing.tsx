@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
@@ -77,7 +76,7 @@ const PricingPage: React.FC = () => {
                 <Button 
                   size="lg" 
                   className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-                  onClick={() => window.open('https://pixcraftai.paymently.io/default/checkout/OgEU6SjF2JSuTb2rHuqG1ihjWGuP8v6R3zfqt8dg', '_blank')}
+                  onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
                 >
                   Upgrade to Basic
                 </Button>
