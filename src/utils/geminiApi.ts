@@ -116,7 +116,7 @@ export async function analyzeImageWithGemini(
     
     if (generationMode === 'imageToPrompt') {
       if (originalIsEps) {
-        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate a detailed description of what this design file likely contains. The description should be at least 50 words but not more than 150 words.`;
+        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate a detailed description of what this design file likely contains. The description should be at least 50 words but not more than 150 words. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.`;
       } else if (originalIsVideo) {
         prompt = `This is a thumbnail from a video file named "${originalFilename}". Generate a detailed description of what this video appears to contain based on this frame. Include details about content, style, colors, movement, and composition. The description should be at least 50 words but not more than 150 words.`;
       } else {
@@ -126,7 +126,7 @@ export async function analyzeImageWithGemini(
       if (originalIsEps) {
         prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate metadata for the Freepik platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. The title should be relevant for stock image platforms. Don't use any symbols.
-2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words).
+2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words). Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the prompt itself - just describe the content.
 3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design. Focus on content, style, and technical aspects of the design.`;
       } else {
         prompt = `Analyze this image and generate metadata for the Freepik platform:
@@ -137,7 +137,7 @@ export async function analyzeImageWithGemini(
     } else if (isShutterstock) {
       if (originalIsEps) {
         prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate metadata for the Shutterstock platform:
-1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words about what's likely in this design file.
+1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words about what's likely in this design file. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
       } else {
         prompt = `Analyze this image and generate metadata for the Shutterstock platform:
@@ -147,7 +147,7 @@ export async function analyzeImageWithGemini(
     } else if (isAdobeStock) {
       if (originalIsEps) {
         prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate metadata for Adobe Stock:
-1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words about what's likely in this design file. Don't use any symbols.
+1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words about what's likely in this design file. Don't use any symbols or phrases like "Vector EPS" or "EPS file".
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
       } else {
         prompt = `Analyze this image and generate metadata for Adobe Stock:
@@ -164,7 +164,7 @@ export async function analyzeImageWithGemini(
       } else if (originalIsEps) {
         prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate appropriate metadata for this design file:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. Don't use any symbols.
-2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
+2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.
 3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
       } else {
         prompt = `Analyze this image and generate:
