@@ -87,8 +87,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
           return [
             `${img.file.name}`,
             `${cleanTitle}`,
-            `${img.result?.description || ''}`,
-            `${img.result?.keywords?.join(', ') || ''}`,
+            `"${img.result?.description || ''}"`,
+            `"${img.result?.keywords?.join(', ') || ''}"`,
           ].join(',');
         } else {
           return [

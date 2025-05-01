@@ -164,7 +164,7 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
               <li>Click "Process" to generate metadata</li>
               <li>Download the CSV file</li>
               <li>You'll get output matching exactly this format: Filename,Title,Description,Keywords</li>
-              <li>Example: Apple Set.eps,Simple Apple Line Drawings Three Stages of an Apple Outline Illustration perfect for coloring,"Three black and white line drawings of apples show different stages of an apple. Perfect for coloring pages or simple illustrations. Clean lines, easy to use.","apple, apples, drawing, drawings, line, lines, outline, outlines, illustration, illustrations, coloring, pages, page, simple, easy, black, white, stages, stage, fruit, fruits, image, graphic, design, art, kid, kids, child, children, book, education, learn, teaching"</li>
+              <li>Example: Kawaii sweet Set 32.eps,Kawaii Sweet Treats Design Cute Illustrations of Candy,"charming kawaii style illustrations featuring various sweet treats","kawaii, cute, sweet, candy, dessert, bakery, illustration, design, clipart, graphics, vector, eps, set, collection, cute food, kawaii food, sweet treats, pastries, cakes, cookies, ice cream, chocolate, lollipops, macarons, donuts, cupcakes, jelly, marshmallows, whipped cream, strawberry, cherry, kawaii art, digital art, commercial use, 32 illustrations"</li>
             </ol>
           </div>
         </div>
