@@ -11,6 +11,7 @@ export interface ProcessedImage {
     baseModel?: string;
     categories?: string[]; // Added categories field for Shutterstock and AdobeStock
     isVideo?: boolean;    // Flag to identify video files
+    isEps?: boolean;      // Flag to identify EPS files
     category?: number;    // Category number for videos (1-10)
     filename?: string;    // Original filename
   };

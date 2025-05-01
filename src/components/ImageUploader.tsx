@@ -1,9 +1,11 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, Film } from 'lucide-react';
+import { Upload, Image, Film, FileType } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
+import { isEpsFile } from '@/utils/epsMetadataExtractor';
+
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;
   isProcessing: boolean;
@@ -35,11 +37,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     const filesToProcess = Array.from(files);
     let videoCount = 0;
     let imageCount = 0;
+    let epsCount = 0;
     for (const file of filesToProcess) {
       const promise = (async () => {
         // Validate file is an image or video
         if (!isValidImageType(file)) {
-          toast.error(`${file.name} is not a valid file. Supported formats: JPEG, PNG, SVG, MP4, MOV, and other image/video formats.`);
+          toast.error(`${file.name} is not a valid file. Supported formats: JPEG, PNG, SVG, EPS, MP4, MOV, and other image/video formats.`);
           return null;
         }
 
@@ -52,6 +55,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         // Track file type
         if (isVideoFile(file)) {
           videoCount++;
+        } else if (isEpsFile(file)) {
+          epsCount++;
         } else {
           imageCount++;
         }
@@ -80,13 +85,27 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       // Create a more specific success message
       let successMsg = '';
-      if (imageCount > 0 && videoCount > 0) {
-        successMsg = `Added ${imageCount} image${imageCount !== 1 ? 's' : ''} and ${videoCount} video${videoCount !== 1 ? 's' : ''}`;
-      } else if (videoCount > 0) {
-        successMsg = `${videoCount} video${videoCount !== 1 ? 's' : ''} added`;
-      } else {
-        successMsg = `${validResults.length} image${validResults.length !== 1 ? 's' : ''} added`;
+      const typesAdded = [];
+      
+      if (imageCount > 0) {
+        typesAdded.push(`${imageCount} image${imageCount !== 1 ? 's' : ''}`);
       }
+      if (videoCount > 0) {
+        typesAdded.push(`${videoCount} video${videoCount !== 1 ? 's' : ''}`);
+      }
+      if (epsCount > 0) {
+        typesAdded.push(`${epsCount} EPS file${epsCount !== 1 ? 's' : ''}`);
+      }
+      
+      if (typesAdded.length > 1) {
+        const lastType = typesAdded.pop();
+        successMsg = `Added ${typesAdded.join(', ')} and ${lastType}`;
+      } else if (typesAdded.length === 1) {
+        successMsg = `Added ${typesAdded[0]}`;
+      } else {
+        successMsg = `${validResults.length} file${validResults.length !== 1 ? 's' : ''} added`;
+      }
+      
       toast.success(successMsg);
     } else if (files.length > 0) {
       toast.error('No valid files were found to process.');
@@ -120,23 +139,29 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           <div className="bg-blue-900/30 p-5 rounded-full">
             <Image className="h-7 w-7 text-blue-400" />
           </div>
+          <div className="bg-amber-900/30 p-5 rounded-full">
+            <FileType className="h-7 w-7 text-amber-400" />
+          </div>
           <div className="bg-purple-900/30 p-5 rounded-full">
             <Film className="h-7 w-7 text-purple-400" />
           </div>
         </div>
         
         <h3 className="text-xl font-medium text-white mb-2">
-          Drag and drop images or videos here
+          Drag and drop images, EPS designs, or videos here
         </h3>
         
-        
-        
-        <p className="text-amber-400 mb-8 text-sm max-w-md text-center">Supported formats: JPEG, PNG, SVG, MP4, MOV, AVI, and more (up to 10GB each)</p>
+        <p className="text-amber-400 mb-8 text-sm max-w-md text-center">Supported formats: JPEG, PNG, SVG, EPS, MP4, MOV, AVI, and more (up to 10GB each)</p>
         
         <div className="flex gap-4">
           <Button onClick={handleBrowseClick} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
             <Image className="h-5 w-5" />
             Browse Image Files
+          </Button>
+          
+          <Button onClick={handleBrowseClick} className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
+            <FileType className="h-5 w-5" />
+            Browse EPS Files
           </Button>
           
           <Button onClick={handleBrowseClick} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>

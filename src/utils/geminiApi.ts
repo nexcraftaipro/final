@@ -3,6 +3,7 @@ import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
 import { convertSvgToPng, isSvgFile } from './svgToPng';
 import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
+import { isEpsFile, extractEpsMetadata, createEpsMetadataRepresentation } from './epsMetadataExtractor';
 
 interface AnalysisOptions {
   titleLength?: number;
@@ -29,6 +30,7 @@ interface AnalysisResult {
   filename?: string;
   isVideo?: boolean;
   category?: number;
+  isEps?: boolean;
 }
 
 export async function analyzeImageWithGemini(
@@ -59,6 +61,8 @@ export async function analyzeImageWithGemini(
     let fileToProcess = imageFile;
     let originalIsSvg = false;
     let originalIsVideo = false;
+    let originalIsEps = false;
+    let epsMetadata = null;
 
     // Handle SVG files
     if (isSvgFile(imageFile)) {
@@ -70,6 +74,19 @@ export async function analyzeImageWithGemini(
       } catch (conversionError) {
         console.error('SVG conversion failed:', conversionError);
         throw new Error('Failed to convert SVG to PNG format: ' + (conversionError instanceof Error ? conversionError.message : 'Unknown error'));
+      }
+    }
+    // Handle EPS files
+    else if (isEpsFile(imageFile)) {
+      try {
+        originalIsEps = true;
+        console.log('Extracting metadata from EPS file for Gemini API compatibility...');
+        epsMetadata = await extractEpsMetadata(imageFile);
+        fileToProcess = createEpsMetadataRepresentation(epsMetadata);
+        console.log('EPS metadata extraction successful');
+      } catch (extractionError) {
+        console.error('EPS metadata extraction failed:', extractionError);
+        throw new Error('Failed to extract metadata from EPS file: ' + (extractionError instanceof Error ? extractionError.message : 'Unknown error'));
       }
     }
     // Handle video files
@@ -85,33 +102,58 @@ export async function analyzeImageWithGemini(
     // Convert image file to base64
     const base64Image = await fileToBase64(fileToProcess);
     
-    // Define prompt based on platform
+    // Define prompt based on platform and file type
     let prompt = `Analyze this image and generate:`;
     
+    // Special handling for EPS files
+    if (originalIsEps) {
+      prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Based on this information, generate appropriate metadata for this design file:`;
+    }
     // Modify prompt for video files
-    if (originalIsVideo) {
+    else if (originalIsVideo) {
       prompt = `This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:`;
     }
     
     if (generationMode === 'imageToPrompt') {
-      if (originalIsVideo) {
+      if (originalIsEps) {
+        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate a detailed description of what this design file likely contains. The description should be at least 50 words but not more than 150 words.`;
+      } else if (originalIsVideo) {
         prompt = `This is a thumbnail from a video file named "${originalFilename}". Generate a detailed description of what this video appears to contain based on this frame. Include details about content, style, colors, movement, and composition. The description should be at least 50 words but not more than 150 words.`;
       } else {
         prompt = `Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
       }
     } else if (isFreepikOnly) {
-      prompt = `Analyze this image and generate metadata for the Freepik platform:
+      if (originalIsEps) {
+        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate metadata for the Freepik platform:
+1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. The title should be relevant for stock image platforms. Don't use any symbols.
+2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words).
+3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design. Focus on content, style, and technical aspects of the design.`;
+      } else {
+        prompt = `Analyze this image and generate metadata for the Freepik platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.
 2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).
 3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image. Focus on content, style, emotions, and technical details of the image.`;
+      }
     } else if (isShutterstock) {
-      prompt = `Analyze this image and generate metadata for the Shutterstock platform:
+      if (originalIsEps) {
+        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate metadata for the Shutterstock platform:
+1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words about what's likely in this design file.
+2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
+      } else {
+        prompt = `Analyze this image and generate metadata for the Shutterstock platform:
 1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
+      }
     } else if (isAdobeStock) {
-      prompt = `Analyze this image and generate metadata for Adobe Stock:
+      if (originalIsEps) {
+        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate metadata for Adobe Stock:
+1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words about what's likely in this design file. Don't use any symbols.
+2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
+      } else {
+        prompt = `Analyze this image and generate metadata for Adobe Stock:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
+      }
     } else {
       if (originalIsVideo) {
         prompt = `This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:
@@ -119,6 +161,11 @@ export async function analyzeImageWithGemini(
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this video.
 3. A category number between 1-10, where:
    1=Animations, 2=Backgrounds, 3=Business, 4=Education, 5=Food, 6=Lifestyle, 7=Nature, 8=Presentations, 9=Technology, 10=Other`;
+      } else if (originalIsEps) {
+        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, and some extracted text. Generate appropriate metadata for this design file:
+1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. Don't use any symbols.
+2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
+3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
       } else {
         prompt = `Analyze this image and generate:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
@@ -154,12 +201,16 @@ export async function analyzeImageWithGemini(
           {
             parts: [
               { text: prompt },
-              {
-                inline_data: {
-                  mime_type: fileToProcess.type,
-                  data: base64Image.split(',')[1],
-                },
-              },
+              // For EPS files, send the metadata as text without inline_data
+              ...(originalIsEps 
+                ? [{ text: base64Image }] 
+                : [{
+                    inline_data: {
+                      mime_type: fileToProcess.type,
+                      data: base64Image.split(',')[1],
+                    },
+                  }]
+              ),
             ],
           },
         ],
@@ -189,6 +240,7 @@ export async function analyzeImageWithGemini(
         keywords: [],
         filename: originalFilename,
         isVideo: originalIsVideo,
+        isEps: originalIsEps
       };
     }
     
@@ -252,7 +304,23 @@ export async function analyzeImageWithGemini(
         category: result.category || 10, // Default to "Other" if not specified
         filename: originalFilename,
         isVideo: true,
+        isEps: false,
         ...(!isFreepikOnly && !isShutterstock && !isAdobeStock ? { categories: result.categories } : {}),
+      };
+    }
+    
+    // For EPS-specific responses
+    if (originalIsEps) {
+      return {
+        title: result.title || '',
+        description: result.description || '',
+        keywords: result.keywords || [],
+        prompt: result.prompt,
+        baseModel: result.baseModel || "leonardo",
+        categories: result.categories,
+        filename: originalFilename,
+        isVideo: false,
+        isEps: true,
       };
     }
     
@@ -265,6 +333,7 @@ export async function analyzeImageWithGemini(
       categories: result.categories,
       filename: originalFilename,
       isVideo: false,
+      isEps: false,
     };
   } catch (error) {
     console.error('Processing error:', error instanceof Error ? error.message : 'Unknown error');
@@ -275,6 +344,7 @@ export async function analyzeImageWithGemini(
       keywords: [],
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       isVideo: isVideoFile(imageFile),
+      isEps: isEpsFile(imageFile),
       filename: imageFile.name,
     };
   }
@@ -282,6 +352,17 @@ export async function analyzeImageWithGemini(
 
 // Helper function to convert file to base64
 function fileToBase64(file: File): Promise<string> {
+  // For text files (like our EPS metadata), read as text instead of binary
+  if (file.type === 'text/plain') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsText(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  }
+  
+  // For image files, proceed as usual with dataURL
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);

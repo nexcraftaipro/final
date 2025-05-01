@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film } from 'lucide-react';
+import { Download, Copy, X, Check, Film, FileType } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
@@ -123,6 +123,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <Film className="h-16 w-16 text-gray-400" />
                         <span className="ml-2 text-gray-400">Video File</span>
                       </div>
+                    ) : image.result?.isEps ? (
+                      <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
+                        <FileType className="h-16 w-16 text-amber-400" />
+                        <span className="ml-2 text-gray-400">EPS Design File</span>
+                      </div>
                     ) : (
                       <img
                         src={image.previewUrl}
@@ -193,6 +198,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
                           <Film className="h-16 w-16 text-gray-400" />
                           <span className="ml-2 text-gray-400">Video File</span>
+                        </div>
+                      ) : image.result?.isEps ? (
+                        <div className="flex items-center justify-center bg-gray-900 h-[200px] rounded-lg">
+                          <FileType className="h-16 w-16 text-amber-400" />
+                          <span className="ml-2 text-gray-400">EPS Design File</span>
                         </div>
                       ) : (
                         <img
