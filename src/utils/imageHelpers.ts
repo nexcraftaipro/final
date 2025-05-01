@@ -45,7 +45,7 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
   } else if (isAdobeStock) {
     headers = ['"Filename"', '"Title"', '"Keywords"', '"Category"'];
   } else if (isVecteezy) {
-    headers = ['Filename', 'Title', 'Keywords'];
+    headers = ['Filename', 'Title', 'Description', 'Keywords'];
   } else {
     headers = ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
   }
@@ -87,6 +87,7 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
           return [
             `${img.file.name}`,
             `${cleanTitle}`,
+            `${img.result?.description || ''}`,
             `${img.result?.keywords?.join(', ') || ''}`,
           ].join(',');
         } else {

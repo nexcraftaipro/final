@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Info } from 'lucide-react';
@@ -17,6 +16,7 @@ interface CustomizationControlsProps {
   onMinDescriptionWordsChange: (value: number[]) => void;
   maxDescriptionWords: number;
   onMaxDescriptionWordsChange: (value: number[]) => void;
+  selectedPlatforms: string[];
 }
 
 interface SettingRowProps {
@@ -82,7 +82,8 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   minDescriptionWords,
   onMinDescriptionWordsChange,
   maxDescriptionWords,
-  onMaxDescriptionWordsChange
+  onMaxDescriptionWordsChange,
+  selectedPlatforms
 }) => {
   return (
     <div>
@@ -145,6 +146,29 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
         onChange={onMaxDescriptionWordsChange}
         currentValue={maxDescriptionWords.toString()}
       />
+
+      <div className={selectedPlatforms.includes('Vecteezy') ? 'block' : 'hidden'}>
+        <div className="space-y-4 border border-gray-700 p-4 rounded-lg">
+          <h3 className="text-md font-semibold text-amber-500">Vecteezy Output Format:</h3>
+          <p className="text-sm text-gray-400">
+            The output for Vecteezy platform will follow this format:
+          </p>
+          <div className="bg-gray-800 p-3 rounded text-xs font-mono">
+            Filename,Title,Description,Keywords
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-white">Step-by-step guide:</h4>
+            <ol className="list-decimal list-inside text-sm text-gray-300 space-y-2">
+              <li>Upload your image files (JPG, PNG, EPS, etc.)</li>
+              <li>Select "Vecteezy" from the platforms</li>
+              <li>Click "Process" to generate metadata</li>
+              <li>Download the CSV file</li>
+              <li>You'll get output matching exactly this format: Filename,Title,Description,Keywords</li>
+              <li>Example: Apple Set.eps,Simple Apple Line Drawings Three Stages of an Apple Outline Illustration perfect for coloring,"Three black and white line drawings of apples show different stages of an apple. Perfect for coloring pages or simple illustrations. Clean lines, easy to use.","apple, apples, drawing, drawings, line, lines, outline, outlines, illustration, illustrations, coloring, pages, page, simple, easy, black, white, stages, stage, fruit, fruits, image, graphic, design, art, kid, kids, child, children, book, education, learn, teaching"</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

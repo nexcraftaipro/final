@@ -243,8 +243,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       )}
                       
-                      {/* Show description for platforms other than Freepik, AdobeStock and Vecteezy */}
-                      {!isFreepikOnly && !isAdobeStock && !isVecteezy && (
+                      {/* Show description for platforms other than Freepik and AdobeStock */}
+                      {!isFreepikOnly && !isAdobeStock && (
                         <div>
                           <h4 className="text-amber-500">Description:</h4>
                           <p className="text-white">{image.result?.description || ''}</p>
