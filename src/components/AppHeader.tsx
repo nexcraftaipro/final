@@ -77,15 +77,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   return <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <h1 onClick={navigateToHome} className="text-xl font-semibold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-            <FileType className="h-5 w-5 mr-2" style={{
-            color: '#f14010'
-          }} />
-            <span style={{
-            color: '#f14010'
-          }} className="text-blue-700">META CSV GENERATOR PRO</span>
+          <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+            <img src="/new-logo.png" alt="META CSV GENERATOR PRO" className="h-12 w-auto mr-3" />
+            <span className="text-[#f14010] text-xl font-bold">META CSV GENERATOR PRO</span>
+            <div className="ml-4 text-xs text-gray-400">Developed by Pixcraftai</div>
           </h1>
-          <div className="ml-4 text-xs text-gray-400">Developed by Pixcraftai</div>
         </div>
         
         <div className="flex items-center space-x-4">
