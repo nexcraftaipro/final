@@ -33,7 +33,7 @@ export function createImagePreview(file: File): Promise<string> {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false): string {
   // Determine headers based on platform selection
   let headers;
   
@@ -43,6 +43,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     headers = ['"Filename"', '"Description"', '"Keywords"', '"Categories"'];
   } else if (isAdobeStock) {
     headers = ['"Filename"', '"Title"', '"Keywords"', '"Category"'];
+  } else if (isVecteezy) {
+    headers = ['Filename', 'Title', 'Keywords'];
   } else {
     headers = ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
   }
@@ -80,6 +82,12 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${img.result?.keywords?.join(', ') || ''}"`,
             `"${img.result?.categories?.join(',') || ''}"`,
           ].join(',');
+        } else if (isVecteezy) {
+          return [
+            `${img.file.name}`,
+            `${cleanTitle}`,
+            `${img.result?.keywords?.join(', ') || ''}`,
+          ].join(',');
         } else {
           return [
             `"${img.file.name}"`,
@@ -109,6 +117,8 @@ export function downloadCSV(csvContent: string, filename = 'image-metadata.csv',
     folderName = 'AdobeStock-MetaData By FreepikScipts ✨';
   } else if (platform === 'Freepik') {
     folderName = 'Freepik-MetaData By Freepikscipts';
+  } else if (platform === 'Vecteezy') {
+    folderName = 'Vecteezy-MetaData By FreepikScipts';
   } else if (platform) {
     folderName = `${platform}-MetaData`;
   }

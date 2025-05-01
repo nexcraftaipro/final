@@ -40,6 +40,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
   const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
+  const isVecteezy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Vecteezy';
 
   const handleDownloadCSV = () => {
     // Check if there are any videos to process
@@ -55,7 +56,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     
     // Process regular images if they exist
     if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock);
+      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy);
       // Pass the platform name for custom folder naming
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
       downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
@@ -232,8 +233,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>
                       )}
                       
-                      {/* Show description for platforms other than Freepik and AdobeStock */}
-                      {!isFreepikOnly && !isAdobeStock && (
+                      {/* Show description for platforms other than Freepik, AdobeStock and Vecteezy */}
+                      {!isFreepikOnly && !isAdobeStock && !isVecteezy && (
                         <div>
                           <h4 className="text-amber-500">Description:</h4>
                           <p className="text-white">{image.result?.description || ''}</p>
