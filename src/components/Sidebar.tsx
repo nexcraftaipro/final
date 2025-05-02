@@ -69,12 +69,12 @@ const Sidebar: React.FC<SidebarProps> = ({
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
       </div>
       
-      <div className="p-4 border-b border-gray-700 py-0">
+      <div className="p-4 border-b border-gray-700 py-[8px]">
         <h3 className="text-sm font-medium mb-4 text-[#f68003]">Metadata Customization</h3>
         <CustomizationControls minTitleWords={minTitleWords} onMinTitleWordsChange={onMinTitleWordsChange} maxTitleWords={maxTitleWords} onMaxTitleWordsChange={onMaxTitleWordsChange} minKeywords={minKeywords} onMinKeywordsChange={onMinKeywordsChange} maxKeywords={maxKeywords} onMaxKeywordsChange={onMaxKeywordsChange} minDescriptionWords={minDescriptionWords} onMinDescriptionWordsChange={onMinDescriptionWordsChange} maxDescriptionWords={maxDescriptionWords} onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} selectedPlatforms={selectedPlatforms} />
       </div>
       
-      <div className="p-4 border-b border-gray-700 flex-1 overflow-auto">
+      <div className="p-4 border-b border-gray-700 flex-1 overflow-auto py-[8px]">
         <CustomizationOptions enabled={customPromptEnabled} onEnabledChange={onCustomPromptEnabledChange} customPrompt={customPrompt} onCustomPromptChange={onCustomPromptChange} prohibitedWords={prohibitedWords} onProhibitedWordsChange={onProhibitedWordsChange} prohibitedWordsEnabled={prohibitedWordsEnabled} onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} transparentBgEnabled={transparentBgEnabled} onTransparentBgEnabledChange={onTransparentBgEnabledChange} silhouetteEnabled={silhouetteEnabled} onSilhouetteEnabledChange={onSilhouetteEnabledChange} />
       </div>
     </aside>;
