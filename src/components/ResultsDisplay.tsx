@@ -92,12 +92,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const completedImages = images.filter(img => img.status === 'complete');
     if (completedImages.length === 0) return;
 
-    // Create a single text file with all prompts
+    // Create a single text file with all prompts, without filenames or separators
     const allPromptsText = completedImages.map(img => {
-      const filename = img.file.name;
-      const prompt = img.result?.description || '';
-      return `# ${filename}\n\n${prompt}\n\n-------------------\n\n`;
-    }).join('');
+      return img.result?.description || '';
+    }).join('\n\n');
 
     const element = document.createElement("a");
     const file = new Blob([allPromptsText], {type: 'text/plain'});
