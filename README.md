@@ -35,6 +35,8 @@ npm run dev
 
 ## Recent Updates
 
+- **Vecteezy Comma Removal**: Added functionality to automatically remove commas from descriptions in Vecteezy metadata to prevent CSV formatting issues. This ensures cleaner and more compatible CSV exports for the Vecteezy platform.
+
 - **Video Support**: Added video file processing capability! The app now extracts thumbnails from video files for analysis and generates appropriate metadata. Video metadata is exported in a special format: Filename,Title,Keywords,Category.
 
 - **SVG Support**: Added SVG-to-PNG conversion functionality to resolve compatibility issues with the Gemini API. The app now automatically converts SVG files to PNG format before sending them to the API, while preserving the original SVG file in the UI.

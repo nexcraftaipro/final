@@ -33,6 +33,18 @@ export function createImagePreview(file: File): Promise<string> {
   });
 }
 
+// Function to remove symbols from title
+export function removeSymbolsFromTitle(title: string): string {
+  // Remove symbols but keep alphanumeric, spaces, and basic punctuation like commas and periods
+  return title.replace(/[^\w\s.,()-]/g, '');
+}
+
+// Function to remove commas from description (especially for Vecteezy)
+export function removeCommasFromDescription(description: string): string {
+  // Replace commas with spaces or another character if needed
+  return description.replace(/,/g, ' ');
+}
+
 // Format for CSV export
 export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false): string {
   // Determine headers based on platform selection
@@ -84,10 +96,12 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${img.result?.categories?.join(',') || ''}"`,
           ].join(',');
         } else if (isVecteezy) {
+          // For Vecteezy, remove commas from the description
+          const commaFreeDescription = img.result?.description ? removeCommasFromDescription(img.result.description) : '';
           return [
             `${img.file.name}`,
             `${cleanTitle}`,
-            `"${img.result?.description || ''}"`,
+            `"${commaFreeDescription}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
           ].join(',');
         } else {
@@ -102,12 +116,6 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
   ].join('\n');
 
   return csvContent;
-}
-
-// Function to remove symbols from title
-export function removeSymbolsFromTitle(title: string): string {
-  // Remove symbols but keep alphanumeric, spaces, and basic punctuation like commas and periods
-  return title.replace(/[^\w\s.,()-]/g, '');
 }
 
 // Export data to CSV file

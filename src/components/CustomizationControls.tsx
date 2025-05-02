@@ -157,6 +157,10 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
             Filename,Title,Description,Keywords
           </div>
           <div className="space-y-2">
+            <h4 className="text-sm font-medium text-white">Special features:</h4>
+            <div className="text-sm text-green-400 font-medium bg-green-900/30 p-2 rounded border border-green-700">
+              ✓ Commas will be automatically removed from descriptions to prevent CSV formatting issues
+            </div>
             <h4 className="text-sm font-medium text-white">Step-by-step guide:</h4>
             <ol className="list-decimal list-inside text-sm text-gray-300 space-y-2">
               <li>Upload your image files (JPG, PNG, EPS, etc.)</li>

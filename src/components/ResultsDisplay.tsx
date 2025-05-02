@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film, FileType } from 'lucide-react';
-import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle } from '@/utils/imageHelpers';
+import { Download, Copy, X, Check, Film, FileType, CheckCircle } from 'lucide-react';
+import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
@@ -247,7 +247,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       {!isFreepikOnly && !isAdobeStock && (
                         <div>
                           <h4 className="text-amber-500">Description:</h4>
-                          <p className="text-white">{image.result?.description || ''}</p>
+                          {isVecteezy ? (
+                            <div>
+                              <p className="text-white">{image.result?.description ? removeCommasFromDescription(image.result.description) : ''}</p>
+                            </div>
+                          ) : (
+                            <p className="text-white">{image.result?.description || ''}</p>
+                          )}
                         </div>
                       )}
                       
