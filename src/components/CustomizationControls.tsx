@@ -196,6 +196,29 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
           </div>
         </div>
       </div>
+
+      <div className={selectedPlatforms.includes('123RF') ? 'block' : 'hidden'}>
+        <div className="space-y-4 border border-gray-700 p-4 rounded-lg">
+          <h3 className="text-md font-semibold text-amber-500">123RF Output Format:</h3>
+          <p className="text-sm text-gray-400">
+            The output for 123RF platform will follow this format:
+          </p>
+          <div className="bg-gray-800 p-3 rounded text-xs font-mono">
+            oldfilename,123rf_filename,description,keywords,country
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-white">Step-by-step guide:</h4>
+            <ol className="list-decimal list-inside text-sm text-gray-300 space-y-2">
+              <li>Upload your image files (JPG, PNG, SVG, EPS, etc.)</li>
+              <li>Select "123RF" from the platforms</li>
+              <li>Click "Process" to generate metadata</li>
+              <li>Download the CSV file</li>
+              <li>You'll get output matching exactly this format: oldfilename,123rf_filename,description,keywords,country</li>
+              <li>Example: 22638092_4500_1_01.svg,22638092_4500_1_01,a cartoon ginger cat sitting with a heart in a speech bubble on a light background is adorable and cute,"cat,cartoon,ginger,sitting,heart,speech bubble,light background,adorable,cute,feline,animal,pet,mammal,illustration,design,drawing,domestic,playful,friendly,whiskers",US</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

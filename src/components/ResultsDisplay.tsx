@@ -42,6 +42,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
   const isVecteezy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Vecteezy';
   const isDepositphotos = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Depositphotos';
+  const is123RF = selectedPlatforms.length === 1 && selectedPlatforms[0] === '123RF';
 
   const handleDownloadCSV = () => {
     // Check if there are any videos to process
@@ -63,7 +64,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         isShutterstock, 
         isAdobeStock, 
         isVecteezy,
-        isDepositphotos
+        isDepositphotos,
+        is123RF
       );
       // Pass the platform name for custom folder naming
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;

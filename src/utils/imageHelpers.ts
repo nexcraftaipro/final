@@ -46,7 +46,7 @@ export function removeCommasFromDescription(description: string): string {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false, isDepositphotos: boolean = false): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false, isDepositphotos: boolean = false, is123RF: boolean = false): string {
   // Determine headers based on platform selection
   let headers;
   
@@ -60,6 +60,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     headers = ['Filename', 'Title', 'Description', 'Keywords'];
   } else if (isDepositphotos) {
     headers = ['Filename', 'Title', 'Description', 'Keywords', 'Categories', 'Editorial', 'Adult Content'];
+  } else if (is123RF) {
+    headers = ['oldfilename', '123rf_filename', 'description', 'keywords', 'country'];
   } else {
     headers = ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
   }
@@ -117,6 +119,15 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `No`,
             `No`
           ].join(',');
+        } else if (is123RF) {
+          // For 123RF, use the specific format with 123rf_filename and country
+          return [
+            `${img.file.name}`,
+            `${img.file.name.split('.')[0]}`,
+            `${img.result?.description || ''}`,
+            `"${img.result?.keywords?.join(',') || ''}"`,
+            `US`
+          ].join(',');
         } else {
           return [
             `"${img.file.name}"`,
@@ -144,6 +155,8 @@ export function downloadCSV(csvContent: string, filename = 'image-metadata.csv',
     folderName = 'Vecteezy-MetaData By FreepikScipts';
   } else if (platform === 'Depositphotos') {
     folderName = 'Depositphotos-MetaData By FreepikScipts';
+  } else if (platform === '123RF') {
+    folderName = '123RF-MetaData By FreepikScipts';
   } else if (platform) {
     folderName = `${platform}-MetaData`;
   }

@@ -185,10 +185,8 @@ const Index: React.FC = () => {
       const hasSvgFiles = pendingImages.some(img => isSvgFile(img.file));
       const hasVideoFiles = pendingImages.some(img => isVideoFile(img.file));
       
-      // Show notifications for special file types
-      if (hasSvgFiles) {
-        toast.info('SVG files detected - automatically converting to PNG for Gemini API compatibility while preserving original files');
-      }
+      // Show notifications for special file types - SVG notification removed
+      // The conversion still happens, but we don't show the message
       
       // Process files with a short delay between each
       for (const image of pendingImages) {
