@@ -5,7 +5,6 @@ import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
 import { isEpsFile } from '@/utils/epsMetadataExtractor';
-
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;
   isProcessing: boolean;
@@ -86,7 +85,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       // Create a more specific success message
       let successMsg = '';
       const typesAdded = [];
-      
       if (imageCount > 0) {
         typesAdded.push(`${imageCount} image${imageCount !== 1 ? 's' : ''}`);
       }
@@ -96,7 +94,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       if (epsCount > 0) {
         typesAdded.push(`${epsCount} EPS file${epsCount !== 1 ? 's' : ''}`);
       }
-      
       if (typesAdded.length > 1) {
         const lastType = typesAdded.pop();
         successMsg = `Added ${typesAdded.join(', ')} and ${lastType}`;
@@ -105,7 +102,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       } else {
         successMsg = `${validResults.length} file${validResults.length !== 1 ? 's' : ''} added`;
       }
-      
       toast.success(successMsg);
     } else if (files.length > 0) {
       toast.error('No valid files were found to process.');
@@ -139,17 +135,11 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           <div className="bg-blue-900/30 p-5 rounded-full">
             <Image className="h-7 w-7 text-blue-400" />
           </div>
-          <div className="bg-amber-900/30 p-5 rounded-full">
-            <FileType className="h-7 w-7 text-amber-400" />
-          </div>
-          <div className="bg-purple-900/30 p-5 rounded-full">
-            <Film className="h-7 w-7 text-purple-400" />
-          </div>
+          
+          
         </div>
         
-        <h3 className="text-xl font-medium text-white mb-2">
-          Drag and drop images, EPS designs, or videos here
-        </h3>
+        <h3 className="text-xl font-medium text-white mb-2">Drag and drop images, Designs, or videos here</h3>
         
         <p className="text-amber-400 mb-8 text-sm max-w-md text-center">Supported formats: JPEG, PNG, SVG, EPS, MP4, MOV, AVI, and more (up to 10GB each)</p>
         
@@ -159,15 +149,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             Browse Image Files
           </Button>
           
-          <Button onClick={handleBrowseClick} className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
-            <FileType className="h-5 w-5" />
-            Browse EPS Files
-          </Button>
           
-          <Button onClick={handleBrowseClick} className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
-            <Film className="h-5 w-5" />
-            Browse Video Files
-          </Button>
+          
+          
         </div>
         
         <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" multiple className="hidden" disabled={isProcessing} />
