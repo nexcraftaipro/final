@@ -141,7 +141,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         <h3 className="text-xl font-medium text-white mb-2">Drag and drop images, Designs, or videos here</h3>
         
-        <p className="text-amber-400 mb-8 text-sm max-w-md text-center">Supported formats: JPEG, PNG, SVG, EPS, MP4, MOV, AVI, and more (up to 10GB each)</p>
+        <p className="text-amber-400 mb-8 text-sm max-w-md text-center">Supported formats: JPEG, PNG, SVG, MP4, MOV, AVI, and more (up to 10GB each)</p>
         
         <div className="flex gap-4">
           <Button onClick={handleBrowseClick} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
