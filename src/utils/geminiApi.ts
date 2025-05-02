@@ -17,6 +17,12 @@ interface AnalysisOptions {
   maxKeywords?: number;
   minDescriptionWords?: number;
   maxDescriptionWords?: number;
+  customPromptEnabled?: boolean;
+  customPrompt?: string;
+  prohibitedWords?: string;
+  prohibitedWordsEnabled?: boolean;
+  transparentBgEnabled?: boolean;
+  silhouetteEnabled?: boolean;
 }
 
 interface AnalysisResult {
@@ -46,7 +52,13 @@ export async function analyzeImageWithGemini(
     minKeywords = 25,
     maxKeywords = 35,
     minDescriptionWords = 10,
-    maxDescriptionWords = 30
+    maxDescriptionWords = 30,
+    customPromptEnabled = false,
+    customPrompt = '',
+    prohibitedWords = '',
+    prohibitedWordsEnabled = false,
+    transparentBgEnabled = false,
+    silhouetteEnabled = false
   } = options;
 
   const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
@@ -105,32 +117,123 @@ export async function analyzeImageWithGemini(
     // Define prompt based on platform and file type
     let prompt = `Analyze this image and generate:`;
     
-    // Special handling for EPS files
-    if (originalIsEps) {
-      prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, document type, color information, and content details. Based on this information, generate appropriate metadata for this design file:`;
-    }
-    // Modify prompt for video files
-    else if (originalIsVideo) {
-      prompt = `This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:`;
+    // Add silhouette instructions if enabled
+    let silhouetteInstructions = '';
+    if (silhouetteEnabled) {
+      silhouetteInstructions = `IMPORTANT: This image features a silhouette. Please ensure you:
+1. Add "silhouette" to the end of the title
+2. Include "silhouette" as one of the keywords
+3. Mention the silhouette style in the description as a distinctive feature\n\n`;
     }
     
-    if (generationMode === 'imageToPrompt') {
-      if (originalIsEps) {
-        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, document type (${epsMetadata?.documentType || 'Vector Design'}), and content details. Generate a detailed description of what this design file likely contains. 
+    // Use custom prompt if enabled and provided
+    if (customPromptEnabled && customPrompt.trim()) {
+      // Append the formatting instructions to the custom prompt
+      let formattingPrompt = '';
+      
+      // Add prohibited words instruction if provided and enabled
+      if (prohibitedWordsEnabled && prohibitedWords.trim()) {
+        const prohibitedWordsArray = prohibitedWords
+          .split(',')
+          .map(word => word.trim())
+          .filter(word => word.length > 0);
         
+        if (prohibitedWordsArray.length > 0) {
+          formattingPrompt += `\n\nIMPORTANT: Do not use the following words in any part of the metadata (title, description, or keywords): ${prohibitedWordsArray.join(', ')}.`;
+        }
+      }
+      
+      // Add transparent background instructions if enabled
+      if (transparentBgEnabled) {
+        formattingPrompt += `\n\nIMPORTANT: This image has a transparent background. Please ensure you:
+1. Add "on transparent background" to the end of the title
+2. Include "transparent background" as one of the keywords
+3. Mention the transparent background in the description as a valuable feature for designers`;
+      }
+      
+      // Add silhouette instructions if enabled
+      if (silhouetteEnabled) {
+        formattingPrompt += `\n\nIMPORTANT: This image features a silhouette. Please ensure you:
+1. Add "silhouette" to the end of the title
+2. Include "silhouette" as one of the keywords
+3. Mention the silhouette style in the description as a distinctive feature`;
+      }
+      
+      if (generationMode === 'imageToPrompt') {
+        formattingPrompt += '\n\nReturn the prompt description only, nothing else.';
+      } else if (isFreepikOnly) {
+        formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
+      } else if (isShutterstock) {
+        formattingPrompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array of at least ${minKeywords} terms).`;
+      } else if (isAdobeStock) {
+        formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title" and "keywords" (as an array of at least ${minKeywords} terms).`;
+      } else {
+        if (originalIsVideo) {
+          formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "keywords" (as an array of at least ${minKeywords} terms), and "category" (as a number from 1-10).`;
+        } else {
+          formattingPrompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array of at least ${minKeywords} terms).`;
+        }
+      }
+      
+      prompt = `${customPrompt}${formattingPrompt}`;
+    } else {
+      // Process prohibited words for default prompts
+      let prohibitedWordsInstructions = '';
+      if (prohibitedWordsEnabled && prohibitedWords.trim()) {
+        const prohibitedWordsArray = prohibitedWords
+          .split(',')
+          .map(word => word.trim())
+          .filter(word => word.length > 0);
+        
+        if (prohibitedWordsArray.length > 0) {
+          prohibitedWordsInstructions = `IMPORTANT: Do not use the following words in any part of the metadata (title, description, or keywords): ${prohibitedWordsArray.join(', ')}.\n\n`;
+        }
+      }
+      
+      // Add transparent background instructions if enabled
+      let transparentBgInstructions = '';
+      if (transparentBgEnabled) {
+        transparentBgInstructions = `IMPORTANT: This image has a transparent background. Please ensure you:
+1. Add "on transparent background" to the end of the title
+2. Include "transparent background" as one of the keywords
+3. Mention the transparent background in the description as a valuable feature for designers\n\n`;
+      }
+      
+      // Add silhouette instructions if enabled
+      let silhouetteInstructions = '';
+      if (silhouetteEnabled) {
+        silhouetteInstructions = `IMPORTANT: This image features a silhouette. Please ensure you:
+1. Add "silhouette" to the end of the title
+2. Include "silhouette" as one of the keywords
+3. Mention the silhouette style in the description as a distinctive feature\n\n`;
+      }
+      
+      // Special handling for EPS files
+      if (originalIsEps) {
+        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, creation date, document type, color information, and content details. Based on this information, generate appropriate metadata for this design file:`;
+      }
+      // Modify prompt for video files
+      else if (originalIsVideo) {
+        prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:`;
+      }
+      
+      if (generationMode === 'imageToPrompt') {
+        if (originalIsEps) {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes information like title, creator, document type (${epsMetadata?.documentType || 'Vector Design'}), and content details. Generate a detailed description of what this design file likely contains. 
+          
 Image Count: ${epsMetadata?.imageCount || 1}
 Colors: ${epsMetadata?.colors?.join(', ') || 'Unknown'}
 Fonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}
 
 The description should be at least 50 words but not more than 150 words. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.`;
-      } else if (originalIsVideo) {
-        prompt = `This is a thumbnail from a video file named "${originalFilename}". Generate a detailed description of what this video appears to contain based on this frame. Include details about content, style, colors, movement, and composition. The description should be at least 50 words but not more than 150 words.`;
-      } else {
-        prompt = `Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
-      }
-    } else if (isFreepikOnly) {
-      if (originalIsEps) {
-        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
+        } else if (originalIsVideo) {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is a thumbnail from a video file named "${originalFilename}". Generate a detailed description of what this video appears to contain based on this frame. Include details about content, style, colors, movement, and composition. The description should be at least 50 words but not more than 150 words.`;
+        } else {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}Generate a detailed prompt description to recreate this image with an AI image generator. Include details about content, style, colors, lighting, and composition. The prompt should be at least 50 words but not more than 150 words.`;
+        }
+      } else if (isFreepikOnly) {
+        if (originalIsEps) {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
 
 Document Type: ${epsMetadata?.documentType || 'Vector Design'}
 Image Count: ${epsMetadata?.imageCount || 1}
@@ -141,15 +244,15 @@ Generate metadata for the Freepik platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. The title should be relevant for stock image platforms. Don't use any symbols.
 2. Create an image generation prompt that describes this design file in 1-2 sentences (30-50 words). Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the prompt itself - just describe the content.
 3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design. Focus on content, style, and technical aspects of the design.`;
-      } else {
-        prompt = `Analyze this image and generate metadata for the Freepik platform:
+        } else {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}Analyze this image and generate metadata for the Freepik platform:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the image. The title should be relevant for stock image platforms. Don't use any symbols.
 2. Create an image generation prompt that describes this image in 1-2 sentences (30-50 words).
 3. Generate a detailed list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image. Focus on content, style, emotions, and technical details of the image.`;
-      }
-    } else if (isShutterstock) {
-      if (originalIsEps) {
-        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
+        }
+      } else if (isShutterstock) {
+        if (originalIsEps) {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
 
 Document Type: ${epsMetadata?.documentType || 'Vector Design'}
 Image Count: ${epsMetadata?.imageCount || 1}
@@ -159,14 +262,14 @@ Fonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}
 Generate metadata for the Shutterstock platform:
 1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words about what's likely in this design file. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
-      } else {
-        prompt = `Analyze this image and generate metadata for the Shutterstock platform:
+        } else {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}Analyze this image and generate metadata for the Shutterstock platform:
 1. A clear, descriptive detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
-      }
-    } else if (isAdobeStock) {
-      if (originalIsEps) {
-        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
+        }
+      } else if (isAdobeStock) {
+        if (originalIsEps) {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
 
 Document Type: ${epsMetadata?.documentType || 'Vector Design'}
 Image Count: ${epsMetadata?.imageCount || 1}
@@ -176,20 +279,20 @@ Fonts: ${epsMetadata?.fontInfo?.join(', ') || 'Unknown'}
 Generate metadata for Adobe Stock:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words about what's likely in this design file. Don't use any symbols or phrases like "Vector EPS" or "EPS file".
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
-      } else {
-        prompt = `Analyze this image and generate metadata for Adobe Stock:
+        } else {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}Analyze this image and generate metadata for Adobe Stock:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
-      }
-    } else {
-      if (originalIsVideo) {
-        prompt = `This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:
+        }
+      } else {
+        if (originalIsVideo) {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is a thumbnail from a video file named "${originalFilename}". Analyze this thumbnail and generate metadata suitable for a video:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's in the video. Don't use any symbols.
 2. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this video.
 3. A category number between 1-10, where:
    1=Animations, 2=Backgrounds, 3=Business, 4=Education, 5=Food, 6=Lifestyle, 7=Nature, 8=Presentations, 9=Technology, 10=Other`;
-      } else if (originalIsEps) {
-        prompt = `This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
+        } else if (originalIsEps) {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}This is metadata extracted from an EPS file named "${originalFilename}". The metadata includes the following information:
 
 Document Type: ${epsMetadata?.documentType || 'Vector Design'}
 Image Count: ${epsMetadata?.imageCount || 1}
@@ -200,27 +303,28 @@ Generate appropriate metadata for this design file:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words that accurately describes what's likely in this design file. Don't use any symbols.
 2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words. Important: Do not include phrases like "Vector EPS" or "EPS file" or "Vector file" in the description itself - just describe the content.
 3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this design.`;
-      } else {
-        prompt = `Analyze this image and generate:
+        } else {
+          prompt = `${prohibitedWordsInstructions}${transparentBgInstructions}${silhouetteInstructions}Analyze this image and generate:
 1. A clear, descriptive title between ${minTitleWords}-${maxTitleWords} words. Don't use any symbols.
 2. A detailed description that's between ${minDescriptionWords}-${maxDescriptionWords} words.
 3. A list of ${minKeywords}-${maxKeywords} relevant, specific keywords (single words or short phrases) that someone might search for to find this image.`;
+        }
       }
-    }
-    
-    if (generationMode === 'imageToPrompt') {
-      prompt += `\n\nReturn the prompt description only, nothing else.`;
-    } else if (isFreepikOnly) {
-      prompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
-    } else if (isShutterstock) {
-      prompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array).`;
-    } else if (isAdobeStock) {
-      prompt += `\n\nFormat your response as a JSON object with the fields "title" and "keywords" (as an array).`;
-    } else {
-      if (originalIsVideo) {
-        prompt += `\n\nFormat your response as a JSON object with the fields "title", "keywords" (as an array), and "category" (as a number from 1-10).`;
+      
+      if (generationMode === 'imageToPrompt') {
+        prompt += `\n\nReturn the prompt description only, nothing else.`;
+      } else if (isFreepikOnly) {
+        prompt += `\n\nFormat your response as a JSON object with the fields "title", "prompt", and "keywords" (as an array of at least ${minKeywords} terms).`;
+      } else if (isShutterstock) {
+        prompt += `\n\nFormat your response as a JSON object with the fields "description" and "keywords" (as an array).`;
+      } else if (isAdobeStock) {
+        prompt += `\n\nFormat your response as a JSON object with the fields "title" and "keywords" (as an array).`;
       } else {
-        prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
+        if (originalIsVideo) {
+          prompt += `\n\nFormat your response as a JSON object with the fields "title", "keywords" (as an array), and "category" (as a number from 1-10).`;
+        } else {
+          prompt += `\n\nFormat your response as a JSON object with the fields "title", "description", and "keywords" (as an array).`;
+        }
       }
     }
     
@@ -300,6 +404,96 @@ Generate appropriate metadata for this design file:
     // Ensure titles don't have symbols
     if (result.title) {
       result.title = removeSymbolsFromTitle(result.title);
+    }
+    
+    // Post-process for transparent background if enabled
+    if (transparentBgEnabled) {
+      // Add "on transparent background" to the title if not already present
+      if (result.title && !result.title.toLowerCase().includes('transparent background')) {
+        result.title = result.title.trim() + ' on transparent background';
+      }
+      
+      // Add "transparent background" to keywords if not already present
+      if (result.keywords && !result.keywords.some(k => k.toLowerCase().includes('transparent background'))) {
+        result.keywords.push('transparent background');
+      }
+      
+      // Mention transparent background in description if not already mentioned
+      if (result.description && !result.description.toLowerCase().includes('transparent background')) {
+        result.description = result.description.trim() + ' This image features a transparent background, making it versatile for various design projects.';
+      }
+    }
+    
+    // Post-process for silhouette if enabled
+    if (silhouetteEnabled) {
+      // Add "silhouette" to the title if not already present
+      if (result.title && !result.title.toLowerCase().includes('silhouette')) {
+        result.title = result.title.trim() + ' silhouette';
+      }
+      
+      // Add "silhouette" to keywords if not already present
+      if (result.keywords && !result.keywords.some(k => k.toLowerCase().includes('silhouette'))) {
+        result.keywords.push('silhouette');
+      }
+      
+      // Mention silhouette in description if not already mentioned
+      if (result.description && !result.description.toLowerCase().includes('silhouette')) {
+        result.description = result.description.trim() + ' This image features a striking silhouette design, perfect for creating a bold visual impact.';
+      }
+    }
+    
+    // Ensure we have enough keywords for all platforms and custom prompts
+    if (result.keywords && result.keywords.length < minKeywords) {
+      console.log('Not enough keywords provided, generating more...');
+      
+      // For custom prompts or any platform, generate additional keywords if needed
+      if (customPromptEnabled || (!isFreepikOnly && !isShutterstock && !isAdobeStock)) {
+        // Use title and description to generate more keywords
+        const contentForKeywords = [
+          result.title || '',
+          result.description || '',
+          result.keywords.join(', ')
+        ].join(' ');
+        
+        // Use the existing Freepik keyword generator as a fallback
+        const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords);
+        
+        // Combine existing keywords with new ones, remove duplicates
+        const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
+        
+        // Use the combined list, up to maxKeywords
+        result.keywords = combinedKeywords.slice(0, maxKeywords);
+      }
+    }
+    
+    // Post-process to filter out prohibited words if provided and enabled
+    if (prohibitedWordsEnabled && prohibitedWords.trim()) {
+      const prohibitedWordsArray = prohibitedWords
+        .split(',')
+        .map(word => word.trim().toLowerCase())
+        .filter(word => word.length > 0);
+      
+      if (prohibitedWordsArray.length > 0) {
+        // Filter keywords
+        if (result.keywords && result.keywords.length > 0) {
+          result.keywords = result.keywords.filter(keyword => {
+            const lowerKeyword = keyword.toLowerCase();
+            return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
+          });
+          
+          // If we filtered too many keywords, generate replacements
+          if (result.keywords.length < minKeywords) {
+            const additionalKeywords = getRelevantFreepikKeywords(result.title || '' + ' ' + (result.description || ''));
+            const filteredAdditionalKeywords = additionalKeywords.filter(keyword => {
+              const lowerKeyword = keyword.toLowerCase();
+              return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
+            });
+            
+            // Add filtered additional keywords
+            result.keywords = [...new Set([...result.keywords, ...filteredAdditionalKeywords])].slice(0, maxKeywords);
+          }
+        }
+      }
     }
     
     // For Freepik, use the keywords provided directly from the API response

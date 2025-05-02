@@ -57,6 +57,14 @@ const Index: React.FC = () => {
   const [minDescriptionWords, setMinDescriptionWords] = useState(12); // Updated to 12
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
   
+  // Custom prompt state
+  const [customPromptEnabled, setCustomPromptEnabled] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [prohibitedWords, setProhibitedWords] = useState('');
+  const [prohibitedWordsEnabled, setProhibitedWordsEnabled] = useState(false);
+  const [transparentBgEnabled, setTransparentBgEnabled] = useState(false);
+  const [silhouetteEnabled, setSilhouetteEnabled] = useState(false);
+  
   // Get API key from localStorage or auth context
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
@@ -141,6 +149,30 @@ const Index: React.FC = () => {
     setMaxDescriptionWords(value[0]);
   };
   
+  const handleCustomPromptEnabledChange = (enabled: boolean) => {
+    setCustomPromptEnabled(enabled);
+  };
+  
+  const handleCustomPromptChange = (prompt: string) => {
+    setCustomPrompt(prompt);
+  };
+  
+  const handleProhibitedWordsChange = (words: string) => {
+    setProhibitedWords(words);
+  };
+  
+  const handleProhibitedWordsEnabledChange = (enabled: boolean) => {
+    setProhibitedWordsEnabled(enabled);
+  };
+  
+  const handleTransparentBgEnabledChange = (enabled: boolean) => {
+    setTransparentBgEnabled(enabled);
+  };
+  
+  const handleSilhouetteEnabledChange = (enabled: boolean) => {
+    setSilhouetteEnabled(enabled);
+  };
+  
   const handleUpgradePlan = () => {
     window.location.href = PAYMENT_GATEWAY_URL;
   };
@@ -208,7 +240,13 @@ const Index: React.FC = () => {
             minKeywords,
             maxKeywords,
             minDescriptionWords,
-            maxDescriptionWords
+            maxDescriptionWords,
+            customPromptEnabled,
+            customPrompt,
+            prohibitedWords,
+            prohibitedWordsEnabled,
+            transparentBgEnabled,
+            silhouetteEnabled
           };
           
           // Process the image/video with Gemini API
@@ -296,6 +334,18 @@ const Index: React.FC = () => {
           onMaxDescriptionWordsChange={handleMaxDescriptionWordsChange} 
           selectedPlatforms={platforms} 
           onPlatformChange={handlePlatformChange} 
+          customPromptEnabled={customPromptEnabled}
+          onCustomPromptEnabledChange={handleCustomPromptEnabledChange}
+          customPrompt={customPrompt}
+          onCustomPromptChange={handleCustomPromptChange}
+          prohibitedWords={prohibitedWords}
+          onProhibitedWordsChange={handleProhibitedWordsChange}
+          prohibitedWordsEnabled={prohibitedWordsEnabled}
+          onProhibitedWordsEnabledChange={handleProhibitedWordsEnabledChange}
+          transparentBgEnabled={transparentBgEnabled}
+          onTransparentBgEnabledChange={handleTransparentBgEnabledChange}
+          silhouetteEnabled={silhouetteEnabled}
+          onSilhouetteEnabledChange={handleSilhouetteEnabledChange}
         />
         
         <main className="flex-1 p-6 overflow-auto">
