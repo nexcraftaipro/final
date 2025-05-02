@@ -49,9 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <CustomizationControls minTitleWords={minTitleWords} onMinTitleWordsChange={onMinTitleWordsChange} maxTitleWords={maxTitleWords} onMaxTitleWordsChange={onMaxTitleWordsChange} minKeywords={minKeywords} onMinKeywordsChange={onMinKeywordsChange} maxKeywords={maxKeywords} onMaxKeywordsChange={onMaxKeywordsChange} minDescriptionWords={minDescriptionWords} onMinDescriptionWordsChange={onMinDescriptionWordsChange} maxDescriptionWords={maxDescriptionWords} onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} selectedPlatforms={selectedPlatforms} />
       </div>
       
-      <div className="mt-auto p-4 border-t border-gray-700 my-[37px] py-[40px] mx-0 px-0">
-        <UserProfile />
-      </div>
+      
     </aside>;
 };
 export default Sidebar;
