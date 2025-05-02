@@ -46,7 +46,7 @@ export function removeCommasFromDescription(description: string): string {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false, isDepositphotos: boolean = false, is123RF: boolean = false, isAlamy: boolean = false): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false, isDepositphotos: boolean = false, is123RF: boolean = false, isAlamy: boolean = false, isDreamstime: boolean = false): string {
   // Determine headers based on platform selection
   let headers;
   
@@ -64,6 +64,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     headers = ['oldfilename', '123rf_filename', 'description', 'keywords', 'country'];
   } else if (isAlamy) {
     headers = ['Filename', 'Title', 'Description', 'Keywords', 'Editorial', 'Category', 'Supertags'];
+  } else if (isDreamstime) {
+    headers = ['Filename', 'Title', 'Description', 'Keywords', 'Categories'];
   } else {
     headers = ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
   }
@@ -143,6 +145,15 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `Creative`,
             `"${supertags}"`
           ].join(',');
+        } else if (isDreamstime) {
+          // For Dreamstime, use the standard format with Categories
+          return [
+            `${img.file.name}`,
+            `${cleanTitle}`,
+            `${img.result?.description || ''}`,
+            `"${img.result?.keywords?.join(',') || ''}"`,
+            `"Illustrations"`
+          ].join(',');
         } else {
           return [
             `"${img.file.name}"`,
@@ -174,6 +185,8 @@ export function downloadCSV(csvContent: string, filename = 'image-metadata.csv',
     folderName = '123RF-MetaData By FreepikScipts';
   } else if (platform === 'Alarmy') {
     folderName = 'Alarmy-MetaData By FreepikScipts';
+  } else if (platform === 'Dreamstime') {
+    folderName = 'Dreamstime-MetaData By FreepikScipts';
   } else if (platform) {
     folderName = `${platform}-MetaData`;
   }
