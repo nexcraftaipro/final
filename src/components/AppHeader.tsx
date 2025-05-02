@@ -79,8 +79,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-logo.png" alt="META CSV GENERATOR PRO" className="h-12 w-auto mr-3" />
-            <span className="text-[#f14010] text-xl font-bold">META CSV GENERATOR PRO</span>
-            <div className="ml-4 text-xs text-gray-400">Developed by Pixcraftai</div>
+            <span className="text-[#f14010] text-xl font-bold">Pixcraftai</span>
+            
           </h1>
         </div>
         
