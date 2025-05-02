@@ -173,6 +173,29 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
           </div>
         </div>
       </div>
+
+      <div className={selectedPlatforms.includes('Depositphotos') ? 'block' : 'hidden'}>
+        <div className="space-y-4 border border-gray-700 p-4 rounded-lg">
+          <h3 className="text-md font-semibold text-amber-500">Depositphotos Output Format:</h3>
+          <p className="text-sm text-gray-400">
+            The output for Depositphotos platform will follow this format:
+          </p>
+          <div className="bg-gray-800 p-3 rounded text-xs font-mono">
+            Filename,Title,Description,Keywords,Categories,Editorial,Adult Content
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-white">Step-by-step guide:</h4>
+            <ol className="list-decimal list-inside text-sm text-gray-300 space-y-2">
+              <li>Upload your image files (JPG, PNG, SVG, EPS, etc.)</li>
+              <li>Select "Depositphotos" from the platforms</li>
+              <li>Click "Process" to generate metadata</li>
+              <li>Download the CSV file</li>
+              <li>You'll get output matching exactly this format: Filename,Title,Description,Keywords,Categories,Editorial,Adult Content</li>
+              <li>Example: 22638092_4500_1_01.svg,Cartoon ginger cat sitting with a heart in a speech bubble on a light background is adorable and cute,a cartoon ginger cat sitting with a heart in a speech bubble on a light background is adorable and cute,"cat,cartoon,ginger,sitting,heart,speech bubble,light background,adorable,cute,feline,animal,pet,mammal,illustration,design,drawing,domestic,playful,friendly,whiskers","Photos,Stock Photos",No,No</li>
+            </ol>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -46,7 +46,7 @@ export function removeCommasFromDescription(description: string): string {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false, isDepositphotos: boolean = false): string {
   // Determine headers based on platform selection
   let headers;
   
@@ -58,6 +58,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     headers = ['"Filename"', '"Title"', '"Keywords"', '"Category"'];
   } else if (isVecteezy) {
     headers = ['Filename', 'Title', 'Description', 'Keywords'];
+  } else if (isDepositphotos) {
+    headers = ['Filename', 'Title', 'Description', 'Keywords', 'Categories', 'Editorial', 'Adult Content'];
   } else {
     headers = ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
   }
@@ -104,6 +106,17 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${commaFreeDescription}"`,
             `"${img.result?.keywords?.join(', ') || ''}"`,
           ].join(',');
+        } else if (isDepositphotos) {
+          // For Depositphotos, use the specific format with Categories, Editorial, and Adult Content
+          return [
+            `${img.file.name}`,
+            `${cleanTitle}`,
+            `${img.result?.description || ''}`,
+            `"${img.result?.keywords?.join(',') || ''}"`,
+            `"Photos,Stock Photos"`,
+            `No`,
+            `No`
+          ].join(',');
         } else {
           return [
             `"${img.file.name}"`,
@@ -129,6 +142,8 @@ export function downloadCSV(csvContent: string, filename = 'image-metadata.csv',
     folderName = 'Freepik-MetaData By Freepikscipts';
   } else if (platform === 'Vecteezy') {
     folderName = 'Vecteezy-MetaData By FreepikScipts';
+  } else if (platform === 'Depositphotos') {
+    folderName = 'Depositphotos-MetaData By FreepikScipts';
   } else if (platform) {
     folderName = `${platform}-MetaData`;
   }

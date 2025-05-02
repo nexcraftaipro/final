@@ -41,6 +41,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
   const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
   const isVecteezy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Vecteezy';
+  const isDepositphotos = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Depositphotos';
 
   const handleDownloadCSV = () => {
     // Check if there are any videos to process
@@ -56,7 +57,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     
     // Process regular images if they exist
     if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy);
+      const csvContent = formatImagesAsCSV(
+        regularImages, 
+        isFreepikOnly, 
+        isShutterstock, 
+        isAdobeStock, 
+        isVecteezy,
+        isDepositphotos
+      );
       // Pass the platform name for custom folder naming
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
       downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);

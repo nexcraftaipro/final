@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Camera, Crown, Diamond, Box, CircleIcon } from 'lucide-react';
 
-export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Canva' | '123RF' | 'Dreamstime';
+export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Dreamstime';
 
 interface PlatformSelectorProps {
   selectedPlatforms: Platform[];
@@ -37,9 +36,9 @@ const platforms: {
     name: 'Vecteezy'
   },
   {
-    id: 'Canva',
+    id: 'Depositphotos',
     icon: <Diamond className="h-5 w-5 text-blue-500" />,
-    name: 'Canva'
+    name: 'Depositphotos'
   },
   {
     id: '123RF',
