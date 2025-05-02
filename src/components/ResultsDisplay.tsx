@@ -75,6 +75,28 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     toast.success('Prompt downloaded as text file');
   };
 
+  // Function to download all prompts as a zip file
+  const downloadAllPrompts = () => {
+    const completedImages = images.filter(img => img.status === 'complete');
+    if (completedImages.length === 0) return;
+
+    // Create a single text file with all prompts
+    const allPromptsText = completedImages.map(img => {
+      const filename = img.file.name;
+      const prompt = img.result?.description || '';
+      return `# ${filename}\n\n${prompt}\n\n-------------------\n\n`;
+    }).join('');
+
+    const element = document.createElement("a");
+    const file = new Blob([allPromptsText], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = `all-prompts.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    toast.success('All prompts downloaded as text file');
+  };
+
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
@@ -94,6 +116,17 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             >
               <Download className="h-4 w-4" />
               <span>Download CSV</span>
+            </Button>
+          )}
+          {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadAllPrompts}
+              className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none"
+            >
+              <Download className="h-4 w-4" />
+              <span>Download All</span>
             </Button>
           )}
           <Button
