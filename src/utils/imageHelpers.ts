@@ -46,7 +46,7 @@ export function removeCommasFromDescription(description: string): string {
 }
 
 // Format for CSV export
-export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false, isDepositphotos: boolean = false, is123RF: boolean = false): string {
+export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boolean = false, isShutterstock: boolean = false, isAdobeStock: boolean = false, isVecteezy: boolean = false, isDepositphotos: boolean = false, is123RF: boolean = false, isAlamy: boolean = false): string {
   // Determine headers based on platform selection
   let headers;
   
@@ -62,6 +62,8 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
     headers = ['Filename', 'Title', 'Description', 'Keywords', 'Categories', 'Editorial', 'Adult Content'];
   } else if (is123RF) {
     headers = ['oldfilename', '123rf_filename', 'description', 'keywords', 'country'];
+  } else if (isAlamy) {
+    headers = ['Filename', 'Title', 'Description', 'Keywords', 'Editorial', 'Category', 'Supertags'];
   } else {
     headers = ['"Filename"', '"Title"', '"Description"', '"Keywords"'];
   }
@@ -128,6 +130,19 @@ export function formatImagesAsCSV(images: ProcessedImage[], isFreepikOnly: boole
             `"${img.result?.keywords?.join(',') || ''}"`,
             `US`
           ].join(',');
+        } else if (isAlamy) {
+          // For Alamy, use the specific format with Editorial, Category, and Supertags
+          // Get the first 5 keywords for the Supertags
+          const supertags = img.result?.keywords?.slice(0, 5).join(',') || '';
+          return [
+            `${img.file.name}`,
+            `${cleanTitle}`,
+            `${img.result?.description || ''}`,
+            `"${img.result?.keywords?.join(',') || ''}"`,
+            `No`,
+            `Creative`,
+            `"${supertags}"`
+          ].join(',');
         } else {
           return [
             `"${img.file.name}"`,
@@ -157,6 +172,8 @@ export function downloadCSV(csvContent: string, filename = 'image-metadata.csv',
     folderName = 'Depositphotos-MetaData By FreepikScipts';
   } else if (platform === '123RF') {
     folderName = '123RF-MetaData By FreepikScipts';
+  } else if (platform === 'Alarmy') {
+    folderName = 'Alarmy-MetaData By FreepikScipts';
   } else if (platform) {
     folderName = `${platform}-MetaData`;
   }

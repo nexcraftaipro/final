@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Camera, Crown, Diamond, Box, CircleIcon } from 'lucide-react';
 
-export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Dreamstime';
+export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Alarmy';
 
 interface PlatformSelectorProps {
   selectedPlatforms: Platform[];
@@ -46,9 +46,9 @@ const platforms: {
     name: '123RF'
   },
   {
-    id: 'Dreamstime',
+    id: 'Alarmy',
     icon: <CircleIcon className="h-5 w-5 text-indigo-400" />,
-    name: 'Dreamstime'
+    name: 'Alarmy'
   }
 ];
 
