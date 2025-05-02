@@ -35,7 +35,7 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
               </Tooltip>
             </TooltipProvider>}
         </div>
-        <Switch checked={enabled} onCheckedChange={onEnabledChange} className="ml-auto data-[state=checked]:bg-blue-500 text-rose-600" />
+        <Switch checked={enabled} onCheckedChange={onEnabledChange} className="ml-auto text-rose-600" />
       </div>
       
       {enabled && <div className="p-4 bg-gray-800/50 rounded border border-gray-700 text-xs text-gray-300 space-y-2">
