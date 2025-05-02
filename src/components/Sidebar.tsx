@@ -4,7 +4,6 @@ import CustomizationControls from '@/components/CustomizationControls';
 import CustomizationOptions from '@/components/CustomizationOptions';
 import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
-
 interface SidebarProps {
   selectedMode: GenerationMode;
   onModeChange: (mode: GenerationMode) => void;
@@ -35,7 +34,6 @@ interface SidebarProps {
   silhouetteEnabled?: boolean;
   onSilhouetteEnabledChange?: (enabled: boolean) => void;
 }
-
 const Sidebar: React.FC<SidebarProps> = ({
   selectedMode,
   onModeChange,
@@ -71,42 +69,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
       </div>
       
-      <div className="p-4 border-b border-gray-700">
+      <div className="p-4 border-b border-gray-700 py-0">
         <h3 className="text-sm font-medium mb-4 text-[#f68003]">Metadata Customization</h3>
-        <CustomizationControls 
-          minTitleWords={minTitleWords} 
-          onMinTitleWordsChange={onMinTitleWordsChange} 
-          maxTitleWords={maxTitleWords} 
-          onMaxTitleWordsChange={onMaxTitleWordsChange} 
-          minKeywords={minKeywords} 
-          onMinKeywordsChange={onMinKeywordsChange} 
-          maxKeywords={maxKeywords} 
-          onMaxKeywordsChange={onMaxKeywordsChange} 
-          minDescriptionWords={minDescriptionWords} 
-          onMinDescriptionWordsChange={onMinDescriptionWordsChange} 
-          maxDescriptionWords={maxDescriptionWords} 
-          onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} 
-          selectedPlatforms={selectedPlatforms} 
-        />
+        <CustomizationControls minTitleWords={minTitleWords} onMinTitleWordsChange={onMinTitleWordsChange} maxTitleWords={maxTitleWords} onMaxTitleWordsChange={onMaxTitleWordsChange} minKeywords={minKeywords} onMinKeywordsChange={onMinKeywordsChange} maxKeywords={maxKeywords} onMaxKeywordsChange={onMaxKeywordsChange} minDescriptionWords={minDescriptionWords} onMinDescriptionWordsChange={onMinDescriptionWordsChange} maxDescriptionWords={maxDescriptionWords} onMaxDescriptionWordsChange={onMaxDescriptionWordsChange} selectedPlatforms={selectedPlatforms} />
       </div>
       
       <div className="p-4 border-b border-gray-700 flex-1 overflow-auto">
-        <CustomizationOptions
-          enabled={customPromptEnabled}
-          onEnabledChange={onCustomPromptEnabledChange}
-          customPrompt={customPrompt}
-          onCustomPromptChange={onCustomPromptChange}
-          prohibitedWords={prohibitedWords}
-          onProhibitedWordsChange={onProhibitedWordsChange}
-          prohibitedWordsEnabled={prohibitedWordsEnabled}
-          onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange}
-          transparentBgEnabled={transparentBgEnabled}
-          onTransparentBgEnabledChange={onTransparentBgEnabledChange}
-          silhouetteEnabled={silhouetteEnabled}
-          onSilhouetteEnabledChange={onSilhouetteEnabledChange}
-        />
+        <CustomizationOptions enabled={customPromptEnabled} onEnabledChange={onCustomPromptEnabledChange} customPrompt={customPrompt} onCustomPromptChange={onCustomPromptChange} prohibitedWords={prohibitedWords} onProhibitedWordsChange={onProhibitedWordsChange} prohibitedWordsEnabled={prohibitedWordsEnabled} onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} transparentBgEnabled={transparentBgEnabled} onTransparentBgEnabledChange={onTransparentBgEnabledChange} silhouetteEnabled={silhouetteEnabled} onSilhouetteEnabledChange={onSilhouetteEnabledChange} />
       </div>
     </aside>;
 };
-
 export default Sidebar;
