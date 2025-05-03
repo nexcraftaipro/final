@@ -1,56 +1,22 @@
 /**
- * CSS styles to force English language display
+ * Basic CSS styles to encourage English language display
  */
 
 :root {
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --text-direction: ltr;
 }
 
-/* Force all elements to use English-compatible fonts */
-* {
-  font-family: var(--font-family-base) !important;
-  direction: var(--text-direction) !important;
-  unicode-bidi: plaintext !important;
-  text-align: left;
+/* Set default fonts for common elements */
+body, div, p, h1, h2, h3, h4, h5, h6, button, input, textarea, select, a {
+  font-family: var(--font-family-base);
 }
 
-/* Specific overrides for headings and text elements */
-h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select, option, label {
-  font-family: var(--font-family-base) !important;
-  font-language-override: "ENG";
-  writing-mode: horizontal-tb !important;
+/* Basic language direction settings */
+html, body {
+  direction: ltr;
 }
 
-/* Force RTL languages to display as LTR */
-*[dir="rtl"] {
-  direction: ltr !important;
-}
-
-/* Force non-latin text to use English fonts */
-:lang(zh), :lang(ja), :lang(ko), :lang(ar), :lang(he), :lang(ru) {
-  font-family: var(--font-family-base) !important;
-}
-
-/* Override any specific non-latin font definitions */
-[style*="font-family"] {
-  font-family: var(--font-family-base) !important;
-}
-
-/* Apply notranslate class to prevent browser translation */
-.notranslate {
-  -webkit-user-modify: read-only !important;
-}
-
-/* Ensure all text is visible */
-* {
-  color-scheme: light dark;
-  color: inherit;
-}
-
-/* Specific fixes for Chinese text */
-:lang(zh), :lang(zh-CN), :lang(zh-TW), :lang(zh-HK) {
-  font-family: var(--font-family-base) !important;
-  letter-spacing: normal !important;
-  line-height: normal !important;
+/* Set default language for text */
+body {
+  unicode-bidi: normal;
 } 
