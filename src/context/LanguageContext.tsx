@@ -24,24 +24,43 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  // Initialize language from localStorage or default to English
-  const [language, setLanguageState] = useState<Language>('en');
+  // Always initialize with English
+  const [language] = useState<Language>('en');
 
-  // Load language preference from localStorage on mount
+  // On mount, ensure English is forced and stored
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('app-language') as Language;
-    if (savedLanguage) {
-      setLanguageState(savedLanguage);
-    } else {
-      // Set default language to English if not found
-      localStorage.setItem('app-language', 'en');
+    // Force English language regardless of browser settings
+    document.documentElement.lang = 'en';
+    
+    // Store in localStorage to persist
+    localStorage.setItem('app-language', 'en');
+    
+    // Prevent auto-translation by browsers
+    if (document.head) {
+      // Remove any existing meta tag for content language
+      const existingMeta = document.head.querySelector('meta[http-equiv="Content-Language"]');
+      if (existingMeta) {
+        document.head.removeChild(existingMeta);
+      }
+      
+      // Add meta tag to specify English
+      const meta = document.createElement('meta');
+      meta.httpEquiv = 'Content-Language';
+      meta.content = 'en';
+      document.head.appendChild(meta);
+      
+      // Add meta tag to prevent translation
+      const noTranslateMeta = document.createElement('meta');
+      noTranslateMeta.name = 'google';
+      noTranslateMeta.content = 'notranslate';
+      document.head.appendChild(noTranslateMeta);
     }
   }, []);
 
-  // Update language and save to localStorage
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
-    localStorage.setItem('app-language', lang);
+  // Always use English - this application doesn't support language switching
+  const setLanguage = () => {
+    // This is a no-op since we only support English
+    console.warn('Language switching is not supported. Only English is available.');
   };
 
   return (

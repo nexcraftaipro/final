@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
+import ForceEnglishLanguage from "./components/ForceEnglishLanguage";
 
 const queryClient = new QueryClient();
 
@@ -17,6 +18,7 @@ const App = () => (
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+        <ForceEnglishLanguage />
         <AuthProvider>
           <LanguageProvider>
             <TooltipProvider>
