@@ -157,7 +157,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         <p className="text-gray-400 text-sm text-center mb-2 max-w-md">We process your files directly on your device. All data is automatically removed after metadata extraction.</p>
         
-        <p className="text-blue-400 text-sm font-semibold mt-1">One-click upload for up to 1000 files</p>
+        <p className="text-blue-400 text-sm font-semibold mt-1">Upload a maximum of 500 files in a single action</p>
         
         <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" multiple className="hidden" disabled={isProcessing} />
       </div>
