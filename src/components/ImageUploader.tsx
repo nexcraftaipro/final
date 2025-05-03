@@ -1,7 +1,6 @@
-
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Upload, Image, Film, FileType } from 'lucide-react';
+import { Plus, Upload, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
@@ -17,6 +16,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [activeTab, setActiveTab] = useState<'images' | 'videos' | 'vectors'>('vectors');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -141,7 +141,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   }, []);
 
   return (
-    <div className="dropzone-container bg-gradient-to-br from-[#121212] to-[#1f1f1f] border border-dashed border-gray-700 rounded-xl overflow-hidden shadow-lg">      
+    <div className="dropzone-container bg-gradient-to-br from-[#121212] to-[#1f1f1f] border border-solid border-gray-700 rounded-xl overflow-hidden shadow-lg">      
       <div 
         className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 ${isDragging ? 'dropzone-active bg-blue-900/10 border-blue-400' : 'hover:bg-gray-800/30'}`} 
         onDragOver={handleDragOver} 
@@ -150,34 +150,47 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         onDrop={handleDrop} 
         data-testid="drop-zone"
       >
-        <div className="mb-8 flex gap-4 icon-container">
-          <div className="bg-blue-900/20 p-5 rounded-full icon-glow pulse-animation">
-            <Image className="h-9 w-9 text-blue-400" />
-          </div>
-          <div className="bg-purple-900/20 p-5 rounded-full icon-glow pulse-animation">
-            <Film className="h-9 w-9 text-purple-400" />
-          </div>
+        <div 
+          onClick={handleBrowseClick} 
+          className="bg-gray-500/50 p-5 rounded-full mb-5 cursor-pointer hover:bg-gray-500/70 transition-colors"
+        >
+          <Upload className="h-9 w-9 text-blue-400" />
         </div>
         
-        <h3 className="text-2xl font-bold text-white mb-3 font-['Inter']">Drag and drop media here</h3>
+        <h3 className="text-2xl font-bold text-white mb-5 font-['Inter']">Choose Files</h3>
         
-        <p className="text-amber-300 mb-8 text-sm max-w-md text-center">
-          Supported formats: JPEG, PNG, SVG, MP4, MOV, AVI, and more (up to 10GB each)
+        <div className="file-type-tabs flex gap-2 mb-8">
+          <button 
+            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'images' ? 'bg-blue-600' : 'bg-blue-500/80'}`}
+            onClick={() => setActiveTab('images')}
+          >
+            Images
+          </button>
+          <button 
+            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'vectors' ? 'bg-purple-600' : 'bg-purple-500/80'}`}
+            onClick={() => setActiveTab('vectors')}
+          >
+            Vectors
+          </button>
+          <button 
+            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'videos' ? 'bg-red-600' : 'bg-red-500/80'}`}
+            onClick={() => setActiveTab('videos')}
+          >
+            Videos
+          </button>
+        </div>
+        
+        <div className="privacy-notice flex items-center justify-center mb-2">
+          <Lock className="h-4 w-4 text-gray-400 mr-2" />
+          <span className="text-gray-400 text-sm">Privacy Notice</span>
+        </div>
+        
+        <p className="text-gray-400 text-sm text-center mb-2 max-w-md">
+          Your Files are processed locally and not stored on any server. Files are automatically deleted after metadata generation.
         </p>
         
-        <div className="flex gap-4">
-          <Button 
-            onClick={handleBrowseClick} 
-            className="browse-button bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-8 py-6 rounded-xl flex items-center gap-2 shadow-lg" 
-            disabled={isProcessing}
-          >
-            <Image className="h-5 w-5" />
-            Browse Media Files
-          </Button>
-        </div>
-        
-        <p className="text-gray-400 text-xs mt-6">
-          <span className="bg-gray-800 px-2 py-1 rounded">Tip:</span> For best results, use high-resolution images
+        <p className="text-blue-400 text-sm font-semibold mt-1">
+          Upload up to 1000 files at once
         </p>
         
         <input 
