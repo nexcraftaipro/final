@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
-import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, ChevronLeft } from 'lucide-react';
+import { Sparkles, Loader2, ShieldAlert, Image, Info, Film } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Platform } from '@/components/PlatformSelector';
 import PlatformSelector from '@/components/PlatformSelector';
@@ -20,7 +20,6 @@ import Sidebar from '@/components/Sidebar';
 import { isSvgFile } from '@/utils/svgToPng';
 import { isVideoFile } from '@/utils/videoProcessor';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
-import { getSidebarCollapsed, setSidebarCollapsed } from '@/utils/sidebarStorage';
 
 // Updated payment gateway link
 const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
@@ -66,29 +65,29 @@ const Index: React.FC = () => {
   const [transparentBgEnabled, setTransparentBgEnabled] = useState(false);
   const [silhouetteEnabled, setSilhouetteEnabled] = useState(false);
   
-  // Track sidebar collapsed state for responsive layout
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(getSidebarCollapsed());
-  
-  // Listen for changes in sidebar state
+  // Get API key from localStorage or auth context
   useEffect(() => {
-    const handleSidebarStateChange = () => {
-      setIsSidebarCollapsed(getSidebarCollapsed());
-    };
-    
-    window.addEventListener('sidebar-state-change', handleSidebarStateChange);
-    window.addEventListener('storage', handleSidebarStateChange);
-    
-    return () => {
-      window.removeEventListener('sidebar-state-change', handleSidebarStateChange);
-      window.removeEventListener('storage', handleSidebarStateChange);
-    };
-  }, []);
+    const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
+    if (savedKey) {
+      setApiKey(savedKey);
+    }
+  }, [authApiKey]);
   
   useEffect(() => {
     if (!isLoading && !user) {
       setShouldRedirect(true);
     }
   }, [isLoading, user]);
+  
+  if (shouldRedirect) {
+    return <Navigate to="/auth" replace />;
+  }
+  
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>;
+  }
   
   const handleApiKeyChange = (key: string) => {
     setApiKey(key);
@@ -309,16 +308,6 @@ const Index: React.FC = () => {
   const pendingCount = images.filter(img => img.status === 'pending').length;
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
   
-  if (shouldRedirect) {
-    return <Navigate to="/auth" replace />;
-  }
-  
-  if (isLoading) {
-    return <div className="flex min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>;
-  }
-  
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader
@@ -359,21 +348,7 @@ const Index: React.FC = () => {
           onSilhouetteEnabledChange={handleSilhouetteEnabledChange}
         />
         
-        <main className={`flex-1 p-6 overflow-auto transition-all duration-300 ${isSidebarCollapsed ? 'md:ml-12' : ''}`}>
-          {/* Mobile sidebar toggle button for small screens */}
-          {isSidebarCollapsed === false && (
-            <button 
-              className="md:hidden p-2 mb-4 bg-secondary rounded-md"
-              onClick={() => {
-                setSidebarCollapsed(true);
-                setIsSidebarCollapsed(true);
-              }}
-            >
-              <ChevronLeft className="h-5 w-5" />
-              <span className="sr-only">Hide Sidebar</span>
-            </button>
-          )}
-          
+        <main className="flex-1 p-6 overflow-auto">
           <div className="max-w-5xl mx-auto">
             <div className="mb-6">
               <div className="flex flex-col mb-4 py-[22px] my-0 mx-0 px-0">

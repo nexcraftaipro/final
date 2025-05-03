@@ -1,54 +1,56 @@
-
 /**
- * Basic CSS styles to encourage English language display
+ * CSS styles to force English language display
  */
 
 :root {
   --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --text-direction: ltr;
 }
 
-/* Set default fonts for common elements */
-body, div, p, h1, h2, h3, h4, h5, h6, button, input, textarea, select, a {
-  font-family: var(--font-family-base);
+/* Force all elements to use English-compatible fonts */
+* {
+  font-family: var(--font-family-base) !important;
+  direction: var(--text-direction) !important;
+  unicode-bidi: plaintext !important;
+  text-align: left;
 }
 
-/* Basic language direction settings */
-html, body {
-  direction: ltr;
+/* Specific overrides for headings and text elements */
+h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, select, option, label {
+  font-family: var(--font-family-base) !important;
+  font-language-override: "ENG";
+  writing-mode: horizontal-tb !important;
 }
 
-/* Set default language for text */
-body {
-  unicode-bidi: normal;
+/* Force RTL languages to display as LTR */
+*[dir="rtl"] {
+  direction: ltr !important;
+}
+
+/* Force non-latin text to use English fonts */
+:lang(zh), :lang(ja), :lang(ko), :lang(ar), :lang(he), :lang(ru) {
+  font-family: var(--font-family-base) !important;
+}
+
+/* Override any specific non-latin font definitions */
+[style*="font-family"] {
+  font-family: var(--font-family-base) !important;
+}
+
+/* Apply notranslate class to prevent browser translation */
+.notranslate {
+  -webkit-user-modify: read-only !important;
+}
+
+/* Ensure all text is visible */
+* {
+  color-scheme: light dark;
+  color: inherit;
+}
+
+/* Specific fixes for Chinese text */
+:lang(zh), :lang(zh-CN), :lang(zh-TW), :lang(zh-HK) {
+  font-family: var(--font-family-base) !important;
+  letter-spacing: normal !important;
+  line-height: normal !important;
 } 
-
-/* Mobile optimization styles */
-@media (max-width: 768px) {
-  /* Adjust padding and margins for small screens */
-  .p-6 {
-    padding: 1rem !important;
-  }
-  
-  /* Ensure buttons and inputs are properly sized for touch */
-  button, input, select, textarea {
-    min-height: 44px;
-  }
-  
-  /* Improve text readability on small screens */
-  h1, h2, h3 {
-    line-height: 1.3;
-  }
-  
-  /* Ensure content doesn't overflow on small screens */
-  img, video {
-    max-width: 100%;
-    height: auto;
-  }
-}
-
-/* For when sidebar is collapsed - optimize main content */
-@media (min-width: 769px) {
-  .sidebar-collapsed .main-content {
-    margin-left: 48px;
-  }
-}

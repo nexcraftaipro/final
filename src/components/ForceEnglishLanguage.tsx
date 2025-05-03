@@ -1,16 +1,30 @@
 import { useEffect } from 'react';
+import { useForceEnglish } from '@/hooks/useForceEnglish';
+import { useBlockChinese } from '@/hooks/useBlockChinese';
 
 /**
  * A component that forces the application to use English
- * with a simplified approach that won't cause rendering issues
+ * regardless of browser or system settings
  */
 const ForceEnglishLanguage = () => {
+  // Apply our aggressive English forcing hook
+  useForceEnglish();
+  
+  // Apply specific Chinese blocking
+  useBlockChinese();
+  
   useEffect(() => {
     // Set the HTML lang attribute
     document.documentElement.lang = 'en';
 
-    // Basic meta tags for English language
+    // Set the content language
     if (document.head) {
+      // Remove any previous meta tags
+      const existingMetaTags = document.head.querySelectorAll(
+        'meta[http-equiv="Content-Language"], meta[name="google"]'
+      );
+      existingMetaTags.forEach(tag => document.head.removeChild(tag));
+
       // Set the content language to English
       const contentLanguage = document.createElement('meta');
       contentLanguage.setAttribute('http-equiv', 'Content-Language');
@@ -24,11 +38,21 @@ const ForceEnglishLanguage = () => {
       document.head.appendChild(noTranslate);
     }
 
-    // Basic CSS to force English fonts
+    // Force CSS to use English font rules
     const style = document.createElement('style');
     style.textContent = `
-      body, button, input, textarea, select {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      * {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        unicode-bidi: plaintext;
+        direction: ltr;
+        text-align: left;
+      }
+      
+      /* Ensure all text elements follow Latin text rules */
+      body, div, span, p, h1, h2, h3, h4, h5, h6, button, input, textarea, select, a {
+        font-language-override: "ENG";
+        -webkit-locale: "en";
+        writing-mode: horizontal-tb !important;
       }
     `;
     document.head.appendChild(style);
