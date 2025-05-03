@@ -32,24 +32,30 @@ export const useForceEnglish = () => {
     document.documentElement.lang = 'en';
     
     // Block any auto-detect language features
+    let dateTimeFormatOriginal: typeof Intl.DateTimeFormat | null = null;
+    
     if (window.Intl && window.Intl.DateTimeFormat) {
       // Instead of replacing DateTimeFormat, we'll patch the specific instances
-      const originalDateTimeFormat = window.Intl.DateTimeFormat;
-      window.Intl.DateTimeFormat = function(locales?: string | string[], options?: Intl.DateTimeFormatOptions) {
-        // Always force English locale
-        return new originalDateTimeFormat('en-US', options);
-      };
+      dateTimeFormatOriginal = window.Intl.DateTimeFormat;
       
-      // Preserve the static method
-      window.Intl.DateTimeFormat.supportedLocalesOf = originalDateTimeFormat.supportedLocalesOf;
+      // Create a new constructor function that preserves the original behavior but forces locale
+      const DateTimeFormatProxy = function(this: Intl.DateTimeFormat, locales?: string | string[], options?: Intl.DateTimeFormatOptions) {
+        return new dateTimeFormatOriginal!('en-US', options);
+      } as unknown as typeof Intl.DateTimeFormat;
+      
+      // Copy static methods from the original constructor
+      DateTimeFormatProxy.supportedLocalesOf = dateTimeFormatOriginal.supportedLocalesOf;
+      
+      // Replace the original constructor
+      window.Intl.DateTimeFormat = DateTimeFormatProxy;
     }
     
     return () => {
       // Cleanup function to restore original methods
       window.getComputedStyle = originalGetComputedStyle;
       
-      if (window.Intl && window.Intl.DateTimeFormat) {
-        window.Intl.DateTimeFormat = originalDateTimeFormat;
+      if (dateTimeFormatOriginal && window.Intl) {
+        window.Intl.DateTimeFormat = dateTimeFormatOriginal;
       }
     };
   }, []);
