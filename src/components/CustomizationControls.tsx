@@ -2,6 +2,8 @@ import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useText } from '@/hooks/useText';
+
 interface CustomizationControlsProps {
   minTitleWords: number;
   onMinTitleWordsChange: (value: number[]) => void;
@@ -17,6 +19,7 @@ interface CustomizationControlsProps {
   onMaxDescriptionWordsChange: (value: number[]) => void;
   selectedPlatforms: string[];
 }
+
 interface SettingRowProps {
   label: string;
   tooltip: string;
@@ -26,6 +29,7 @@ interface SettingRowProps {
   onChange: (value: number[]) => void;
   currentValue: string;
 }
+
 const SettingRow: React.FC<SettingRowProps> = ({
   label,
   tooltip,
@@ -57,6 +61,7 @@ const SettingRow: React.FC<SettingRowProps> = ({
       </div>
     </div>;
 };
+
 const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   minTitleWords,
   onMinTitleWordsChange,
@@ -72,19 +77,68 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
   onMaxDescriptionWordsChange,
   selectedPlatforms
 }) => {
+  const t = useText();
+  
   return <div>
-      <SettingRow label="Min Title Words" tooltip="Minimum number of words for the generated title" value={minTitleWords} minValue={5} maxValue={25} onChange={onMinTitleWordsChange} currentValue={minTitleWords.toString()} />
+      <SettingRow 
+        label={t('customization.minTitleWords')} 
+        tooltip="Minimum number of words for the generated title" 
+        value={minTitleWords} 
+        minValue={5} 
+        maxValue={25} 
+        onChange={onMinTitleWordsChange} 
+        currentValue={minTitleWords.toString()} 
+      />
       
-      <SettingRow label="Max Title Words" tooltip="Maximum number of words for the generated title" value={maxTitleWords} minValue={10} maxValue={25} onChange={onMaxTitleWordsChange} currentValue={maxTitleWords.toString()} />
+      <SettingRow 
+        label={t('customization.maxTitleWords')} 
+        tooltip="Maximum number of words for the generated title" 
+        value={maxTitleWords} 
+        minValue={10} 
+        maxValue={25} 
+        onChange={onMaxTitleWordsChange} 
+        currentValue={maxTitleWords.toString()} 
+      />
       
-      <SettingRow label="Min Keywords" tooltip="Minimum number of keywords to generate" value={minKeywords} minValue={5} maxValue={50} onChange={onMinKeywordsChange} currentValue={minKeywords.toString()} />
+      <SettingRow 
+        label={t('customization.minKeywords')} 
+        tooltip="Minimum number of keywords to generate" 
+        value={minKeywords} 
+        minValue={5} 
+        maxValue={50} 
+        onChange={onMinKeywordsChange} 
+        currentValue={minKeywords.toString()} 
+      />
       
-      <SettingRow label="Max Keywords" tooltip="Maximum number of keywords to generate" value={maxKeywords} minValue={10} maxValue={50} onChange={onMaxKeywordsChange} currentValue={maxKeywords.toString()} />
+      <SettingRow 
+        label={t('customization.maxKeywords')} 
+        tooltip="Maximum number of keywords to generate" 
+        value={maxKeywords} 
+        minValue={10} 
+        maxValue={50} 
+        onChange={onMaxKeywordsChange} 
+        currentValue={maxKeywords.toString()} 
+      />
       
-      <SettingRow label="Min Description Words" tooltip="Minimum number of words for the generated description" value={minDescriptionWords} minValue={5} // Changed from 10 to 5
-    maxValue={40} onChange={onMinDescriptionWordsChange} currentValue={minDescriptionWords.toString()} />
+      <SettingRow 
+        label={t('customization.minDescriptionWords')} 
+        tooltip="Minimum number of words for the generated description" 
+        value={minDescriptionWords} 
+        minValue={5} 
+        maxValue={40} 
+        onChange={onMinDescriptionWordsChange} 
+        currentValue={minDescriptionWords.toString()} 
+      />
       
-      <SettingRow label="Max Description Words" tooltip="Maximum number of words for the generated description" value={maxDescriptionWords} minValue={20} maxValue={40} onChange={onMaxDescriptionWordsChange} currentValue={maxDescriptionWords.toString()} />
+      <SettingRow 
+        label={t('customization.maxDescriptionWords')} 
+        tooltip="Maximum number of words for the generated description" 
+        value={maxDescriptionWords} 
+        minValue={20} 
+        maxValue={40} 
+        onChange={onMaxDescriptionWordsChange} 
+        currentValue={maxDescriptionWords.toString()} 
+      />
 
       <div className={selectedPlatforms.includes('Vecteezy') ? 'block' : 'hidden'}>
         
@@ -103,4 +157,5 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
       </div>
     </div>;
 };
+
 export default CustomizationControls;
