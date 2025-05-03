@@ -21,13 +21,26 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   selectedPlatforms = ['AdobeStock']
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  
   if (images.length === 0) return null;
+  
   const handleCopyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     toast.success('Copied to clipboard');
     setTimeout(() => {
       setCopiedId(null);
+    }, 2000);
+  };
+
+  // New function to copy specific metadata fields
+  const handleCopyField = (text: string, field: string, imageId: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(`${imageId}-${field}`);
+    toast.success(`${field} copied to clipboard`);
+    setTimeout(() => {
+      setCopiedField(null);
     }, 2000);
   };
 
@@ -93,10 +106,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     document.body.removeChild(element);
     toast.success('All prompts downloaded as text file');
   };
+  
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
-  // Removed duplicate platform declarations that were here
+  // Define the copy button style
+  const copyButtonStyle = "bg-[#EA8C1C] hover:bg-[#d17b17] text-white rounded-md p-1 ml-2";
 
   return <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
@@ -194,26 +209,68 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     
                     <div className="space-y-4">
                       <div>
-                        <h4 className="text-amber-500">Filename:</h4>
+                        <div className="flex items-center">
+                          <h4 className="text-amber-500">Filename:</h4>
+                          <button 
+                            className={copyButtonStyle}
+                            onClick={() => handleCopyField(image.file.name, 'Filename', image.id)}
+                          >
+                            {copiedField === `${image.id}-Filename` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            <span className="sr-only">Copy Filename</span>
+                          </button>
+                        </div>
                         <p className="text-white">{image.file.name}</p>
                       </div>
                       
                       {/* Show title for all platforms except Shutterstock */}
                       {!isShutterstock && <div>
-                          <h4 className="text-amber-500">Title:</h4>
+                          <div className="flex items-center">
+                            <h4 className="text-amber-500">Title:</h4>
+                            <button 
+                              className={copyButtonStyle}
+                              onClick={() => handleCopyField(cleanTitle, 'Title', image.id)}
+                            >
+                              {copiedField === `${image.id}-Title` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              <span className="sr-only">Copy Title</span>
+                            </button>
+                          </div>
                           <p className="text-white">{cleanTitle}</p>
                         </div>}
                       
                       {/* Show description for platforms other than Freepik and AdobeStock */}
                       {!isFreepikOnly && !isAdobeStock && <div>
-                          <h4 className="text-amber-500">Description:</h4>
+                          <div className="flex items-center">
+                            <h4 className="text-amber-500">Description:</h4>
+                            <button 
+                              className={copyButtonStyle}
+                              onClick={() => handleCopyField(
+                                isVecteezy && image.result?.description 
+                                  ? removeCommasFromDescription(image.result.description) 
+                                  : image.result?.description || '', 
+                                'Description', 
+                                image.id
+                              )}
+                            >
+                              {copiedField === `${image.id}-Description` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              <span className="sr-only">Copy Description</span>
+                            </button>
+                          </div>
                           {isVecteezy ? <div>
                               <p className="text-white">{image.result?.description ? removeCommasFromDescription(image.result.description) : ''}</p>
                             </div> : <p className="text-white">{image.result?.description || ''}</p>}
                         </div>}
                       
                       <div>
-                        <h4 className="text-amber-500">Keywords:</h4>
+                        <div className="flex items-center">
+                          <h4 className="text-amber-500">Keywords:</h4>
+                          <button 
+                            className={copyButtonStyle}
+                            onClick={() => handleCopyField(image.result?.keywords?.join(', ') || '', 'Keywords', image.id)}
+                          >
+                            {copiedField === `${image.id}-Keywords` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                            <span className="sr-only">Copy Keywords</span>
+                          </button>
+                        </div>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => <span key={index} className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
                                 {keyword}
@@ -223,7 +280,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
                       {/* Show categories for AdobeStock */}
                       {isAdobeStock && image.result?.categories && <div>
-                          <h4 className="text-amber-500">Category:</h4>
+                          <div className="flex items-center">
+                            <h4 className="text-amber-500">Category:</h4>
+                            <button 
+                              className={copyButtonStyle}
+                              onClick={() => handleCopyField(image.result?.categories?.join(', ') || '', 'Category', image.id)}
+                            >
+                              {copiedField === `${image.id}-Category` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              <span className="sr-only">Copy Category</span>
+                            </button>
+                          </div>
                           <div className="flex flex-wrap gap-2 mt-2">
                             {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
                                 {category}
@@ -233,7 +299,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
                       {/* Show categories for Shutterstock */}
                       {isShutterstock && image.result?.categories && <div>
-                          <h4 className="text-amber-500">Categories:</h4>
+                          <div className="flex items-center">
+                            <h4 className="text-amber-500">Categories:</h4>
+                            <button 
+                              className={copyButtonStyle}
+                              onClick={() => handleCopyField(image.result?.categories?.join(', ') || '', 'Categories', image.id)}
+                            >
+                              {copiedField === `${image.id}-Categories` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                              <span className="sr-only">Copy Categories</span>
+                            </button>
+                          </div>
                           <div className="flex flex-wrap gap-2 mt-2">
                             {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
                                 {category}
@@ -243,12 +318,30 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
                       {isFreepikOnly && <>
                           <div>
-                            <h4 className="text-amber-500">Prompt:</h4>
+                            <div className="flex items-center">
+                              <h4 className="text-amber-500">Prompt:</h4>
+                              <button 
+                                className={copyButtonStyle}
+                                onClick={() => handleCopyField(image.result?.prompt || 'Not provided', 'Prompt', image.id)}
+                              >
+                                {copiedField === `${image.id}-Prompt` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                <span className="sr-only">Copy Prompt</span>
+                              </button>
+                            </div>
                             <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
                           </div>
                           
                           <div>
-                            <h4 className="text-amber-500">Base-Model:</h4>
+                            <div className="flex items-center">
+                              <h4 className="text-amber-500">Base-Model:</h4>
+                              <button 
+                                className={copyButtonStyle}
+                                onClick={() => handleCopyField(image.result?.baseModel || 'Not provided', 'Base-Model', image.id)}
+                              >
+                                {copiedField === `${image.id}-Base-Model` ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                <span className="sr-only">Copy Base-Model</span>
+                              </button>
+                            </div>
                             <p className="text-white">{image.result?.baseModel || 'Not provided'}</p>
                           </div>
                         </>}

@@ -22,6 +22,15 @@ body {
   unicode-bidi: normal;
 } 
 
+/* Copy button hover effects */
+button.copy-button:hover {
+  opacity: 0.9;
+}
+
+button.copy-button:active {
+  transform: scale(0.95);
+}
+
 /* Sidebar responsive styles */
 body.sidebar-hidden main {
   margin-left: 0;
@@ -41,5 +50,10 @@ body.sidebar-hidden main {
   header .space-x-4 {
     column-gap: 0.5rem;
     row-gap: 0.5rem;
+  }
+
+  /* Make copy buttons smaller on mobile */
+  .copy-button {
+    padding: 0.25rem !important;
   }
 }
