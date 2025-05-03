@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
 import CustomizationOptions from '@/components/CustomizationOptions';
 import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
 import { useText } from '@/hooks/useText';
+import { Button } from './ui/button';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { setSidebarCollapsed, getSidebarCollapsed } from '@/utils/sidebarStorage';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -68,10 +72,60 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSilhouetteEnabledChange = () => {}
 }) => {
   const t = useText();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  // Load sidebar state from localStorage on component mount
+  useEffect(() => {
+    setIsSidebarCollapsed(getSidebarCollapsed());
+  }, []);
   
-  return <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
-      <div className="p-3 border-b border-gray-700">
+  const toggleSidebar = () => {
+    const newState = !isSidebarCollapsed;
+    setIsSidebarCollapsed(newState);
+    setSidebarCollapsed(newState);
+    
+    // Show a toast notification for mobile users
+    if (window.innerWidth < 768) {
+      if (newState) {
+        toast.info("Sidebar hidden for better mobile view");
+      } else {
+        toast.info("Sidebar expanded");
+      }
+    }
+  };
+  
+  if (isSidebarCollapsed) {
+    return (
+      <div className="bg-secondary border-r border-gray-700 flex flex-col h-screen transition-all duration-300" 
+           style={{ width: '48px' }}>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleSidebar}
+          className="m-2 hover:bg-gray-700"
+          title="Expand Sidebar"
+          aria-label="Expand Sidebar"
+        >
+          <ChevronRight className="h-5 w-5 text-gray-400" />
+        </Button>
+      </div>
+    );
+  }
+  
+  return (
+    <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto transition-all duration-300 md:w-80 sm:w-72">
+      <div className="p-3 border-b border-gray-700 flex justify-between items-center">
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={toggleSidebar}
+          className="hover:bg-gray-700"
+          title="Hide Sidebar"
+          aria-label="Hide Sidebar"
+        >
+          <ChevronLeft className="h-5 w-5 text-gray-400" />
+        </Button>
       </div>
       
       <div className="p-4 border-b border-gray-700 py-[8px]">
@@ -109,7 +163,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
         />
       </div>
-    </aside>;
+    </aside>
+  );
 };
 
 export default Sidebar;

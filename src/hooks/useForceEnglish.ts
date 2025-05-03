@@ -1,16 +1,21 @@
-
 import { useEffect } from 'react';
 
 /**
- * Hook that forces the application to use English by providing interceptors and styling
- * This is a safer approach that doesn't try to redefine non-configurable properties
+ * Hook that forces the application to use English by overriding browser APIs
+ * This is a more aggressive approach to ensure English is used
  */
 export const useForceEnglish = () => {
   useEffect(() => {
-    // Instead of trying to redefine navigator properties (which are non-configurable),
-    // we can intercept specific APIs that might use these properties
+    // Override navigator.language and navigator.languages
+    Object.defineProperty(navigator, 'language', {
+      get: function() { return 'en-US'; }
+    });
     
-    // Intercept language detection via getComputedStyle
+    Object.defineProperty(navigator, 'languages', {
+      get: function() { return ['en-US', 'en']; }
+    });
+    
+    // Intercept language detection
     const originalGetComputedStyle = window.getComputedStyle;
     window.getComputedStyle = function(element, pseudoElt) {
       const style = originalGetComputedStyle(element, pseudoElt);
@@ -32,31 +37,21 @@ export const useForceEnglish = () => {
     document.documentElement.lang = 'en';
     
     // Block any auto-detect language features
-    let dateTimeFormatOriginal: typeof Intl.DateTimeFormat | null = null;
-    
     if (window.Intl && window.Intl.DateTimeFormat) {
-      // Instead of replacing DateTimeFormat, we'll patch the specific instances
-      dateTimeFormatOriginal = window.Intl.DateTimeFormat;
-      
-      // Create a new constructor function that preserves the original behavior but forces locale
-      const DateTimeFormatProxy = function(this: Intl.DateTimeFormat, locales?: string | string[], options?: Intl.DateTimeFormatOptions) {
-        return new dateTimeFormatOriginal!('en-US', options);
-      } as unknown as typeof Intl.DateTimeFormat;
-      
-      // Copy static methods from the original constructor
-      DateTimeFormatProxy.supportedLocalesOf = dateTimeFormatOriginal.supportedLocalesOf;
-      
-      // Replace the original constructor
-      window.Intl.DateTimeFormat = DateTimeFormatProxy;
+      const originalDateTimeFormat = window.Intl.DateTimeFormat;
+      // Instead of completely replacing DateTimeFormat, we'll just patch
+      // the constructor to always use English locale
+      const originalDateTimeFormatConstructor = window.Intl.DateTimeFormat;
+      (window.Intl as any).DateTimeFormat = function(locales?: string | string[], options?: Intl.DateTimeFormatOptions) {
+        return new originalDateTimeFormatConstructor('en-US', options);
+      };
+      // Preserve the supportedLocalesOf static method
+      (window.Intl.DateTimeFormat as any).supportedLocalesOf = originalDateTimeFormatConstructor.supportedLocalesOf;
     }
     
     return () => {
-      // Cleanup function to restore original methods
+      // Restore original getComputedStyle on cleanup
       window.getComputedStyle = originalGetComputedStyle;
-      
-      if (dateTimeFormatOriginal && window.Intl) {
-        window.Intl.DateTimeFormat = dateTimeFormatOriginal;
-      }
     };
   }, []);
-};
+}; 

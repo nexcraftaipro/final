@@ -24,43 +24,21 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  // Always initialize with English
+  // Always use English
   const [language] = useState<Language>('en');
 
-  // On mount, ensure English is forced and stored
+  // Set basic language attributes
   useEffect(() => {
-    // Force English language regardless of browser settings
+    // Set HTML language attribute
     document.documentElement.lang = 'en';
     
-    // Store in localStorage to persist
+    // Store language preference
     localStorage.setItem('app-language', 'en');
-    
-    // Prevent auto-translation by browsers
-    if (document.head) {
-      // Remove any existing meta tag for content language
-      const existingMeta = document.head.querySelector('meta[http-equiv="Content-Language"]');
-      if (existingMeta) {
-        document.head.removeChild(existingMeta);
-      }
-      
-      // Add meta tag to specify English
-      const meta = document.createElement('meta');
-      meta.httpEquiv = 'Content-Language';
-      meta.content = 'en';
-      document.head.appendChild(meta);
-      
-      // Add meta tag to prevent translation
-      const noTranslateMeta = document.createElement('meta');
-      noTranslateMeta.name = 'google';
-      noTranslateMeta.content = 'notranslate';
-      document.head.appendChild(noTranslateMeta);
-    }
   }, []);
 
-  // Always use English - this application doesn't support language switching
+  // No-op function since we only support English
   const setLanguage = () => {
-    // This is a no-op since we only support English
-    console.warn('Language switching is not supported. Only English is available.');
+    console.info('Language is fixed to English in this application.');
   };
 
   return (
