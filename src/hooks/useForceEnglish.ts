@@ -1,21 +1,16 @@
+
 import { useEffect } from 'react';
 
 /**
- * Hook that forces the application to use English by overriding browser APIs
- * This is a more aggressive approach to ensure English is used
+ * Hook that forces the application to use English by providing interceptors and styling
+ * This is a safer approach that doesn't try to redefine non-configurable properties
  */
 export const useForceEnglish = () => {
   useEffect(() => {
-    // Override navigator.language and navigator.languages
-    Object.defineProperty(navigator, 'language', {
-      get: function() { return 'en-US'; }
-    });
+    // Instead of trying to redefine navigator properties (which are non-configurable),
+    // we can intercept specific APIs that might use these properties
     
-    Object.defineProperty(navigator, 'languages', {
-      get: function() { return ['en-US', 'en']; }
-    });
-    
-    // Intercept language detection
+    // Intercept language detection via getComputedStyle
     const originalGetComputedStyle = window.getComputedStyle;
     window.getComputedStyle = function(element, pseudoElt) {
       const style = originalGetComputedStyle(element, pseudoElt);
@@ -38,20 +33,24 @@ export const useForceEnglish = () => {
     
     // Block any auto-detect language features
     if (window.Intl && window.Intl.DateTimeFormat) {
+      // Instead of replacing DateTimeFormat, we'll patch the specific instances
       const originalDateTimeFormat = window.Intl.DateTimeFormat;
-      // Instead of completely replacing DateTimeFormat, we'll just patch
-      // the constructor to always use English locale
-      const originalDateTimeFormatConstructor = window.Intl.DateTimeFormat;
-      (window.Intl as any).DateTimeFormat = function(locales?: string | string[], options?: Intl.DateTimeFormatOptions) {
-        return new originalDateTimeFormatConstructor('en-US', options);
+      window.Intl.DateTimeFormat = function(locales?: string | string[], options?: Intl.DateTimeFormatOptions) {
+        // Always force English locale
+        return new originalDateTimeFormat('en-US', options);
       };
-      // Preserve the supportedLocalesOf static method
-      (window.Intl.DateTimeFormat as any).supportedLocalesOf = originalDateTimeFormatConstructor.supportedLocalesOf;
+      
+      // Preserve the static method
+      window.Intl.DateTimeFormat.supportedLocalesOf = originalDateTimeFormat.supportedLocalesOf;
     }
     
     return () => {
-      // Restore original getComputedStyle on cleanup
+      // Cleanup function to restore original methods
       window.getComputedStyle = originalGetComputedStyle;
+      
+      if (window.Intl && window.Intl.DateTimeFormat) {
+        window.Intl.DateTimeFormat = originalDateTimeFormat;
+      }
     };
   }, []);
-}; 
+};
