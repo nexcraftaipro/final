@@ -66,7 +66,7 @@ export default {
 			},
 			fontFamily: {
 				sans: ['Inter', 'sans-serif'],
-				display: ['SF Pro Display', 'Inter', 'sans-serif'],
+				display: ['Inter', 'SF Pro Display', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -143,6 +143,10 @@ export default {
 						transform: 'scale(1)',
 						opacity: '1'
 					}
+				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
 				}
 			},
 			animation: {
@@ -153,7 +157,8 @@ export default {
 				'slide-up': 'slide-up 0.4s ease-out',
 				'slide-down': 'slide-down 0.4s ease-out',
 				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
-				'scale-in': 'scale-in 0.3s ease-out'
+				'scale-in': 'scale-in 0.3s ease-out',
+				'float': 'float 6s ease-in-out infinite',
 			},
 			backdropFilter: {
 				'none': 'none',
@@ -163,6 +168,8 @@ export default {
 				'glass': '0 4px 30px rgba(0, 0, 0, 0.1)',
 				'glass-strong': '0 8px 32px rgba(0, 0, 0, 0.1)',
 				'glass-hover': '0 8px 32px rgba(0, 0, 0, 0.15)',
+				'glow-blue': '0 0 15px rgba(65, 145, 255, 0.6)',
+				'glow-purple': '0 0 15px rgba(155, 135, 245, 0.6)',
 			}
 		}
 	},

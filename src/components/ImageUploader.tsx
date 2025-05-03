@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, Image, Film, FileType } from 'lucide-react';
@@ -5,31 +6,37 @@ import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
 import { isEpsFile } from '@/utils/epsMetadataExtractor';
+
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;
   isProcessing: boolean;
 }
+
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImagesSelected,
   isProcessing
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
+
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
+
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   }, []);
+
   const processFiles = useCallback(async (files: FileList) => {
     const processedImages: ProcessedImage[] = [];
     const promises: Promise<ProcessedImage>[] = [];
@@ -107,6 +114,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       toast.error('No valid files were found to process.');
     }
   }, [onImagesSelected]);
+
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -115,6 +123,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       processFiles(e.dataTransfer.files);
     }
   }, [processFiles]);
+
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
@@ -124,38 +133,65 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       }
     }
   }, [processFiles]);
+
   const handleBrowseClick = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
     }
   }, []);
-  return <div className="bg-gray-900 border border-dashed border-gray-700 rounded-lg overflow-hidden">      
-      <div className={`drop-zone flex flex-col items-center justify-center p-10 transition-all duration-300 ${isDragging ? 'border-blue-500 bg-blue-900/20' : 'hover:bg-gray-800/70'}`} onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDrop={handleDrop} data-testid="drop-zone">
-        <div className="mb-6 flex gap-4">
-          <div className="bg-blue-900/30 p-5 rounded-full">
-            <Image className="h-7 w-7 text-blue-400" />
+
+  return (
+    <div className="dropzone-container bg-gradient-to-br from-[#121212] to-[#1f1f1f] border border-dashed border-gray-700 rounded-xl overflow-hidden shadow-lg">      
+      <div 
+        className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 ${isDragging ? 'dropzone-active bg-blue-900/10 border-blue-400' : 'hover:bg-gray-800/30'}`} 
+        onDragOver={handleDragOver} 
+        onDragEnter={handleDragEnter} 
+        onDragLeave={handleDragLeave} 
+        onDrop={handleDrop} 
+        data-testid="drop-zone"
+      >
+        <div className="mb-8 flex gap-4 icon-container">
+          <div className="bg-blue-900/20 p-5 rounded-full icon-glow pulse-animation">
+            <Image className="h-9 w-9 text-blue-400" />
           </div>
-          
-          
+          <div className="bg-purple-900/20 p-5 rounded-full icon-glow pulse-animation">
+            <Film className="h-9 w-9 text-purple-400" />
+          </div>
         </div>
         
-        <h3 className="text-xl font-medium text-white mb-2">Drag and drop images, Designs, or videos here</h3>
+        <h3 className="text-2xl font-bold text-white mb-3 font-['Inter']">Drag and drop media here</h3>
         
-        <p className="text-amber-400 mb-8 text-sm max-w-md text-center">Supported formats: JPEG, PNG, SVG, MP4, MOV, AVI, and more (up to 10GB each)</p>
+        <p className="text-amber-300 mb-8 text-sm max-w-md text-center">
+          Supported formats: JPEG, PNG, SVG, MP4, MOV, AVI, and more (up to 10GB each)
+        </p>
         
         <div className="flex gap-4">
-          <Button onClick={handleBrowseClick} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md flex items-center gap-2" disabled={isProcessing}>
+          <Button 
+            onClick={handleBrowseClick} 
+            className="browse-button bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-8 py-6 rounded-xl flex items-center gap-2 shadow-lg" 
+            disabled={isProcessing}
+          >
             <Image className="h-5 w-5" />
-            Browse Image Files
+            Browse Media Files
           </Button>
-          
-          
-          
-          
         </div>
         
-        <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" multiple className="hidden" disabled={isProcessing} />
+        <p className="text-gray-400 text-xs mt-6">
+          <span className="bg-gray-800 px-2 py-1 rounded">Tip:</span> For best results, use high-resolution images
+        </p>
+        
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileInputChange} 
+          accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
+          multiple 
+          className="hidden" 
+          disabled={isProcessing} 
+        />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ImageUploader;
