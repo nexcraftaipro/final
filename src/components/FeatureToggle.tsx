@@ -23,7 +23,7 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
   return <div className="space-y-4 pt-2 border-t border-gray-700">
       <div className="flex justify-between items-center">
         <div className="flex items-center">
-          <h3 className="text-sm font-medium text-[#f68003]">{title}</h3>
+          <h3 className="text-sm font-medium text-white">{title}</h3>
           {tooltipText && <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
