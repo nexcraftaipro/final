@@ -1,4 +1,3 @@
-
 /**
  * Basic CSS styles to encourage English language display
  */
@@ -21,34 +20,3 @@ html, body {
 body {
   unicode-bidi: normal;
 } 
-
-/* Mobile optimization styles */
-@media (max-width: 768px) {
-  /* Adjust padding and margins for small screens */
-  .p-6 {
-    padding: 1rem !important;
-  }
-  
-  /* Ensure buttons and inputs are properly sized for touch */
-  button, input, select, textarea {
-    min-height: 44px;
-  }
-  
-  /* Improve text readability on small screens */
-  h1, h2, h3 {
-    line-height: 1.3;
-  }
-  
-  /* Ensure content doesn't overflow on small screens */
-  img, video {
-    max-width: 100%;
-    height: auto;
-  }
-}
-
-/* For when sidebar is collapsed - optimize main content */
-@media (min-width: 769px) {
-  .sidebar-collapsed .main-content {
-    margin-left: 48px;
-  }
-}
