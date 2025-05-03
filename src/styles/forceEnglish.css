@@ -22,41 +22,6 @@ body {
   unicode-bidi: normal;
 } 
 
-/* Copy button hover effects */
-button.copy-button:hover {
-  opacity: 0.9;
-}
-
-button.copy-button:active {
-  transform: scale(0.95);
-}
-
-/* Copy text button styles */
-.copy-text-button {
-  background-color: #EA8C1C;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
-  cursor: pointer;
-  position: absolute;
-  right: 16px;
-  transition: all 0.2s ease;
-}
-
-.copy-text-button:hover {
-  background-color: #d17b17;
-}
-
-.metadata-field {
-  position: relative;
-  padding-right: 80px; /* Make room for the button */
-  margin-bottom: 12px;
-}
-
 /* Sidebar responsive styles */
 body.sidebar-hidden main {
   margin-left: 0;
@@ -76,15 +41,5 @@ body.sidebar-hidden main {
   header .space-x-4 {
     column-gap: 0.5rem;
     row-gap: 0.5rem;
-  }
-
-  /* Make copy buttons smaller on mobile */
-  .copy-button {
-    padding: 0.25rem !important;
-  }
-  
-  /* Adjust position for copy text buttons on mobile */
-  .copy-text-button {
-    right: 8px;
   }
 }
