@@ -1,3 +1,4 @@
+
 /**
  * Basic CSS styles to encourage English language display
  */
@@ -20,3 +21,25 @@ html, body {
 body {
   unicode-bidi: normal;
 } 
+
+/* Sidebar responsive styles */
+body.sidebar-hidden main {
+  margin-left: 0;
+}
+
+/* Responsive styles for mobile */
+@media (max-width: 768px) {
+  body.sidebar-hidden .flex-1 {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  header .flex {
+    flex-wrap: wrap;
+  }
+  
+  header .space-x-4 {
+    column-gap: 0.5rem;
+    row-gap: 0.5rem;
+  }
+}

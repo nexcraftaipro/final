@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { FileType, Eye, EyeOff, CreditCard, Facebook, Video, FileVideo } from 'lucide-react';
+import { FileType, Eye, EyeOff, CreditCard, Facebook, Video, FileVideo, RefreshCcw, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
@@ -8,11 +9,13 @@ import { useNavigate } from 'react-router-dom';
 import UserProfile from '@/components/UserProfile';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 interface AppHeaderProps {
   remainingCredits: string | number;
   apiKey: string;
   onApiKeyChange: (key: string) => void;
 }
+
 const AppHeader: React.FC<AppHeaderProps> = ({
   remainingCredits,
   apiKey,
@@ -20,11 +23,13 @@ const AppHeader: React.FC<AppHeaderProps> = ({
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
+  const [sidebarVisible, setSidebarVisible] = useState(true);
   const navigate = useNavigate();
   const {
     user,
     apiKey: authApiKey
   } = useAuth();
+  
   useEffect(() => {
     // Initialize from props apiKey
     setInputKey(apiKey);
@@ -37,9 +42,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       onApiKeyChange(authApiKey);
     }
   }, [authApiKey, apiKey, onApiKeyChange]);
+  
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebar-visible');
+    if (savedState !== null) {
+      setSidebarVisible(savedState === 'true');
+    }
+    
+    // Apply the sidebar visibility class to the body
+    document.body.classList.toggle('sidebar-hidden', !sidebarVisible);
+  }, []);
+
   const toggleShowApiKey = () => {
     setShowApiKey(!showApiKey);
   };
+  
   const handleSaveKey = () => {
     if (inputKey) {
       localStorage.setItem('gemini-api-key', inputKey);
@@ -49,18 +67,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       toast.error('Please enter an API key');
     }
   };
+  
   const handleClearKey = () => {
     localStorage.removeItem('gemini-api-key');
     setInputKey('');
     onApiKeyChange('');
     toast.success('API key cleared');
   };
+  
   const openSupportPage = () => {
     window.open("https://www.facebook.com/PixCraft01", "_blank");
   };
+  
   const openTutorialVideo = () => {
     window.open("https://youtu.be/MZ17lLPe9mE?si=Ep8U175PzODWq4G3", "_blank");
   };
+  
   const openEpsProcessVideo = () => {
     window.open("https://youtu.be/FJL8F1vn55Q?si=dUpFZQlYSFg6Xvi8", "_blank");
   };
@@ -71,17 +93,57 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     const avatarSeed = user.email || 'default';
     return `https://api.dicebear.com/7.x/personas/svg?seed=${avatarSeed}`;
   };
+  
   const navigateToHome = () => {
     navigate('/');
   };
+  
+  const toggleSidebar = () => {
+    const newState = !sidebarVisible;
+    setSidebarVisible(newState);
+    localStorage.setItem('sidebar-visible', String(newState));
+    document.body.classList.toggle('sidebar-hidden', !newState);
+    
+    // Dispatch a custom event to notify Sidebar component
+    window.dispatchEvent(new CustomEvent('toggle-sidebar', { detail: { visible: newState } }));
+  };
+  
+  const handleRefresh = () => {
+    window.location.reload();
+  };
+  
   return <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-logo.png" alt="META CSV GENERATOR PRO" className="h-12 w-auto mr-3" />
             <span className="text-[#f14010] text-xl font-bold">Pixcraftai</span>
-            
           </h1>
+          
+          {/* Sidebar toggle button */}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={toggleSidebar}
+            className="ml-4 text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
+          >
+            {sidebarVisible ? 
+              <PanelLeftClose className="h-4 w-4 mr-2" /> : 
+              <PanelLeftOpen className="h-4 w-4 mr-2" />
+            }
+            {sidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
+          </Button>
+          
+          {/* Refresh button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRefresh}
+            className="ml-2 text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
+            title="Refresh page"
+          >
+            <RefreshCcw className="h-4 w-4" />
+          </Button>
         </div>
         
         <div className="flex items-center space-x-4">
@@ -148,4 +210,5 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       </div>
     </header>;
 };
+
 export default AppHeader;

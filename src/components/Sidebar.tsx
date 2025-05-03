@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
 import CustomizationOptions from '@/components/CustomizationOptions';
@@ -68,6 +69,32 @@ const Sidebar: React.FC<SidebarProps> = ({
   onSilhouetteEnabledChange = () => {}
 }) => {
   const t = useText();
+  const [isVisible, setIsVisible] = useState(true);
+  
+  // Load sidebar visibility state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebar-visible');
+    if (savedState !== null) {
+      setIsVisible(savedState === 'true');
+    }
+  }, []);
+  
+  // Listen for toggle events from the header
+  useEffect(() => {
+    const handleToggleSidebar = (event: CustomEvent) => {
+      setIsVisible(event.detail.visible);
+    };
+    
+    window.addEventListener('toggle-sidebar', handleToggleSidebar as EventListener);
+    
+    return () => {
+      window.removeEventListener('toggle-sidebar', handleToggleSidebar as EventListener);
+    };
+  }, []);
+  
+  if (!isVisible) {
+    return null;
+  }
   
   return <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
       <div className="p-3 border-b border-gray-700">
