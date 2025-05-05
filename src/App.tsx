@@ -28,6 +28,8 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/terms" element={<Navigate to="/terms-of-service.html" />} />
+                <Route path="/privacy" element={<Navigate to="/privacy-policy.html" />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </TooltipProvider>
