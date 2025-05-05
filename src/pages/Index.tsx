@@ -190,6 +190,13 @@ const Index: React.FC = () => {
       return;
     }
     
+    // Added check for authentication - redirect to auth if not logged in
+    if (!user) {
+      toast.info('Please sign in to process images');
+      navigate('/auth');
+      return;
+    }
+    
     // Count video files for better messaging
     const videoFiles = pendingImages.filter(img => isVideoFile(img.file));
     const imageFiles = pendingImages.filter(img => !isVideoFile(img.file));
@@ -373,7 +380,7 @@ const Index: React.FC = () => {
                 />
               </div>
               
-              {pendingCount > 0 && canGenerateMetadata && (
+              {pendingCount > 0 && (
                 <div className="flex justify-center mt-8">
                   <Button
                     onClick={handleProcessImages}
@@ -395,7 +402,7 @@ const Index: React.FC = () => {
                 </div>
               )}
               
-              {!canGenerateMetadata && (
+              {!canGenerateMetadata && user && (
                 <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-4 flex flex-col items-center mt-4">
                   <div className="flex items-center mb-2">
                     <ShieldAlert className="h-5 w-5 text-amber-500 mr-2" />
