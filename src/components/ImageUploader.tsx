@@ -141,6 +141,16 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   }, [isProcessing]);
 
+  const handleTabClick = useCallback((tab: 'images' | 'videos' | 'vectors', e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the dropzone click
+    setActiveTab(tab);
+    
+    // Also open the file manager when tabs are clicked
+    if (!isProcessing && fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  }, [isProcessing]);
+
   return (
     <div className="dropzone-container bg-gradient-to-br from-[#121212] to-[#1f1f1f] border border-solid border-gray-700 rounded-xl overflow-hidden shadow-lg">      
       <div 
@@ -161,28 +171,19 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         <div className="file-type-tabs flex gap-2 mb-8">
           <button 
             className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'images' ? 'bg-blue-600' : 'bg-blue-500/80'}`} 
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveTab('images');
-            }}
+            onClick={(e) => handleTabClick('images', e)}
           >
             Images
           </button>
           <button 
             className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'vectors' ? 'bg-purple-600' : 'bg-purple-500/80'}`} 
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveTab('vectors');
-            }}
+            onClick={(e) => handleTabClick('vectors', e)}
           >
             Vectors
           </button>
           <button 
             className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'videos' ? 'bg-red-600' : 'bg-red-500/80'}`} 
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveTab('videos');
-            }}
+            onClick={(e) => handleTabClick('videos', e)}
           >
             Videos
           </button>
