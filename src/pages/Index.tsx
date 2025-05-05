@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import { toast } from 'sonner';
-import { Sparkles, Loader2, ShieldAlert, Image, Info, Film } from 'lucide-react';
+import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Platform } from '@/components/PlatformSelector';
 import PlatformSelector from '@/components/PlatformSelector';
@@ -72,16 +72,6 @@ const Index: React.FC = () => {
       setApiKey(savedKey);
     }
   }, [authApiKey]);
-  
-  useEffect(() => {
-    if (!isLoading && !user) {
-      setShouldRedirect(true);
-    }
-  }, [isLoading, user]);
-  
-  if (shouldRedirect) {
-    return <Navigate to="/auth" replace />;
-  }
   
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center">
@@ -178,6 +168,14 @@ const Index: React.FC = () => {
   };
   
   const handleProcessImages = async () => {
+    // Check if user is authenticated first
+    if (!user) {
+      // Redirect to auth page if not authenticated
+      toast.info('Please sign in or sign up to process images');
+      navigate('/auth');
+      return;
+    }
+    
     if (!apiKey) {
       toast.error('Please enter your Gemini API key first');
       return;
@@ -373,29 +371,39 @@ const Index: React.FC = () => {
                 />
               </div>
               
-              {pendingCount > 0 && canGenerateMetadata && (
+              {pendingCount > 0 && (
                 <div className="flex justify-center mt-8">
-                  <Button
-                    onClick={handleProcessImages}
-                    disabled={isProcessing || !apiKey}
-                    className="glow-button bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
-                  >
-                    {isProcessing ? (
-                      <>
-                        <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="mr-2 h-5 w-5" />
-                        Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
-                      </>
-                    )}
-                  </Button>
+                  {!user ? (
+                    <Button
+                      onClick={() => navigate('/auth')}
+                      className="glow-button bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
+                    >
+                      <LogIn className="mr-2 h-5 w-5" />
+                      Login to Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleProcessImages}
+                      disabled={isProcessing || !apiKey}
+                      className="glow-button bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 h-5 w-5" />
+                          Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </div>
               )}
               
-              {!canGenerateMetadata && (
+              {!canGenerateMetadata && user && (
                 <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-4 flex flex-col items-center mt-4">
                   <div className="flex items-center mb-2">
                     <ShieldAlert className="h-5 w-5 text-amber-500 mr-2" />

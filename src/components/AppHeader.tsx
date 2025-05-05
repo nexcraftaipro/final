@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { FileType, Eye, EyeOff, CreditCard, Facebook, Video, FileVideo, RefreshCcw, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { FileType, Eye, EyeOff, CreditCard, Facebook, Video, FileVideo, RefreshCcw, PanelLeftClose, PanelLeftOpen, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
@@ -147,6 +146,19 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         </div>
         
         <div className="flex items-center space-x-4">
+          {/* Show the login button for non-authenticated users */}
+          {!user && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="bg-blue-600 hover:bg-blue-700 text-white border-blue-700 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
+              onClick={() => navigate('/auth')}
+            >
+              <LogIn className="h-4 w-4 mr-1" />
+              Login / Sign Up
+            </Button>
+          )}
+        
           {user && <>
               <Button variant="outline" size="sm" className="text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" onClick={() => navigate('/pricing')}>
                 <CreditCard className="h-4 w-4 mr-1" />
