@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate } from 'react-router-dom';
@@ -6,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, FileType } from 'lucide-react';
+import { GoogleLoginButton } from '@/components/GoogleLoginButton';
+import { toast } from 'sonner';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -41,6 +42,11 @@ const Auth: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleGoogleError = (error: any) => {
+    console.error('Google authentication error:', error);
+    toast.error('Google authentication failed. Please try again.');
   };
   
   if (isLoading) {
@@ -96,6 +102,20 @@ const Auth: React.FC = () => {
                       Signing in...
                     </> : "Sign In"}
                 </Button>
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+
+                <GoogleLoginButton onError={handleGoogleError} />
+
                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                   Upon sign in, you'll be assigned a Gemini API key automatically
                 </p>
@@ -127,6 +147,20 @@ const Auth: React.FC = () => {
                       Creating account...
                     </> : "Sign Up"}
                 </Button>
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <span className="w-full border-t" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-background px-2 text-muted-foreground">
+                      Or continue with
+                    </span>
+                  </div>
+                </div>
+
+                <GoogleLoginButton onError={handleGoogleError} />
+
                 <p className="text-xs text-center text-gray-500 dark:text-gray-400">
                   Upon sign up and login, you'll get a Gemini API key assigned automatically
                 </p>
