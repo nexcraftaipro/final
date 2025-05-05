@@ -1,36 +1,22 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, FileType } from 'lucide-react';
-import { toast } from 'sonner';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-  
   const {
     signIn,
     signUp,
     user,
     isLoading
   } = useAuth();
-  
-  // Show a message if redirected from the home page
-  useEffect(() => {
-    const from = location.state?.from;
-    if (from === '/') {
-      toast.info('Please sign in to process images', {
-        duration: 5000,
-      });
-    }
-  }, [location]);
 
   // Redirect if already authenticated
   if (!isLoading && user) {
@@ -42,8 +28,6 @@ const Auth: React.FC = () => {
     setIsSubmitting(true);
     try {
       await signIn(email, password);
-      // Redirect back to home after successful sign-in
-      navigate('/');
     } finally {
       setIsSubmitting(false);
     }
@@ -76,11 +60,9 @@ const Auth: React.FC = () => {
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center py-8">
-        <div className="mb-6 text-center">
-          <h2 className="text-xl font-medium">Sign in to process your images</h2>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Create an account or sign in to continue
-          </p>
+        <div className="mb-12 text-center">
+          
+          
         </div>
 
         <div className="w-full max-w-md p-8 glass-panel rounded-xl shadow-md glow">

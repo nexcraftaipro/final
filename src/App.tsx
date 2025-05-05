@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,7 +10,6 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
-import OneTimeNotice from "./components/OneTimeNotice";
 
 const queryClient = new QueryClient();
 
@@ -22,21 +20,8 @@ const App = () => (
         <AuthProvider>
           <LanguageProvider>
             <TooltipProvider>
-              {/* Support message notice */}
-              <OneTimeNotice 
-                message="If you face any error, please contact the support option" 
-                noticeId="support-notice"
-              />
-              
-              {/* Configure Toasters */}
               <Toaster />
-              <Sonner 
-                richColors 
-                closeButton 
-                theme="dark"
-                style={{ zIndex: 100 }} 
-              />
-              
+              <Sonner />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
