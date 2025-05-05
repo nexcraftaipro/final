@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Upload, Lock } from 'lucide-react';
@@ -5,10 +6,12 @@ import { toast } from 'sonner';
 import { ProcessedImage, createImagePreview, generateId, isValidImageType, isValidFileSize, formatFileSize } from '@/utils/imageHelpers';
 import { isVideoFile } from '@/utils/videoProcessor';
 import { isEpsFile } from '@/utils/epsMetadataExtractor';
+
 interface ImageUploaderProps {
   onImagesSelected: (images: ProcessedImage[]) => void;
   isProcessing: boolean;
 }
+
 const ImageUploader: React.FC<ImageUploaderProps> = ({
   onImagesSelected,
   isProcessing
@@ -16,21 +19,25 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
   const [isDragging, setIsDragging] = useState(false);
   const [activeTab, setActiveTab] = useState<'images' | 'videos' | 'vectors'>('vectors');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
+
   const handleDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(true);
   }, []);
+
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
   }, []);
+
   const processFiles = useCallback(async (files: FileList) => {
     const processedImages: ProcessedImage[] = [];
     const promises: Promise<ProcessedImage>[] = [];
@@ -108,6 +115,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       toast.error('No valid files were found to process.');
     }
   }, [onImagesSelected]);
+
   const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -116,6 +124,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       processFiles(e.dataTransfer.files);
     }
   }, [processFiles]);
+
   const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       processFiles(e.target.files);
@@ -125,27 +134,56 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       }
     }
   }, [processFiles]);
+
   const handleBrowseClick = useCallback(() => {
-    if (fileInputRef.current) {
+    if (!isProcessing && fileInputRef.current) {
       fileInputRef.current.click();
     }
-  }, []);
-  return <div className="dropzone-container bg-gradient-to-br from-[#121212] to-[#1f1f1f] border border-solid border-gray-700 rounded-xl overflow-hidden shadow-lg">      
-      <div className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 ${isDragging ? 'dropzone-active bg-blue-900/10 border-blue-400' : 'hover:bg-gray-800/30'}`} onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDrop={handleDrop} data-testid="drop-zone">
-        <div onClick={handleBrowseClick} className="bg-gray-500/50 p-5 rounded-full mb-5 cursor-pointer hover:bg-gray-500/70 transition-colors">
+  }, [isProcessing]);
+
+  return (
+    <div className="dropzone-container bg-gradient-to-br from-[#121212] to-[#1f1f1f] border border-solid border-gray-700 rounded-xl overflow-hidden shadow-lg">      
+      <div 
+        className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer ${isDragging ? 'dropzone-active bg-blue-900/10 border-blue-400' : 'hover:bg-gray-800/30'}`} 
+        onDragOver={handleDragOver} 
+        onDragEnter={handleDragEnter} 
+        onDragLeave={handleDragLeave} 
+        onDrop={handleDrop} 
+        onClick={handleBrowseClick}
+        data-testid="drop-zone"
+      >
+        <div className="bg-gray-500/50 p-5 rounded-full mb-5 cursor-pointer hover:bg-gray-500/70 transition-colors">
           <Upload className="h-9 w-9 text-blue-400" />
         </div>
         
         <h3 className="text-2xl font-bold text-white mb-5 font-['Inter']">Choose Files</h3>
         
         <div className="file-type-tabs flex gap-2 mb-8">
-          <button className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'images' ? 'bg-blue-600' : 'bg-blue-500/80'}`} onClick={() => setActiveTab('images')}>
+          <button 
+            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'images' ? 'bg-blue-600' : 'bg-blue-500/80'}`} 
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTab('images');
+            }}
+          >
             Images
           </button>
-          <button className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'vectors' ? 'bg-purple-600' : 'bg-purple-500/80'}`} onClick={() => setActiveTab('vectors')}>
+          <button 
+            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'vectors' ? 'bg-purple-600' : 'bg-purple-500/80'}`} 
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTab('vectors');
+            }}
+          >
             Vectors
           </button>
-          <button className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'videos' ? 'bg-red-600' : 'bg-red-500/80'}`} onClick={() => setActiveTab('videos')}>
+          <button 
+            className={`px-5 py-2 rounded-full text-white font-semibold text-sm ${activeTab === 'videos' ? 'bg-red-600' : 'bg-red-500/80'}`} 
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveTab('videos');
+            }}
+          >
             Videos
           </button>
         </div>
@@ -159,8 +197,18 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
         
         <p className="text-blue-400 text-sm font-semibold mt-1">Upload a maximum of 500 files in a single action</p>
         
-        <input type="file" ref={fileInputRef} onChange={handleFileInputChange} accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" multiple className="hidden" disabled={isProcessing} />
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileInputChange} 
+          accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
+          multiple 
+          className="hidden" 
+          disabled={isProcessing} 
+        />
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ImageUploader;
