@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Camera, Crown, Diamond, Box, CircleIcon } from 'lucide-react';
 
-export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Alarmy' | 'Dreamstime';
+export type Platform = 'Freepik' | 'AdobeStock' | 'Shutterstock' | 'Vecteezy' | 'Depositphotos' | '123RF' | 'Alamy' | 'Dreamstime';
 
 interface PlatformSelectorProps {
   selectedPlatforms: Platform[];
@@ -82,9 +82,9 @@ const platforms: {
     }
   },
   {
-    id: 'Alarmy',
+    id: 'Alamy',
     icon: <CircleIcon className="h-5 w-5 text-indigo-400" />,
-    name: 'Alarmy',
+    name: 'Alamy',
     colors: {
       ring: "ring-indigo-400",
       bg: "bg-indigo-400/10",

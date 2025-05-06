@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Info } from 'lucide-react';
@@ -152,7 +153,7 @@ const CustomizationControls: React.FC<CustomizationControlsProps> = ({
         
       </div>
 
-      <div className={selectedPlatforms.includes('Alarmy') ? 'block' : 'hidden'}>
+      <div className={selectedPlatforms.includes('Alamy') ? 'block' : 'hidden'}>
         
       </div>
     </div>;
