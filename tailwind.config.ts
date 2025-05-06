@@ -62,6 +62,12 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				pixcraft: {
+					navy: '#1A1F2C',
+					orange: '#f14010',
+					accent: '#f68003',
+					green: '#10b981'
 				}
 			},
 			fontFamily: {

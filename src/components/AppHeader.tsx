@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FileType, Eye, EyeOff, CreditCard, Facebook, Video, FileVideo, RefreshCcw, PanelLeftClose, PanelLeftOpen, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -111,12 +112,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.location.reload();
   };
   
-  return <header className="bg-secondary border-b border-gray-700 py-2 px-4">
+  return <header className="bg-pixcraft-navy border-b border-gray-700/50 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-logo.png" alt="META CSV GENERATOR PRO" className="h-12 w-auto mr-3" />
-            <span className="text-[#f14010] text-xl font-bold">Pixcraftai</span>
+            <span className="text-pixcraft-orange text-xl font-bold">Pixcraftai</span>
           </h1>
           
           {/* Sidebar toggle button - Modified to only show the icon */}

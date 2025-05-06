@@ -6,6 +6,7 @@ import CustomizationOptions from '@/components/CustomizationOptions';
 import UserProfile from '@/components/UserProfile';
 import { Platform } from './PlatformSelector';
 import { useText } from '@/hooks/useText';
+import { Settings } from 'lucide-react';
 
 interface SidebarProps {
   selectedMode: GenerationMode;
@@ -70,6 +71,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const t = useText();
   const [isVisible, setIsVisible] = useState(true);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   
   // Load sidebar visibility state from localStorage
   useEffect(() => {
@@ -92,17 +94,22 @@ const Sidebar: React.FC<SidebarProps> = ({
     };
   }, []);
   
+  const toggleSettings = () => {
+    setSettingsOpen(!settingsOpen);
+  };
+  
   if (!isVisible) {
     return null;
   }
   
-  return <aside className="w-80 bg-secondary border-r border-gray-700 flex flex-col h-screen overflow-auto">
-      <div className="p-3 border-b border-gray-700">
+  return (
+    <aside className="w-80 bg-pixcraft-navy border-r border-gray-700/50 flex flex-col h-screen overflow-auto">
+      <div className="p-3 border-b border-gray-700/50">
         <GenerationModeSelector selectedMode={selectedMode} onModeChange={onModeChange} />
       </div>
       
-      <div className="p-4 border-b border-gray-700 py-[8px]">
-        <h3 className="text-sm font-medium mb-4 text-[#f68003]">{t('sidebar.customization')}</h3>
+      <div className="p-4 border-b border-gray-700/50 py-[8px]">
+        <h3 className="text-sm font-medium mb-4 text-pixcraft-accent">{t('sidebar.customization')}</h3>
         <CustomizationControls 
           minTitleWords={minTitleWords} 
           onMinTitleWordsChange={onMinTitleWordsChange} 
@@ -120,23 +127,38 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
       </div>
       
-      <div className="p-4 border-b border-gray-700 flex-1 overflow-auto py-[8px]">
-        <CustomizationOptions 
-          enabled={customPromptEnabled} 
-          onEnabledChange={onCustomPromptEnabledChange} 
-          customPrompt={customPrompt} 
-          onCustomPromptChange={onCustomPromptChange} 
-          prohibitedWords={prohibitedWords} 
-          onProhibitedWordsChange={onProhibitedWordsChange} 
-          prohibitedWordsEnabled={prohibitedWordsEnabled} 
-          onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} 
-          transparentBgEnabled={transparentBgEnabled} 
-          onTransparentBgEnabledChange={onTransparentBgEnabledChange} 
-          silhouetteEnabled={silhouetteEnabled} 
-          onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
-        />
+      <div className="p-4 border-b border-gray-700/50 flex-1 overflow-auto py-[8px]">
+        <div className="flex items-center justify-between mb-2">
+          <button 
+            onClick={toggleSettings}
+            className="flex items-center text-pixcraft-accent hover:text-pixcraft-orange transition-colors"
+          >
+            <Settings className="h-4 w-4 mr-1" />
+            <span className="text-sm font-medium uppercase">Settings</span>
+            <span className={`ml-1 transform transition-transform ${settingsOpen ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </button>
+        </div>
+        {settingsOpen && (
+          <CustomizationOptions 
+            enabled={customPromptEnabled} 
+            onEnabledChange={onCustomPromptEnabledChange} 
+            customPrompt={customPrompt} 
+            onCustomPromptChange={onCustomPromptChange} 
+            prohibitedWords={prohibitedWords} 
+            onProhibitedWordsChange={onProhibitedWordsChange} 
+            prohibitedWordsEnabled={prohibitedWordsEnabled} 
+            onProhibitedWordsEnabledChange={onProhibitedWordsEnabledChange} 
+            transparentBgEnabled={transparentBgEnabled} 
+            onTransparentBgEnabledChange={onTransparentBgEnabledChange} 
+            silhouetteEnabled={silhouetteEnabled} 
+            onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
+          />
+        )}
       </div>
-    </aside>;
+    </aside>
+  );
 };
 
 export default Sidebar;

@@ -1,5 +1,4 @@
 
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -28,6 +27,16 @@
     --input: 220 13% 91%;
     --ring: 224 71.4% 4.1%;
     --radius: 0.5rem;
+    
+    /* Sidebar colors */
+    --sidebar-background: 220 27% 14%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-border: 215 20% 25%;
+    --sidebar-ring: 215 20% 40%;
+    --sidebar-primary: 25 93% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 30% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
   }
 
   .dark {
@@ -50,6 +59,16 @@
     --border: 215 27.9% 16.9%;
     --input: 215 27.9% 16.9%;
     --ring: 216 12.2% 83.9%;
+    
+    /* Sidebar colors */
+    --sidebar-background: 220 27% 14%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-border: 215 20% 25%;
+    --sidebar-ring: 215 20% 40%;
+    --sidebar-primary: 25 93% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 215 30% 22%;
+    --sidebar-accent-foreground: 0 0% 100%;
   }
 }
 
@@ -69,7 +88,7 @@
   }
   
   .mode-tab.active {
-    @apply text-white font-medium border-b-2 border-green-500;
+    @apply text-white font-medium border-b-2 border-pixcraft-green;
   }
   
   .keyword-tag {
