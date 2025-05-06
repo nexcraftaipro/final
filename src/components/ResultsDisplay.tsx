@@ -38,7 +38,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isVecteezy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Vecteezy';
   const isDepositphotos = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Depositphotos';
   const is123RF = selectedPlatforms.length === 1 && selectedPlatforms[0] === '123RF';
-  const isAlamy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Alarmy';
+  const isAlamy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Alamy';
   const handleDownloadCSV = () => {
     // Check if there are any videos to process
     const videoImages = images.filter(img => img.result?.isVideo);
@@ -95,8 +95,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   };
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
-
-  // Removed duplicate platform declarations that were here
 
   return <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
