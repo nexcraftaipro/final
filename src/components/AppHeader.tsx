@@ -29,6 +29,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     apiKey: authApiKey
   } = useAuth();
   
+  // Load sidebar state from localStorage
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebar-visible');
+    if (savedState !== null) {
+      setSidebarVisible(savedState === 'true');
+    }
+    
+    // Apply the sidebar visibility class to the body
+    document.body.classList.toggle('sidebar-hidden', !sidebarVisible);
+  }, []);
+
   useEffect(() => {
     // Initialize from props apiKey
     setInputKey(apiKey);
@@ -42,17 +53,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     }
   }, [authApiKey, apiKey, onApiKeyChange]);
   
-  // Load sidebar state from localStorage
-  useEffect(() => {
-    const savedState = localStorage.getItem('sidebar-visible');
-    if (savedState !== null) {
-      setSidebarVisible(savedState === 'true');
-    }
-    
-    // Apply the sidebar visibility class to the body
-    document.body.classList.toggle('sidebar-hidden', !sidebarVisible);
-  }, []);
-
   const toggleShowApiKey = () => {
     setShowApiKey(!showApiKey);
   };
@@ -119,18 +119,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             <span className="text-[#f14010] text-xl font-bold">Pixcraftai</span>
           </h1>
           
-          {/* Sidebar toggle button */}
+          {/* Sidebar toggle button - Modified to only show the icon */}
           <Button 
             variant="ghost" 
-            size="sm" 
+            size="icon" 
             onClick={toggleSidebar}
             className="ml-4 text-gray-300 hover:bg-gray-700/50 hover:text-white transition-colors"
+            title={sidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
           >
             {sidebarVisible ? 
-              <PanelLeftClose className="h-4 w-4 mr-2" /> : 
-              <PanelLeftOpen className="h-4 w-4 mr-2" />
+              <PanelLeftClose className="h-4 w-4" /> : 
+              <PanelLeftOpen className="h-4 w-4" />
             }
-            {sidebarVisible ? 'Hide Sidebar' : 'Show Sidebar'}
           </Button>
           
           {/* Refresh button */}
