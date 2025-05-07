@@ -6,6 +6,8 @@ import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
 import { Platform } from '@/components/PlatformSelector';
+import { getCategoryNameById } from '@/utils/categorySelector';
+
 interface ResultsDisplayProps {
   images: ProcessedImage[];
   onRemoveImage: (id: string) => void;
@@ -218,6 +220,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                               </span>) : <span className="text-gray-400">No keywords available</span>}
                         </div>
                       </div>
+
+                      {/* Show video category if applicable */}
+                      {image.result?.isVideo && <div>
+                          <h4 className="text-amber-500">Video Category:</h4>
+                          <div className="flex items-center mt-1">
+                            <span className="bg-amber-600 text-white text-xs px-3 py-1 rounded-full">
+                              {image.result.category ? `${image.result.category} - ${getCategoryNameById(image.result.category)}` : "Not categorized"}
+                            </span>
+                          </div>
+                        </div>}
 
                       {/* Show categories for AdobeStock */}
                       {isAdobeStock && image.result?.categories && <div>
