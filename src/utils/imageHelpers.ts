@@ -1,6 +1,5 @@
 import { Platform } from '@/components/PlatformSelector';
 import { removeSymbols } from './stringUtils';
-import { suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock } from './imageHelpers';
 import { getRelevantFreepikKeywords } from './keywordGenerator';
 import { determineVideoCategory } from './categorySelector';
 
@@ -104,7 +103,7 @@ export const formatVideosAsCSV = (videos: ProcessedImage[]): string => {
 /**
  * Downloads content as a CSV file
  */
-export const downloadCSV = (csvContent: string, filename: string, platform?: Platform) => {
+export const downloadCSV = (csvContent: string, filename: string, platform?: Platform | string): string => {
   const blob = new Blob([csvContent], { type: 'text/csv' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -153,4 +152,128 @@ export const removeCommasFromDescription = (description: string): string => {
 export const escapeCSV = (field: string): string => {
   // Replace double quotes with two double quotes according to CSV standard
   return field.replace(/"/g, '""');
+};
+
+/**
+ * Create a preview for an image file
+ */
+export const createImagePreview = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+};
+
+/**
+ * Generate a unique ID
+ */
+export const generateId = (): string => {
+  return Math.random().toString(36).substring(2, 15) + 
+         Math.random().toString(36).substring(2, 15);
+};
+
+/**
+ * Check if the file type is allowed
+ */
+export const isValidImageType = (file: File): boolean => {
+  const validTypes = [
+    'image/jpeg', 
+    'image/png', 
+    'image/jpg', 
+    'image/svg+xml', 
+    'application/postscript',
+    'application/eps',
+    'image/eps',
+    'application/illustrator',
+    'video/mp4',
+    'video/quicktime',
+    'video/webm',
+    'video/ogg',
+    'video/x-msvideo',
+    'video/x-ms-wmv'
+  ];
+  
+  return validTypes.includes(file.type);
+};
+
+/**
+ * Check if the file size is within limits
+ */
+export const isValidFileSize = (file: File): boolean => {
+  const MAX_SIZE = 10 * 1024 * 1024 * 1024; // 10GB
+  return file.size <= MAX_SIZE;
+};
+
+/**
+ * Suggest categories for Shutterstock
+ */
+export const suggestCategoriesForShutterstock = (title: string, description: string): string[] => {
+  const content = `${title} ${description}`.toLowerCase();
+  
+  const categories: string[] = [];
+  
+  if (content.includes('people') || content.includes('person') || content.includes('portrait')) {
+    categories.push('People');
+  }
+  
+  if (content.includes('nature') || content.includes('landscape') || content.includes('outdoor')) {
+    categories.push('Nature');
+  }
+  
+  if (content.includes('business') || content.includes('office') || content.includes('professional')) {
+    categories.push('Business');
+  }
+  
+  if (content.includes('food') || content.includes('drink') || content.includes('meal')) {
+    categories.push('Food & Drink');
+  }
+  
+  if (content.includes('abstract') || content.includes('pattern') || content.includes('texture')) {
+    categories.push('Backgrounds/Textures');
+  }
+  
+  // Return at least one category
+  if (categories.length === 0) {
+    categories.push('Objects');
+  }
+  
+  return categories;
+};
+
+/**
+ * Suggest categories for Adobe Stock
+ */
+export const suggestCategoriesForAdobeStock = (title: string, keywords: string[]): string[] => {
+  const content = `${title} ${keywords.join(' ')}`.toLowerCase();
+  
+  const categories: string[] = [];
+  
+  if (content.includes('people') || content.includes('person') || content.includes('portrait')) {
+    categories.push('People');
+  }
+  
+  if (content.includes('nature') || content.includes('landscape') || content.includes('outdoor')) {
+    categories.push('Nature');
+  }
+  
+  if (content.includes('business') || content.includes('office') || content.includes('professional')) {
+    categories.push('Business');
+  }
+  
+  if (content.includes('food') || content.includes('drink') || content.includes('meal')) {
+    categories.push('Food');
+  }
+  
+  if (content.includes('abstract') || content.includes('pattern') || content.includes('texture')) {
+    categories.push('Abstract');
+  }
+  
+  // Return at least one category
+  if (categories.length === 0) {
+    categories.push('Illustrations');
+  }
+  
+  return categories;
 };

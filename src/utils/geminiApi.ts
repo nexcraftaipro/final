@@ -1,6 +1,8 @@
+
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
-import { getRelevantFreepikKeywords, suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
+import { getRelevantFreepikKeywords } from './keywordGenerator';
+import { suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, removeSymbolsFromTitle } from './imageHelpers';
 import { convertSvgToPng, isSvgFile } from './svgToPng';
 import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
 import { isEpsFile, extractEpsMetadata, createEpsMetadataRepresentation } from './epsMetadataExtractor';
