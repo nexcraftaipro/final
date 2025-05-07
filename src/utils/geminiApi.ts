@@ -1,4 +1,3 @@
-
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords } from './keywordGenerator';
@@ -6,6 +5,7 @@ import { suggestCategoriesForShutterstock, suggestCategoriesForAdobeStock, remov
 import { convertSvgToPng, isSvgFile } from './svgToPng';
 import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
 import { isEpsFile, extractEpsMetadata, createEpsMetadataRepresentation } from './epsMetadataExtractor';
+import { determineVideoCategory } from './categorySelector';
 
 interface AnalysisOptions {
   titleLength?: number;
@@ -527,11 +527,25 @@ Generate appropriate metadata for this design file:
     
     // For video-specific responses
     if (originalIsVideo) {
+      // Extract category from Gemini result if provided, otherwise determine it from content
+      let videoCategory: number;
+      
+      if (result.category && typeof result.category === 'number' && result.category >= 1 && result.category <= 21) {
+        videoCategory = result.category;
+      } else {
+        // If Gemini didn't provide a valid category, determine it from the content
+        videoCategory = determineVideoCategory(
+          result.title || '',
+          result.description || '',
+          result.keywords || []
+        );
+      }
+      
       return {
         title: result.title || '',
         description: result.description || '',
         keywords: result.keywords || [],
-        category: result.category || 10, // Default to "Other" if not specified
+        category: videoCategory,
         filename: originalFilename,
         isVideo: true,
         isEps: false,

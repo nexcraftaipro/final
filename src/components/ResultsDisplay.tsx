@@ -49,7 +49,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     // Process videos if they exist
     if (videoImages.length > 0) {
       const videoCsvContent = formatVideosAsCSV(videoImages);
-      downloadCSV(videoCsvContent, 'video-metadata.csv', 'VideoMetadata' as unknown as Platform);
+      downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);  // Fixed type issue
       toast.success('Video metadata CSV file downloaded');
     }
 
