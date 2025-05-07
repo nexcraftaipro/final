@@ -20,7 +20,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   apiKey,
   onApiKeyChange
 }) => {
-  
   const [showApiKey, setShowApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -161,32 +160,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         
           {user && <>
-              <Button 
-                variant="pricing" 
-                size="sm" 
-                className="transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
-                onClick={() => navigate('/pricing')}
-              >
+              <Button variant="outline" size="sm" className="text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" onClick={() => navigate('/pricing')}>
                 <CreditCard className="h-4 w-4 mr-1" />
                 Pricing
               </Button>
               
-              <Button 
-                variant="tutorial" 
-                size="sm" 
-                className="transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
-                onClick={openTutorialVideo}
-              >
+              <Button variant="outline" size="sm" className="text-green-500 border-green-700 hover:bg-green-900/50 hover:text-green-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" onClick={openTutorialVideo}>
                 <Video className="h-4 w-4 mr-1" />
                 Tutorial
               </Button>
               
-              <Button 
-                variant="epsprocess" 
-                size="sm" 
-                className="transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" 
-                onClick={openEpsProcessVideo}
-              >
+              <Button variant="outline" size="sm" className="text-purple-500 border-purple-700 hover:bg-purple-900/50 hover:text-purple-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" onClick={openEpsProcessVideo}>
                 <FileVideo className="h-4 w-4 mr-1" />
                 EPS Process
               </Button>
