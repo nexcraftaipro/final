@@ -191,8 +191,22 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <div className="flex items-center">
             <span className="text-sm mr-2 text-[#ff0000]">API Key:</span>
             <div className="relative flex-1">
-              <Input type={showApiKey ? "text" : "password"} placeholder="Enter your Gemini API key" value={inputKey} onChange={e => setInputKey(e.target.value)} className="h-8 bg-gray-800 border-gray-700 text-gray-200 w-60" />
-              <Button type="button" variant="ghost" size="sm" className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-white" onClick={toggleShowApiKey}>
+              <Input 
+                type={showApiKey ? "text" : "password"} 
+                placeholder="Enter your Gemini API key" 
+                value={inputKey} 
+                onChange={e => setInputKey(e.target.value)} 
+                className="h-8 bg-gray-800 border-2 border-green-500 focus:border-green-400 text-gray-200 w-60 pr-10"
+              />
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0 text-gray-400 hover:text-white bg-transparent"
+                style={{ pointerEvents: 'auto' }}
+                onClick={toggleShowApiKey}
+                tabIndex={-1}
+              >
                 {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 <span className="sr-only">
                   {showApiKey ? "Hide API Key" : "Show API Key"}

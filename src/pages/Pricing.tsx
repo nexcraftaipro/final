@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import AppHeader from '@/components/AppHeader';
@@ -144,7 +144,7 @@ const PricingItem = ({
     {included ? (
       <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
     ) : (
-      <div className="h-5 w-5" />
+      <X className="h-5 w-5 text-red-500 flex-shrink-0" />
     )}
     <span className={included ? "text-gray-200" : "text-gray-500"}>{text}</span>
   </li>
