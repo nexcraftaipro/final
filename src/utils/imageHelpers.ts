@@ -120,6 +120,9 @@ export const downloadCSV = (csvContent: string, filename: string, platform?: Pla
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  
+  // Return the URL as required by the function signature
+  return url;
 };
 
 /**
