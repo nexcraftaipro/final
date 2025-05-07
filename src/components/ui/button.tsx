@@ -20,6 +20,9 @@ const buttonVariants = cva(
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         whatsapp: "bg-[#25D366] text-white hover:bg-[#128C7E] border-2 border-[#128C7E] font-semibold",
+        pricing: "bg-[#1A1F2C] text-amber-500 border-2 border-amber-500 hover:bg-amber-900/30 font-semibold",
+        tutorial: "bg-[#1A1F2C] text-green-500 border-2 border-green-500 hover:bg-green-900/30 font-semibold",
+        epsprocess: "bg-[#1A1F2C] text-purple-500 border-2 border-purple-500 hover:bg-purple-900/30 font-semibold",
       },
       size: {
         default: "h-10 px-4 py-2",
