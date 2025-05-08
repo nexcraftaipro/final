@@ -1,6 +1,6 @@
-# Meta CSV Generator Pro
+# PixCraftAI
 
-A powerful CSV generator for creating metadata for your images and videos. Works with multiple platforms including Freepik, Shutterstock, and Adobe Stock.
+A powerful AI-assisted tool for creating metadata for your images and videos. Works with multiple platforms including Freepik, Shutterstock, and Adobe Stock.
 
 ## Features
 
