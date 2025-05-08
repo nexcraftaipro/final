@@ -36,7 +36,7 @@ export const formatImagesAsCSV = (
   isAlamy?: boolean
 ): string => {
   const header = isFreepikOnly
-    ? '"Filename","Title","Prompt","Keywords"'
+    ? '"File name";"Title";"Keywords";"Prompt";"Base-Model"'
     : isShutterstock
       ? '"Filename","Description","Keywords"'
       : isAdobeStock
@@ -51,9 +51,10 @@ export const formatImagesAsCSV = (
       const description = img.result?.description || '';
       const keywords = (img.result?.keywords || []).join(',');
       const prompt = img.result?.prompt || '';
+      const baseModel = img.result?.baseModel || 'leonardo';
 
       return isFreepikOnly
-        ? `"${escapeCSV(filename)}","${escapeCSV(title)}","${escapeCSV(prompt)}","${escapeCSV(keywords)}"`
+        ? `"${escapeCSV(filename)}";"${escapeCSV(title)}";"${escapeCSV(keywords)}";"${escapeCSV(prompt)}";"${escapeCSV(baseModel)}"`
         : isShutterstock
           ? `"${escapeCSV(filename)}","${escapeCSV(description)}","${escapeCSV(keywords)}"`
           : isAdobeStock
