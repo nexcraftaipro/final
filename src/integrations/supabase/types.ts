@@ -9,7 +9,84 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      active_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_activity: string | null
+          session_identifier: string
+          user_email: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_activity?: string | null
+          session_identifier: string
+          user_email: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_activity?: string | null
+          session_identifier?: string
+          user_email?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      image_metadata_generations: {
+        Row: {
+          created_at: string | null
+          id: string
+          prompt: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          prompt?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          prompt?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          credits_used: number | null
+          email: string | null
+          expiration_date: string | null
+          id: string
+          is_premium: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          credits_used?: number | null
+          email?: string | null
+          expiration_date?: string | null
+          id: string
+          is_premium?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          credits_used?: number | null
+          email?: string | null
+          expiration_date?: string | null
+          id?: string
+          is_premium?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
