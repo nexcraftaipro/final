@@ -68,9 +68,11 @@ export const formatImagesAsCSV = (
 /**
  * Format videos as CSV
  */
-export const formatVideosAsCSV = (videos: ProcessedImage[]): string => {
-  // Create CSV header row
-  const header = '"Filename","Title","Keywords","Category"';
+export const formatVideosAsCSV = (videos: ProcessedImage[], isShutterstock?: boolean): string => {
+  // Create CSV header row - Shutterstock requires specific format
+  const header = isShutterstock 
+    ? '"Filename","Description","Keywords"'
+    : '"Filename","Title","Keywords","Category"';
   
   // Process each video
   const rows = videos
@@ -82,6 +84,9 @@ export const formatVideosAsCSV = (videos: ProcessedImage[]): string => {
       // Clean title
       const title = video.result?.title ? removeSymbolsFromTitle(video.result.title) : '';
       
+      // Get description for Shutterstock
+      const description = video.result?.description || '';
+      
       // Join keywords
       const keywords = (video.result?.keywords || []).join(',');
       
@@ -89,12 +94,15 @@ export const formatVideosAsCSV = (videos: ProcessedImage[]): string => {
       // Use the existing category if available, otherwise determine it
       const category = video.result?.category || determineVideoCategory(
         title,
-        video.result?.description || '',
+        description,
         video.result?.keywords || []
       );
       
       // Format the row with proper CSV escaping
-      return `"${escapeCSV(filename)}","${escapeCSV(title)}","${escapeCSV(keywords)}","${category}"`;
+      // For Shutterstock, use the description and keywords without category
+      return isShutterstock
+        ? `"${escapeCSV(filename)}","${escapeCSV(description)}","${escapeCSV(keywords)}"`
+        : `"${escapeCSV(filename)}","${escapeCSV(title)}","${escapeCSV(keywords)}","${category}"`;
     });
   
   // Combine header and rows
