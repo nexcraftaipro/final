@@ -113,6 +113,13 @@ const Index: React.FC = () => {
   
   const handleModeChange = (mode: GenerationMode) => {
     setGenerationMode(mode);
+    
+    // Display message when selecting new modes that are in development
+    if (mode === 'imageUpscaler') {
+      toast.info('Image Upscaler feature is coming soon!');
+    } else if (mode === 'imageGenerator') {
+      toast.info('Image Generator feature is coming soon!');
+    }
   };
   
   const handleMinTitleWordsChange = (value: number[]) => {
