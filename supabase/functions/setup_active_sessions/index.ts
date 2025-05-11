@@ -27,118 +27,112 @@ serve(async (req) => {
       }
     );
 
-    // Check if the active_sessions table already exists
-    const { data: tableExists, error: checkError } = await supabaseClient.from('active_sessions').select('id').limit(1);
-    
-    if (checkError && checkError.code !== 'PGRST116') {
-      // Table doesn't exist, create it
-      const setupSql = `
-        -- Create functions for session management
-        CREATE OR REPLACE FUNCTION public.check_active_session_by_email(p_email TEXT)
-        RETURNS BOOLEAN
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        DECLARE
-          session_exists BOOLEAN;
-        BEGIN
-          SELECT EXISTS (
-            SELECT 1 FROM public.active_sessions
-            WHERE user_email = p_email
-          ) INTO session_exists;
-          
-          RETURN session_exists;
-        END;
-        $$;
+    // Execute the SQL to create the active_sessions table and related functions
+    const setupSql = `
+      -- Create active_sessions table if it doesn't exist
+      CREATE TABLE IF NOT EXISTS public.active_sessions (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+        email TEXT NOT NULL,
+        session_id TEXT NOT NULL,
+        last_activity TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+        UNIQUE (user_id)
+      );
 
-        CREATE OR REPLACE FUNCTION public.set_active_session(
-          p_user_id UUID,
-          p_email TEXT,
-          p_session_id TEXT,
-          p_activity_time TIMESTAMP WITH TIME ZONE
-        )
-        RETURNS VOID
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        BEGIN
-          -- Insert or update the session
-          INSERT INTO public.active_sessions (user_id, user_email, session_identifier, last_activity)
-          VALUES (p_user_id, p_email, p_session_id, p_activity_time)
-          ON CONFLICT (user_id)
-          DO UPDATE SET
-            session_identifier = p_session_id,
-            last_activity = p_activity_time;
-        END;
-        $$;
+      -- Functions for session management
+      CREATE OR REPLACE FUNCTION public.check_active_session_by_email(p_email TEXT)
+      RETURNS BOOLEAN
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $$
+      DECLARE
+        session_exists BOOLEAN;
+      BEGIN
+        SELECT EXISTS (
+          SELECT 1 FROM public.active_sessions
+          WHERE email = p_email
+        ) INTO session_exists;
+        
+        RETURN session_exists;
+      END;
+      $$;
 
-        CREATE OR REPLACE FUNCTION public.remove_active_session(p_user_id UUID)
-        RETURNS VOID
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        BEGIN
-          DELETE FROM public.active_sessions WHERE user_id = p_user_id;
-        END;
-        $$;
+      CREATE OR REPLACE FUNCTION public.set_active_session(
+        p_user_id UUID,
+        p_email TEXT,
+        p_session_id TEXT,
+        p_activity_time TIMESTAMP WITH TIME ZONE
+      )
+      RETURNS VOID
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $$
+      BEGIN
+        -- Insert or update the session
+        INSERT INTO public.active_sessions (user_id, email, session_id, last_activity)
+        VALUES (p_user_id, p_email, p_session_id, p_activity_time)
+        ON CONFLICT (user_id)
+        DO UPDATE SET
+          session_id = p_session_id,
+          last_activity = p_activity_time;
+      END;
+      $$;
 
-        CREATE OR REPLACE FUNCTION public.remove_active_session_by_email(p_email TEXT)
-        RETURNS VOID
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        BEGIN
-          DELETE FROM public.active_sessions WHERE user_email = p_email;
-        END;
-        $$;
+      CREATE OR REPLACE FUNCTION public.remove_active_session(p_user_id UUID)
+      RETURNS VOID
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $$
+      BEGIN
+        DELETE FROM public.active_sessions WHERE user_id = p_user_id;
+      END;
+      $$;
 
-        CREATE OR REPLACE FUNCTION public.cleanup_old_sessions()
-        RETURNS INTEGER
-        LANGUAGE plpgsql
-        SECURITY DEFINER
-        AS $$
-        DECLARE
-          removed INTEGER;
-        BEGIN
-          DELETE FROM public.active_sessions
-          WHERE last_activity < (now() - interval '1 day')
-          RETURNING COUNT(*) INTO removed;
-          
-          RETURN removed;
-        END;
-        $$;
+      CREATE OR REPLACE FUNCTION public.remove_active_session_by_email(p_email TEXT)
+      RETURNS VOID
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $$
+      BEGIN
+        DELETE FROM public.active_sessions WHERE email = p_email;
+      END;
+      $$;
 
-        -- Add RLS policies to active_sessions table
-        ALTER TABLE public.active_sessions ENABLE ROW LEVEL SECURITY;
+      CREATE OR REPLACE FUNCTION public.cleanup_old_sessions()
+      RETURNS INTEGER
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $$
+      DECLARE
+        removed INTEGER;
+      BEGIN
+        DELETE FROM public.active_sessions
+        WHERE last_activity < (now() - interval '1 day')
+        RETURNING COUNT(*) INTO removed;
+        
+        RETURN removed;
+      END;
+      $$;
 
-        -- Create policy to allow users to read their own active session
-        CREATE POLICY "Users can read their own active session" 
-        ON public.active_sessions 
-        FOR SELECT 
-        USING (auth.uid() = user_id);
+      CREATE OR REPLACE FUNCTION public.execute_sql_query(query TEXT)
+      RETURNS JSONB
+      LANGUAGE plpgsql
+      SECURITY DEFINER
+      AS $$
+      DECLARE
+        result JSONB;
+      BEGIN
+        EXECUTE query INTO result;
+        RETURN result;
+      EXCEPTION WHEN OTHERS THEN
+        RETURN jsonb_build_object('error', SQLERRM);
+      END;
+      $$;
+    `;
 
-        -- Create policy to allow users to update their own active session
-        CREATE POLICY "Users can update their own active session" 
-        ON public.active_sessions 
-        FOR UPDATE 
-        USING (auth.uid() = user_id);
+    const { error } = await supabaseClient.rpc("pg_execute", { command: setupSql });
 
-        -- Create policy to allow users to delete their own active session
-        CREATE POLICY "Users can delete their own active session" 
-        ON public.active_sessions 
-        FOR DELETE 
-        USING (auth.uid() = user_id);
-
-        -- Create policy to allow service role to manage all active sessions
-        CREATE POLICY "Service role can manage all active sessions" 
-        ON public.active_sessions 
-        USING (auth.role() = 'service_role');
-      `;
-
-      const { error: setupError } = await supabaseClient.rpc("pg_execute", { command: setupSql });
-
-      if (setupError) throw setupError;
-    }
+    if (error) throw error;
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
