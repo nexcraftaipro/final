@@ -9,81 +9,138 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      active_sessions: {
+      image_metadata_generations: {
         Row: {
-          created_at: string | null
+          created_at: string
           id: string
-          last_activity: string | null
-          session_identifier: string
-          user_email: string
+          prompt: string
           user_id: string
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           id?: string
-          last_activity?: string | null
-          session_identifier: string
-          user_email: string
+          prompt: string
           user_id: string
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           id?: string
-          last_activity?: string | null
-          session_identifier?: string
-          user_email?: string
+          prompt?: string
           user_id?: string
         }
         Relationships: []
       }
-      image_metadata_generations: {
+      images: {
         Row: {
           created_at: string | null
           id: string
-          prompt: string | null
+          image_url: string
+          is_favorite: boolean | null
+          prompt: string
+          size: string
+          steps: number | null
+          style: string | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
           id?: string
-          prompt?: string | null
+          image_url: string
+          is_favorite?: boolean | null
+          prompt: string
+          size?: string
+          steps?: number | null
+          style?: string | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
           id?: string
-          prompt?: string | null
+          image_url?: string
+          is_favorite?: boolean | null
+          prompt?: string
+          size?: string
+          steps?: number | null
+          style?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
       }
       profiles: {
         Row: {
-          created_at: string | null
-          credits_used: number | null
-          email: string | null
+          created_at: string
+          credits_used: number
+          email: string
           expiration_date: string | null
           id: string
-          is_premium: boolean | null
-          updated_at: string | null
+          is_premium: boolean
+          updated_at: string
         }
         Insert: {
-          created_at?: string | null
-          credits_used?: number | null
-          email?: string | null
+          created_at?: string
+          credits_used?: number
+          email: string
           expiration_date?: string | null
           id: string
-          is_premium?: boolean | null
-          updated_at?: string | null
+          is_premium?: boolean
+          updated_at?: string
         }
         Update: {
-          created_at?: string | null
-          credits_used?: number | null
-          email?: string | null
+          created_at?: string
+          credits_used?: number
+          email?: string
           expiration_date?: string | null
           id?: string
-          is_premium?: boolean | null
+          is_premium?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          credits: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          image: string | null
+          name: string | null
+          subscription: string | null
+          token_identifier: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          credits?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          image?: string | null
+          name?: string | null
+          subscription?: string | null
+          token_identifier: string
           updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          credits?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          image?: string | null
+          name?: string | null
+          subscription?: string | null
+          token_identifier?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
