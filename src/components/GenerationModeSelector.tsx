@@ -1,10 +1,11 @@
+
 import React from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FileImage, MessageSquareText, Zap, PenTool } from "lucide-react";
+import { FileImage, MessageSquareText } from "lucide-react";
 import { useText } from '@/hooks/useText';
 
-export type GenerationMode = 'metadata' | 'imageToPrompt' | 'imageUpscaler' | 'imageGenerator';
+export type GenerationMode = 'metadata' | 'imageToPrompt';
 
 interface GenerationModeSelectorProps {
   selectedMode: GenerationMode;
@@ -48,38 +49,6 @@ const GenerationModeSelector: React.FC<GenerationModeSelectorProps> = ({
             </div>
             <div>
               <span className="text-xs font-medium text-white">{t('sidebar.imageToPrompt')}</span>
-            </div>
-          </Label>
-        </div>
-        
-        <div className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-          selectedMode === 'imageUpscaler' 
-            ? 'bg-green-900/20 border-2 border-green-600 shadow-sm shadow-green-500/40' 
-            : 'bg-gray-800 border border-gray-700 hover:bg-gray-800/70'
-        }`}>
-          <RadioGroupItem value="imageUpscaler" id="imageUpscaler" className="sr-only" />
-          <Label htmlFor="imageUpscaler" className="flex items-center cursor-pointer">
-            <div className="p-1 rounded-full bg-green-900/30 text-green-400 mr-1.5">
-              <Zap className="h-3.5 w-3.5" />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-white">{t('sidebar.imageUpscaler')}</span>
-            </div>
-          </Label>
-        </div>
-        
-        <div className={`flex items-center p-2 rounded cursor-pointer transition-colors ${
-          selectedMode === 'imageGenerator' 
-            ? 'bg-orange-900/20 border-2 border-orange-600 shadow-sm shadow-orange-500/40' 
-            : 'bg-gray-800 border border-gray-700 hover:bg-gray-800/70'
-        }`}>
-          <RadioGroupItem value="imageGenerator" id="imageGenerator" className="sr-only" />
-          <Label htmlFor="imageGenerator" className="flex items-center cursor-pointer">
-            <div className="p-1 rounded-full bg-orange-900/30 text-orange-400 mr-1.5">
-              <PenTool className="h-3.5 w-3.5" />
-            </div>
-            <div>
-              <span className="text-xs font-medium text-white">{t('sidebar.imageGenerator')}</span>
             </div>
           </Label>
         </div>

@@ -26,8 +26,6 @@ export const en = {
     modeSelection: 'Mode Selection',
     metadata: 'Metadata',
     imageToPrompt: 'Image to Prompt',
-    imageUpscaler: 'Image Upscaler',
-    imageGenerator: 'Image Generator',
     customization: 'Metadata Customization',
     settings: 'SETTINGS',
   },

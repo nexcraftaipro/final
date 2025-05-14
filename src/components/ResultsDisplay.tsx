@@ -118,20 +118,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         </div>
       </div>
 
-      {/* Image Upscaler mode display - Coming soon */}
-      {generationMode === 'imageUpscaler' && <div className="bg-black rounded-lg border border-green-800 p-8 text-center">
-        <h3 className="text-2xl font-semibold mb-4 text-green-400">Image Upscaler</h3>
-        <p className="text-gray-300 mb-6">This feature is coming soon!</p>
-        <p className="text-gray-400">The Image Upscaler will allow you to enhance the resolution and quality of your images using AI.</p>
-      </div>}
-
-      {/* Image Generator mode display - Coming soon */}
-      {generationMode === 'imageGenerator' && <div className="bg-black rounded-lg border border-orange-800 p-8 text-center">
-        <h3 className="text-2xl font-semibold mb-4 text-orange-400">Image Generator</h3>
-        <p className="text-gray-300 mb-6">This feature is coming soon!</p>
-        <p className="text-gray-400">The Image Generator will allow you to create new images from text prompts using AI.</p>
-      </div>}
-
       {/* Image to Prompt mode display - Updated to show image with prompt */}
       {generationMode === 'imageToPrompt' && completedImages.length > 0 && <div className="grid grid-cols-1 gap-6">
           {completedImages.map(image => <div key={image.id} className="bg-black rounded-lg border border-gray-800 overflow-hidden">
