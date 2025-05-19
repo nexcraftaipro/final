@@ -62,6 +62,15 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
       </div>
 
       {settingsExpanded && <div className="space-y-6 ml-2">
+          {/* Single Word Keywords */}
+          <FeatureToggle 
+            title={t('features.singleWordKeywords')} 
+            description={t('features.singleWordKeywordsDesc')} 
+            tooltipText={t('features.singleWordKeywordsTooltip')} 
+            enabled={singleWordKeywordsEnabled} 
+            onEnabledChange={onSingleWordKeywordsEnabledChange} 
+          />
+
           {/* Silhouette */}
           <FeatureToggle 
             title={t('features.silhouette')} 
@@ -129,15 +138,6 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
                 Gemini will avoid using these words in the generated metadata. Separate multiple words with commas.
               </p>
             </div>}
-          
-          {/* Single Word Keywords */}
-          <FeatureToggle 
-            title={t('features.singleWordKeywords')} 
-            description={t('features.singleWordKeywordsDesc')} 
-            tooltipText={t('features.singleWordKeywordsTooltip')} 
-            enabled={singleWordKeywordsEnabled} 
-            onEnabledChange={onSingleWordKeywordsEnabledChange} 
-          />
         </div>}
     </div>;
 };
