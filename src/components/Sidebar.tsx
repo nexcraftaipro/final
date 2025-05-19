@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import GenerationModeSelector, { GenerationMode } from '@/components/GenerationModeSelector';
 import CustomizationControls from '@/components/CustomizationControls';
@@ -36,6 +35,8 @@ interface SidebarProps {
   onTransparentBgEnabledChange: (enabled: boolean) => void;
   silhouetteEnabled?: boolean;
   onSilhouetteEnabledChange?: (enabled: boolean) => void;
+  singleWordKeywordsEnabled: boolean;
+  onSingleWordKeywordsEnabledChange: (enabled: boolean) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -66,7 +67,9 @@ const Sidebar: React.FC<SidebarProps> = ({
   transparentBgEnabled,
   onTransparentBgEnabledChange,
   silhouetteEnabled = false,
-  onSilhouetteEnabledChange = () => {}
+  onSilhouetteEnabledChange = () => {},
+  singleWordKeywordsEnabled,
+  onSingleWordKeywordsEnabledChange
 }) => {
   const t = useText();
   const [isVisible, setIsVisible] = useState(true);
@@ -134,6 +137,8 @@ const Sidebar: React.FC<SidebarProps> = ({
           onTransparentBgEnabledChange={onTransparentBgEnabledChange} 
           silhouetteEnabled={silhouetteEnabled} 
           onSilhouetteEnabledChange={onSilhouetteEnabledChange} 
+          singleWordKeywordsEnabled={singleWordKeywordsEnabled}
+          onSingleWordKeywordsEnabledChange={onSingleWordKeywordsEnabledChange}
         />
       </div>
     </aside>;

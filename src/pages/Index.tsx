@@ -64,6 +64,7 @@ const Index: React.FC = () => {
   const [prohibitedWordsEnabled, setProhibitedWordsEnabled] = useState(false);
   const [transparentBgEnabled, setTransparentBgEnabled] = useState(false);
   const [silhouetteEnabled, setSilhouetteEnabled] = useState(false);
+  const [singleWordKeywordsEnabled, setSingleWordKeywordsEnabled] = useState(false);
   
   // Get API key from localStorage or auth context
   useEffect(() => {
@@ -163,6 +164,10 @@ const Index: React.FC = () => {
     setSilhouetteEnabled(enabled);
   };
   
+  const handleSingleWordKeywordsEnabledChange = (enabled: boolean) => {
+    setSingleWordKeywordsEnabled(enabled);
+  };
+  
   const handleUpgradePlan = () => {
     window.location.href = PAYMENT_GATEWAY_URL;
   };
@@ -244,7 +249,8 @@ const Index: React.FC = () => {
             prohibitedWords,
             prohibitedWordsEnabled,
             transparentBgEnabled,
-            silhouetteEnabled
+            silhouetteEnabled,
+            singleWordKeywordsEnabled
           };
           
           // Process the image/video with Gemini API
@@ -344,6 +350,8 @@ const Index: React.FC = () => {
           onTransparentBgEnabledChange={handleTransparentBgEnabledChange}
           silhouetteEnabled={silhouetteEnabled}
           onSilhouetteEnabledChange={handleSilhouetteEnabledChange}
+          singleWordKeywordsEnabled={singleWordKeywordsEnabled}
+          onSingleWordKeywordsEnabledChange={handleSingleWordKeywordsEnabledChange}
         />
         
         <main className="flex-1 p-6 overflow-auto">

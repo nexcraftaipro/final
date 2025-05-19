@@ -25,6 +25,7 @@ interface AnalysisOptions {
   prohibitedWordsEnabled?: boolean;
   transparentBgEnabled?: boolean;
   silhouetteEnabled?: boolean;
+  singleWordKeywordsEnabled?: boolean;
 }
 
 interface AnalysisResult {
@@ -60,7 +61,8 @@ export async function analyzeImageWithGemini(
     prohibitedWords = '',
     prohibitedWordsEnabled = false,
     transparentBgEnabled = false,
-    silhouetteEnabled = false
+    silhouetteEnabled = false,
+    singleWordKeywordsEnabled = false
   } = options;
 
   const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
@@ -458,7 +460,7 @@ Generate appropriate metadata for this design file:
         ].join(' ');
         
         // Use the existing Freepik keyword generator as a fallback
-        const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords);
+        const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords, singleWordKeywordsEnabled);
         
         // Combine existing keywords with new ones, remove duplicates
         const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
@@ -485,7 +487,7 @@ Generate appropriate metadata for this design file:
           
           // If we filtered too many keywords, generate replacements
           if (result.keywords.length < minKeywords) {
-            const additionalKeywords = getRelevantFreepikKeywords(result.title || '' + ' ' + (result.description || ''));
+            const additionalKeywords = getRelevantFreepikKeywords(result.title || '' + ' ' + (result.description || ''), singleWordKeywordsEnabled);
             const filteredAdditionalKeywords = additionalKeywords.filter(keyword => {
               const lowerKeyword = keyword.toLowerCase();
               return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
@@ -498,12 +500,17 @@ Generate appropriate metadata for this design file:
       }
     }
     
+    // Post-process to filter keywords to single words if enabled
+    if (singleWordKeywordsEnabled && result.keywords && Array.isArray(result.keywords)) {
+      result.keywords = result.keywords.filter(k => typeof k === 'string' && k.trim().split(/\s+/).length === 1);
+    }
+    
     // For Freepik, use the keywords provided directly from the API response
     if (isFreepikOnly) {
       // If keywords exist in the result, use them
       if (!result.keywords || result.keywords.length < minKeywords) {
         // Fallback: Generate keywords from the prompt if not enough keywords provided
-        const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '');
+        const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '', singleWordKeywordsEnabled);
         result.keywords = freepikKeywords;
       }
       result.baseModel = "leonardo";

@@ -1,17 +1,20 @@
-
 /**
  * Generates relevant keywords for Freepik platform
  */
-export const getRelevantFreepikKeywords = (content: string): string[] => {
+export const getRelevantFreepikKeywords = (content: string, singleWordOnly: boolean = false): string[] => {
   // Extract potential keywords from content
   const words = content.toLowerCase().split(/\s+/);
   
   // Filter out common words and short words
-  const filteredWords = words.filter(word => {
+  let filteredWords = words.filter(word => {
     const cleaned = word.replace(/[^\w]/g, '');
     return cleaned.length > 2 && !commonWords.includes(cleaned);
   });
   
+  // If singleWordOnly is true, filter to only single words
+  if (singleWordOnly) {
+    filteredWords = filteredWords.filter(word => !word.includes(' '));
+  }
   // Remove duplicates and limit to 50 keywords
   const uniqueWords = Array.from(new Set(filteredWords));
   return uniqueWords.slice(0, 50);

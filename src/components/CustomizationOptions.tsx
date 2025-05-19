@@ -16,6 +16,8 @@ interface CustomizationOptionsProps {
   onTransparentBgEnabledChange: (enabled: boolean) => void;
   silhouetteEnabled?: boolean;
   onSilhouetteEnabledChange?: (enabled: boolean) => void;
+  singleWordKeywordsEnabled: boolean;
+  onSingleWordKeywordsEnabledChange: (enabled: boolean) => void;
 }
 
 const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
@@ -30,7 +32,9 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
   transparentBgEnabled,
   onTransparentBgEnabledChange,
   silhouetteEnabled = false,
-  onSilhouetteEnabledChange = () => {}
+  onSilhouetteEnabledChange = () => {},
+  singleWordKeywordsEnabled,
+  onSingleWordKeywordsEnabledChange
 }) => {
   const t = useText();
   const [settingsExpanded, setSettingsExpanded] = useState(true);
@@ -125,6 +129,15 @@ const CustomizationOptions: React.FC<CustomizationOptionsProps> = ({
                 Gemini will avoid using these words in the generated metadata. Separate multiple words with commas.
               </p>
             </div>}
+          
+          {/* Single Word Keywords */}
+          <FeatureToggle 
+            title={t('features.singleWordKeywords')} 
+            description={t('features.singleWordKeywordsDesc')} 
+            tooltipText={t('features.singleWordKeywordsTooltip')} 
+            enabled={singleWordKeywordsEnabled} 
+            onEnabledChange={onSingleWordKeywordsEnabledChange} 
+          />
         </div>}
     </div>;
 };

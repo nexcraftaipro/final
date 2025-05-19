@@ -44,6 +44,9 @@ export const en = {
     customPromptDesc: 'When enabled, Gemini will use your custom prompt:',
     transparentBg: 'TRANSPARENT BACKGROUND',
     prohibitedWords: 'PROHIBITED WORDS',
+    singleWordKeywords: 'SINGLE WORD KEYWORDS',
+    singleWordKeywordsDesc: 'When enabled, generated keywords will be single words only.',
+    singleWordKeywordsTooltip: 'Helpful for platforms that prefer single-word keywords instead of phrases.'
   },
   imageUploader: {
     dragDrop: 'Drag & drop files here',
