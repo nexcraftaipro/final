@@ -195,13 +195,21 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     
                     <div className="space-y-4">
                       <div>
-                        <h4 className="text-amber-500">Filename:</h4>
+                        <h4 className="text-amber-500 flex items-center gap-2">Filename:
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(image.file.name, image.id + '-filename')} className="ml-1 p-1">
+                            {copiedId === image.id + '-filename' ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-gray-400" />}
+                          </Button>
+                        </h4>
                         <p className="text-white">{image.file.name}</p>
                       </div>
                       
                       {/* Show title for all platforms except Shutterstock */}
                       {!isShutterstock && <div>
-                          <h4 className="text-amber-500">Title:</h4>
+                          <h4 className="text-amber-500 flex items-center gap-2">Title:
+                            <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(cleanTitle, image.id + '-title')} className="ml-1 p-1">
+                              {copiedId === image.id + '-title' ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-gray-400" />}
+                            </Button>
+                          </h4>
                           <p className="text-white">{cleanTitle}</p>
                         </div>}
                       
@@ -214,7 +222,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>}
                       
                       <div>
-                        <h4 className="text-amber-500">Keywords:</h4>
+                        <h4 className="text-amber-500 flex items-center gap-2">Keywords:
+                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard((image.result?.keywords || []).join(', '), image.id + '-keywords')} className="ml-1 p-1">
+                            {copiedId === image.id + '-keywords' ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-gray-400" />}
+                          </Button>
+                        </h4>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => <span key={index} className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
                                 {keyword}
