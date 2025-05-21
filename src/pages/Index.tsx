@@ -22,7 +22,7 @@ import { isVideoFile } from '@/utils/videoProcessor';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
 
 // Updated payment gateway link
-const PAYMENT_GATEWAY_URL = "https://secure-pay.nagorikpay.com/api/execute/9c7e8b9c01fea1eabdf4d4a37b685e0a";
+const PAYMENT_GATEWAY_URL = "https://meta.pixcraftai.com/pricing";
 
 const Index: React.FC = () => {
   const {
