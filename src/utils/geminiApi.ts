@@ -42,6 +42,85 @@ interface AnalysisResult {
   isEps?: boolean;
 }
 
+interface GeminiModel {
+  name: string;
+  maxOutputTokens: number;
+  temperature: number;
+  topK: number;
+  topP: number;
+}
+
+const GEMINI_MODELS: GeminiModel[] = [
+  {
+    name: 'gemini-1.5-flash',
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    topK: 32,
+    topP: 0.95,
+  },
+  {
+    name: 'gemini-2.0-flash',
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    topK: 32,
+    topP: 0.95,
+  },
+  {
+    name: 'gemini-1.5-pro',
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    topK: 32,
+    topP: 0.95,
+  }
+];
+
+async function callGeminiAPI(
+  model: GeminiModel,
+  prompt: string,
+  base64Image: string,
+  originalIsEps: boolean,
+  apiKey: string
+): Promise<any> {
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model.name}:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { text: prompt },
+            // For EPS files, send the metadata as text without inline_data
+            ...(originalIsEps 
+              ? [{ text: base64Image }] 
+              : [{
+                  inline_data: {
+                    mime_type: 'image/png',
+                    data: base64Image.split(',')[1],
+                  },
+                }]
+            ),
+          ],
+        },
+      ],
+      generationConfig: {
+        temperature: model.temperature,
+        topK: model.topK,
+        topP: model.topP,
+        maxOutputTokens: model.maxOutputTokens,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData?.error?.message || `Failed to analyze image with ${model.name}`);
+  }
+
+  return response.json();
+}
+
 export async function analyzeImageWithGemini(
   imageFile: File,
   apiKey: string,
@@ -332,260 +411,239 @@ Generate appropriate metadata for this design file:
       }
     }
     
-    // Updated to use the newer Gemini 1.5 Flash model
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              // For EPS files, send the metadata as text without inline_data
-              ...(originalIsEps 
-                ? [{ text: base64Image }] 
-                : [{
-                    inline_data: {
-                      mime_type: fileToProcess.type,
-                      data: base64Image.split(',')[1],
-                    },
-                  }]
-              ),
-            ],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.4,
-          topK: 32,
-          topP: 0.95,
-          maxOutputTokens: 1024,
-        },
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('API error:', errorData);
-      throw new Error(errorData?.error?.message || 'Failed to analyze image');
-    }
-
-    const data = await response.json();
-    const text = data.candidates[0]?.content?.parts[0]?.text || '';
-    
-    // For image-to-prompt mode, just return the description
-    if (generationMode === 'imageToPrompt') {
-      return {
-        title: '',
-        description: text.trim(),
-        keywords: [],
-        filename: originalFilename,
-        isVideo: originalIsVideo,
-        isEps: originalIsEps
-      };
-    }
-    
-    // Extract JSON from the response text
-    let jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || 
-                    text.match(/```\n([\s\S]*?)\n```/) ||
-                    text.match(/\{[\s\S]*\}/);
-                    
-    let jsonStr = jsonMatch ? jsonMatch[1] || jsonMatch[0] : text;
-    
-    // Clean up potential garbage around the JSON object
-    jsonStr = jsonStr.replace(/^[^{]*/, '').replace(/[^}]*$/, '');
-    
-    let result;
-    try {
-      result = JSON.parse(jsonStr);
-    } catch (e) {
-      console.error('Failed to parse JSON from response:', jsonStr);
-      console.error('Original response:', text);
-      throw new Error('Failed to parse metadata from the API response');
-    }
-    
-    // Ensure titles don't have symbols
-    if (result.title) {
-      result.title = removeSymbolsFromTitle(result.title);
-    }
-    
-    // Post-process for transparent background if enabled
-    if (transparentBgEnabled) {
-      // Add "on transparent background" to the title if not already present
-      if (result.title && !result.title.toLowerCase().includes('transparent background')) {
-        result.title = result.title.trim() + ' on transparent background';
-      }
-      
-      // Add "transparent background" to keywords if not already present
-      if (result.keywords && !result.keywords.some(k => k.toLowerCase().includes('transparent background'))) {
-        result.keywords.push('transparent background');
-      }
-      
-      // Mention transparent background in description if not already mentioned
-      if (result.description && !result.description.toLowerCase().includes('transparent background')) {
-        result.description = result.description.trim() + ' This image features a transparent background, making it versatile for various design projects.';
-      }
-    }
-    
-    // Post-process for silhouette if enabled
-    if (silhouetteEnabled) {
-      // Add "silhouette" to the title if not already present
-      if (result.title && !result.title.toLowerCase().includes('silhouette')) {
-        result.title = result.title.trim() + ' silhouette';
-      }
-      
-      // Add "silhouette" to keywords if not already present
-      if (result.keywords && !result.keywords.some(k => k.toLowerCase().includes('silhouette'))) {
-        result.keywords.push('silhouette');
-      }
-      
-      // Mention silhouette in description if not already mentioned
-      if (result.description && !result.description.toLowerCase().includes('silhouette')) {
-        result.description = result.description.trim() + ' This image features a striking silhouette design, perfect for creating a bold visual impact.';
-      }
-    }
-    
-    // Ensure we have enough keywords for all platforms and custom prompts
-    if (result.keywords && result.keywords.length < minKeywords) {
-      console.log('Not enough keywords provided, generating more...');
-      
-      // For custom prompts or any platform, generate additional keywords if needed
-      if (customPromptEnabled || (!isFreepikOnly && !isShutterstock && !isAdobeStock)) {
-        // Use title and description to generate more keywords
-        const contentForKeywords = [
-          result.title || '',
-          result.description || '',
-          result.keywords.join(', ')
-        ].join(' ');
+    // Try each model in sequence until one succeeds
+    let lastError: Error | null = null;
+    for (const model of GEMINI_MODELS) {
+      try {
+        console.log(`Attempting to use ${model.name}...`);
+        const data = await callGeminiAPI(model, prompt, base64Image, originalIsEps, apiKey);
+        const text = data.candidates[0]?.content?.parts[0]?.text || '';
         
-        // Use the existing Freepik keyword generator as a fallback
-        const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords, singleWordKeywordsEnabled);
-        
-        // Combine existing keywords with new ones, remove duplicates
-        const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
-        
-        // Use the combined list, up to maxKeywords
-        result.keywords = combinedKeywords.slice(0, maxKeywords);
-      }
-    }
-    
-    // Post-process to filter out prohibited words if provided and enabled
-    if (prohibitedWordsEnabled && prohibitedWords.trim()) {
-      const prohibitedWordsArray = prohibitedWords
-        .split(',')
-        .map(word => word.trim().toLowerCase())
-        .filter(word => word.length > 0);
-      
-      if (prohibitedWordsArray.length > 0) {
-        // Filter keywords
-        if (result.keywords && result.keywords.length > 0) {
-          result.keywords = result.keywords.filter(keyword => {
-            const lowerKeyword = keyword.toLowerCase();
-            return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
-          });
-          
-          // If we filtered too many keywords, generate replacements
-          if (result.keywords.length < minKeywords) {
-            const additionalKeywords = getRelevantFreepikKeywords(result.title || '' + ' ' + (result.description || ''), singleWordKeywordsEnabled);
-            const filteredAdditionalKeywords = additionalKeywords.filter(keyword => {
-              const lowerKeyword = keyword.toLowerCase();
-              return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
-            });
-            
-            // Add filtered additional keywords
-            result.keywords = [...new Set([...result.keywords, ...filteredAdditionalKeywords])].slice(0, maxKeywords);
-          }
+        // For image-to-prompt mode, just return the description
+        if (generationMode === 'imageToPrompt') {
+          return {
+            title: '',
+            description: text.trim(),
+            keywords: [],
+            filename: originalFilename,
+            isVideo: originalIsVideo,
+            isEps: originalIsEps,
+            baseModel: model.name
+          };
         }
+        
+        // Extract JSON from the response text
+        let jsonMatch = text.match(/```json\n([\s\S]*?)\n```/) || 
+                        text.match(/```\n([\s\S]*?)\n```/) ||
+                        text.match(/\{[\s\S]*\}/);
+                        
+        let jsonStr = jsonMatch ? jsonMatch[1] || jsonMatch[0] : text;
+        
+        // Clean up potential garbage around the JSON object
+        jsonStr = jsonStr.replace(/^[^{]*/, '').replace(/[^}]*$/, '');
+        
+        let result;
+        try {
+          result = JSON.parse(jsonStr);
+          result.baseModel = model.name; // Add the model name to the result
+          
+          // Ensure titles don't have symbols
+          if (result.title) {
+            result.title = removeSymbolsFromTitle(result.title);
+          }
+          
+          // Post-process for transparent background if enabled
+          if (transparentBgEnabled) {
+            // Add "on transparent background" to the title if not already present
+            if (result.title && !result.title.toLowerCase().includes('transparent background')) {
+              result.title = result.title.trim() + ' on transparent background';
+            }
+            
+            // Add "transparent background" to keywords if not already present
+            if (result.keywords && !result.keywords.some(k => k.toLowerCase().includes('transparent background'))) {
+              result.keywords.push('transparent background');
+            }
+            
+            // Mention transparent background in description if not already mentioned
+            if (result.description && !result.description.toLowerCase().includes('transparent background')) {
+              result.description = result.description.trim() + ' This image features a transparent background, making it versatile for various design projects.';
+            }
+          }
+          
+          // Post-process for silhouette if enabled
+          if (silhouetteEnabled) {
+            // Add "silhouette" to the title if not already present
+            if (result.title && !result.title.toLowerCase().includes('silhouette')) {
+              result.title = result.title.trim() + ' silhouette';
+            }
+            
+            // Add "silhouette" to keywords if not already present
+            if (result.keywords && !result.keywords.some(k => k.toLowerCase().includes('silhouette'))) {
+              result.keywords.push('silhouette');
+            }
+            
+            // Mention silhouette in description if not already mentioned
+            if (result.description && !result.description.toLowerCase().includes('silhouette')) {
+              result.description = result.description.trim() + ' This image features a striking silhouette design, perfect for creating a bold visual impact.';
+            }
+          }
+          
+          // Ensure we have enough keywords for all platforms and custom prompts
+          if (result.keywords && result.keywords.length < minKeywords) {
+            console.log('Not enough keywords provided, generating more...');
+            
+            // For custom prompts or any platform, generate additional keywords if needed
+            if (customPromptEnabled || (!isFreepikOnly && !isShutterstock && !isAdobeStock)) {
+              // Use title and description to generate more keywords
+              const contentForKeywords = [
+                result.title || '',
+                result.description || '',
+                result.keywords.join(', ')
+              ].join(' ');
+              
+              // Use the existing Freepik keyword generator as a fallback
+              const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords, singleWordKeywordsEnabled);
+              
+              // Combine existing keywords with new ones, remove duplicates
+              const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
+              
+              // Use the combined list, up to maxKeywords
+              result.keywords = combinedKeywords.slice(0, maxKeywords);
+            }
+          }
+          
+          // Post-process to filter out prohibited words if provided and enabled
+          if (prohibitedWordsEnabled && prohibitedWords.trim()) {
+            const prohibitedWordsArray = prohibitedWords
+              .split(',')
+              .map(word => word.trim().toLowerCase())
+              .filter(word => word.length > 0);
+            
+            if (prohibitedWordsArray.length > 0) {
+              // Filter keywords
+              if (result.keywords && result.keywords.length > 0) {
+                result.keywords = result.keywords.filter(keyword => {
+                  const lowerKeyword = keyword.toLowerCase();
+                  return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
+                });
+                
+                // If we filtered too many keywords, generate replacements
+                if (result.keywords.length < minKeywords) {
+                  const additionalKeywords = getRelevantFreepikKeywords(result.title || '' + ' ' + (result.description || ''), singleWordKeywordsEnabled);
+                  const filteredAdditionalKeywords = additionalKeywords.filter(keyword => {
+                    const lowerKeyword = keyword.toLowerCase();
+                    return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
+                  });
+                  
+                  // Add filtered additional keywords
+                  result.keywords = [...new Set([...result.keywords, ...filteredAdditionalKeywords])].slice(0, maxKeywords);
+                }
+              }
+            }
+          }
+          
+          // Post-process to filter keywords to single words if enabled
+          if (singleWordKeywordsEnabled && result.keywords && Array.isArray(result.keywords)) {
+            result.keywords = result.keywords.filter(k => typeof k === 'string' && k.trim().split(/\s+/).length === 1);
+          }
+          
+          // For Freepik, use the keywords provided directly from the API response
+          if (isFreepikOnly) {
+            // If keywords exist in the result, use them
+            if (!result.keywords || result.keywords.length < minKeywords) {
+              // Fallback: Generate keywords from the prompt if not enough keywords provided
+              const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '', singleWordKeywordsEnabled);
+              result.keywords = freepikKeywords;
+            }
+          }
+          
+          // For Shutterstock, suggest categories based on content
+          if (isShutterstock) {
+            result.categories = suggestCategoriesForShutterstock(
+              result.title || '', 
+              result.description || ''
+            );
+          }
+          
+          // For Adobe Stock, suggest categories based on content
+          if (isAdobeStock) {
+            result.categories = suggestCategoriesForAdobeStock(
+              result.title || '',
+              result.keywords || []
+            );
+          }
+          
+          // For video-specific responses
+          if (originalIsVideo) {
+            // Extract category from Gemini result if provided, otherwise determine it from content
+            let videoCategory: number;
+            
+            if (result.category && typeof result.category === 'number' && result.category >= 1 && result.category <= 21) {
+              videoCategory = result.category;
+            } else {
+              // If Gemini didn't provide a valid category, determine it from the content
+              videoCategory = determineVideoCategory(
+                result.title || '',
+                result.description || '',
+                result.keywords || []
+              );
+            }
+            
+            return {
+              title: result.title || '',
+              description: result.description || '',
+              keywords: result.keywords || [],
+              category: videoCategory,
+              filename: originalFilename,
+              isVideo: true,
+              isEps: false,
+              ...(!isFreepikOnly && !isShutterstock && !isAdobeStock ? { categories: result.categories } : {}),
+            };
+          }
+          
+          // For EPS-specific responses
+          if (originalIsEps) {
+            return {
+              title: result.title || '',
+              description: result.description || '',
+              keywords: result.keywords || [],
+              prompt: result.prompt,
+              baseModel: result.baseModel || "leonardo",
+              categories: result.categories,
+              filename: originalFilename,
+              isVideo: false,
+              isEps: true,
+            };
+          }
+          
+          return result;
+        } catch (e) {
+          console.error('Failed to parse JSON from response:', jsonStr);
+          console.error('Original response:', text);
+          throw new Error('Failed to parse metadata from the API response');
+        }
+      } catch (error) {
+        console.error(`Error with ${model.name}:`, error);
+        lastError = error instanceof Error ? error : new Error('Unknown error');
+        
+        // Check if this is a quota/rate limit error
+        const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
+        if (
+          errorMessage.includes('quota') || 
+          errorMessage.includes('rate limit') || 
+          errorMessage.includes('429')
+        ) {
+          console.log(`${model.name} quota exceeded, trying next model...`);
+          continue;
+        }
+        
+        // If it's not a quota error, throw it
+        throw error;
       }
     }
-    
-    // Post-process to filter keywords to single words if enabled
-    if (singleWordKeywordsEnabled && result.keywords && Array.isArray(result.keywords)) {
-      result.keywords = result.keywords.filter(k => typeof k === 'string' && k.trim().split(/\s+/).length === 1);
-    }
-    
-    // For Freepik, use the keywords provided directly from the API response
-    if (isFreepikOnly) {
-      // If keywords exist in the result, use them
-      if (!result.keywords || result.keywords.length < minKeywords) {
-        // Fallback: Generate keywords from the prompt if not enough keywords provided
-        const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '', singleWordKeywordsEnabled);
-        result.keywords = freepikKeywords;
-      }
-      result.baseModel = "leonardo";
-    }
-    
-    // For Shutterstock, suggest categories based on content
-    if (isShutterstock) {
-      result.categories = suggestCategoriesForShutterstock(
-        result.title || '', 
-        result.description || ''
-      );
-    }
-    
-    // For Adobe Stock, suggest categories based on content
-    if (isAdobeStock) {
-      result.categories = suggestCategoriesForAdobeStock(
-        result.title || '',
-        result.keywords || []
-      );
-    }
-    
-    // For video-specific responses
-    if (originalIsVideo) {
-      // Extract category from Gemini result if provided, otherwise determine it from content
-      let videoCategory: number;
-      
-      if (result.category && typeof result.category === 'number' && result.category >= 1 && result.category <= 21) {
-        videoCategory = result.category;
-      } else {
-        // If Gemini didn't provide a valid category, determine it from the content
-        videoCategory = determineVideoCategory(
-          result.title || '',
-          result.description || '',
-          result.keywords || []
-        );
-      }
-      
-      return {
-        title: result.title || '',
-        description: result.description || '',
-        keywords: result.keywords || [],
-        category: videoCategory,
-        filename: originalFilename,
-        isVideo: true,
-        isEps: false,
-        ...(!isFreepikOnly && !isShutterstock && !isAdobeStock ? { categories: result.categories } : {}),
-      };
-    }
-    
-    // For EPS-specific responses
-    if (originalIsEps) {
-      return {
-        title: result.title || '',
-        description: result.description || '',
-        keywords: result.keywords || [],
-        prompt: result.prompt,
-        baseModel: result.baseModel || "leonardo",
-        categories: result.categories,
-        filename: originalFilename,
-        isVideo: false,
-        isEps: true,
-      };
-    }
-    
-    return {
-      title: result.title || '',
-      description: result.description || '',
-      keywords: result.keywords || [],
-      prompt: result.prompt,
-      baseModel: result.baseModel || "leonardo",
-      categories: result.categories,
-      filename: originalFilename,
-      isVideo: false,
-      isEps: false,
-    };
+
+    // If we get here, all models failed
+    throw lastError || new Error('All Gemini models failed');
   } catch (error) {
     console.error('Processing error:', error instanceof Error ? error.message : 'Unknown error');
     
@@ -596,7 +654,7 @@ Generate appropriate metadata for this design file:
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       isVideo: isVideoFile(imageFile),
       isEps: isEpsFile(imageFile),
-      filename: imageFile.name,
+      filename: imageFile.name
     };
   }
 }
