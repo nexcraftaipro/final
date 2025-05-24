@@ -8,6 +8,7 @@ export interface ProcessedImage {
   file: File;
   previewUrl: string;
   status: 'pending' | 'processing' | 'complete' | 'error';
+  processingTime?: number;
   result?: {
     title: string;
     description: string;

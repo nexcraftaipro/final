@@ -50,10 +50,10 @@ const Index: React.FC = () => {
   const navigate = useNavigate();
 
   // Updated default values for title and description
-  const [minTitleWords, setMinTitleWords] = useState(12);
-  const [maxTitleWords, setMaxTitleWords] = useState(15);
-  const [minKeywords, setMinKeywords] = useState(35);
-  const [maxKeywords, setMaxKeywords] = useState(45);
+  const [minTitleWords, setMinTitleWords] = useState(8);
+  const [maxTitleWords, setMaxTitleWords] = useState(18);
+  const [minKeywords, setMinKeywords] = useState(43);
+  const [maxKeywords, setMaxKeywords] = useState(48);
   const [minDescriptionWords, setMinDescriptionWords] = useState(12); // Updated to 12
   const [maxDescriptionWords, setMaxDescriptionWords] = useState(30);
   
@@ -64,7 +64,7 @@ const Index: React.FC = () => {
   const [prohibitedWordsEnabled, setProhibitedWordsEnabled] = useState(false);
   const [transparentBgEnabled, setTransparentBgEnabled] = useState(false);
   const [silhouetteEnabled, setSilhouetteEnabled] = useState(false);
-  const [singleWordKeywordsEnabled, setSingleWordKeywordsEnabled] = useState(false);
+  const [singleWordKeywordsEnabled, setSingleWordKeywordsEnabled] = useState(true);
   
   // Get API key from localStorage or auth context
   useEffect(() => {
@@ -260,13 +260,20 @@ const Index: React.FC = () => {
             singleWordKeywordsEnabled
           };
           
+          // Track processing time
+          const startTime = Date.now();
+          
           // Process the image/video with Gemini API
           const result = await analyzeImageWithGemini(image.file, apiKey, options);
+          
+          // Calculate processing time in seconds
+          const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
           
           // Update UI on success
           setImages(prev => prev.map(img => img.id === image.id ? {
             ...img,
             status: result.error ? 'error' as const : 'complete' as const,
+            processingTime: parseFloat(processingTime),
             result: result.error ? undefined : {
               title: result.title,
               description: result.description,

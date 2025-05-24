@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film, FileType, CheckCircle } from 'lucide-react';
+import { Download, Copy, X, Check, Film, FileType, CheckCircle, Clock } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
@@ -23,6 +23,60 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   selectedPlatforms = ['AdobeStock']
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [newlyCompletedIds, setNewlyCompletedIds] = useState<string[]>([]);
+  const metadataRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
+  const [isAllProcessingComplete, setIsAllProcessingComplete] = useState(false);
+  
+  // Track newly completed images
+  useEffect(() => {
+    const currentCompletedIds = images
+      .filter(img => img.status === 'complete')
+      .map(img => img.id);
+      
+    // Find newly completed images since last render
+    const newlyCompleted = currentCompletedIds.filter(id => {
+      const wasNotCompleteBefore = !newlyCompletedIds.includes(id);
+      return wasNotCompleteBefore;
+    });
+    
+    // Check if all processing is complete
+    const hasProcessingItems = images.some(img => img.status === 'processing');
+    const hasNewCompletions = newlyCompleted.length > 0;
+    
+    if (hasNewCompletions) {
+      // Add newly completed images to the state
+      setNewlyCompletedIds(prevIds => [...prevIds, ...newlyCompleted]);
+      
+      // If some items are still processing, scroll to the most recently completed item
+      if (hasProcessingItems) {
+        const mostRecentId = newlyCompleted[newlyCompleted.length - 1];
+        setTimeout(() => {
+          const element = metadataRefs.current[mostRecentId];
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+      }
+    }
+    
+    // If previously had processing items but now all complete, scroll to the first completed item
+    if (!hasProcessingItems && currentCompletedIds.length > 0 && !isAllProcessingComplete) {
+      setIsAllProcessingComplete(true);
+      const firstCompletedId = currentCompletedIds[0];
+      setTimeout(() => {
+        const element = metadataRefs.current[firstCompletedId];
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+    }
+    
+    // Reset the isAllProcessingComplete flag if we have new processing items
+    if (hasProcessingItems && isAllProcessingComplete) {
+      setIsAllProcessingComplete(false);
+    }
+  }, [images, isAllProcessingComplete]);
+
   if (images.length === 0) return null;
   const handleCopyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -120,7 +174,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
       {/* Image to Prompt mode display - Updated to show image with prompt */}
       {generationMode === 'imageToPrompt' && completedImages.length > 0 && <div className="grid grid-cols-1 gap-6">
-          {completedImages.map(image => <div key={image.id} className="bg-black rounded-lg border border-gray-800 overflow-hidden">
+          {completedImages.map(image => <div 
+                key={image.id} 
+                className="bg-black rounded-lg border border-gray-800 overflow-hidden"
+                ref={el => metadataRefs.current[image.id] = el}
+              >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
                 {/* Left column - Source Image */}
                 <div className="p-4 border border-gray-800 rounded-lg">
@@ -134,7 +192,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <span className="ml-2 text-gray-400">EPS Design File</span>
                       </div> : <img src={image.previewUrl} alt={image.file.name} className="w-full object-cover max-h-[400px]" />}
                   </div>
-                  <div className="text-gray-400">{image.file.name}</div>
                 </div>
                 
                 {/* Right column - Generated Prompt */}
@@ -168,7 +225,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           {completedImages.map(image => {
         // Clean title by removing symbols
         const cleanTitle = image.result?.title ? removeSymbolsFromTitle(image.result.title) : '';
-        return <div key={image.id} className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden">
+        return <div 
+                key={image.id} 
+                className="mb-6 bg-gray-800/30 border border-gray-700/50 rounded-lg overflow-hidden"
+                ref={el => metadataRefs.current[image.id] = el}
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-6 border-r border-gray-700/50">
                     <h3 className="text-amber-500 text-lg mb-2">Image Preview</h3>
@@ -181,12 +242,19 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <span className="ml-2 text-gray-400">EPS Design File</span>
                         </div> : <img src={image.previewUrl} alt={image.file.name} className="w-full object-cover max-h-[400px]" />}
                     </div>
-                    <div className="text-gray-400">{image.file.name}</div>
                   </div>
                   
                   <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-amber-500 text-lg">Generated Metadata</h3>
+                        {image.processingTime !== undefined && (
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4 text-amber-500" />
+                            <span className="text-amber-500 text-sm font-medium">{image.processingTime}s</span>
+                          </div>
+                        )}
+                      </div>
                       <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
                         <Download className="h-4 w-4" />
                         <span>Download CSV</span>
@@ -264,15 +332,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           </div>
                         </div>}
 
-                      {/* AI Model Information - Always show for all platforms */}
-                      <div className="mt-4 p-2 border border-blue-500/30 rounded-lg bg-blue-900/20">
-                        <h4 className="text-blue-400 flex items-center gap-1">
-                          <Check className="h-4 w-4" />
-                          Generated by AI Model:
-                        </h4>
-                        <p className="text-white font-medium">{image.result?.baseModel || 'gemini-1.5-flash (default)'}</p>
-                      </div>
-                      
                       {isFreepikOnly && <>
                           <div>
                             <h4 className="text-amber-500">Prompt:</h4>
