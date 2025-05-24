@@ -45,7 +45,7 @@ export const en = {
     transparentBg: 'TRANSPARENT BACKGROUND',
     prohibitedWords: 'PROHIBITED WORDS',
     singleWordKeywords: 'SINGLE WORD KEYWORDS',
-    singleWordKeywordsDesc: 'When enabled, generated keywords will be single words only.',
+    singleWordKeywordsDesc: '',
     singleWordKeywordsTooltip: 'Helpful for platforms that prefer single-word keywords instead of phrases.'
   },
   imageUploader: {

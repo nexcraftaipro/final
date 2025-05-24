@@ -20,6 +20,9 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
   onEnabledChange,
   footer
 }) => {
+  // Check if there's any content to display
+  const hasContent = description || (bullets && bullets.length > 0) || footer;
+  
   return <div className="space-y-4 pt-2 border-t border-gray-700">
       <div className="flex justify-between items-center">
         <div className="flex items-center">
@@ -38,8 +41,8 @@ const FeatureToggle: React.FC<FeatureToggleProps> = ({
         <Switch checked={enabled} onCheckedChange={onEnabledChange} className="ml-auto text-[#ff0000]" />
       </div>
       
-      {enabled && <div className="p-4 bg-gray-800/50 rounded border border-gray-700 text-xs text-gray-300 space-y-2">
-          <p className="font-medium">{description}</p>
+      {enabled && hasContent && <div className="p-4 bg-gray-800/50 rounded border border-gray-700 text-xs text-gray-300 space-y-2">
+          {description && <p className="font-medium">{description}</p>}
           {bullets && bullets.length > 0 && <ul className="list-disc list-inside space-y-1 text-blue-300">
               {bullets.map((item, index) => <li key={index}>{item}</li>)}
             </ul>}
