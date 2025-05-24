@@ -6,7 +6,7 @@ import ResultsDisplay from '@/components/ResultsDisplay';
 import ThemeToggle from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
-import { analyzeImageWithGemini } from '@/utils/geminiApi';
+import { analyzeImageWithGemini, resetGeminiModelIndex } from '@/utils/geminiApi';
 import { toast } from 'sonner';
 import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, LogIn } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -208,6 +208,10 @@ const Index: React.FC = () => {
       return;
     }
     
+    // Reset the Gemini model index at the start of a new batch
+    // This allows the system to try models from the beginning for a new batch
+    resetGeminiModelIndex();
+    
     setIsProcessing(true);
     
     try {
@@ -226,11 +230,14 @@ const Index: React.FC = () => {
       // Process files with a short delay between each
       for (const image of pendingImages) {
         try {
+          // Removing the delay code to make processing faster
+          /* 
           if (pendingImages.indexOf(image) > 0) {
             // Add a longer delay for video files to prevent overwhelming the browser
             const delayTime = isVideoFile(image.file) ? 3000 : 2000;
             await new Promise(resolve => setTimeout(resolve, delayTime));
           }
+          */
           
           const options = {
             titleLength,
@@ -264,16 +271,17 @@ const Index: React.FC = () => {
               title: result.title,
               description: result.description,
               keywords: result.keywords,
+              // Always include baseModel information for all platforms
+              baseModel: result.baseModel,
               // Include fields for video files
               ...(result.isVideo && {
                 isVideo: true,
                 category: result.category,
                 filename: result.filename
               }),
-              // Include prompt and baseModel for Freepik
+              // Include prompt field for Freepik
               ...(platforms.length === 1 && platforms[0] === 'Freepik' && {
-                prompt: result.prompt,
-                baseModel: result.baseModel
+                prompt: result.prompt
               }),
               // Include categories for Shutterstock
               ...(platforms.length === 1 && platforms[0] === 'Shutterstock' && {

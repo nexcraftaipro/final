@@ -6,6 +6,17 @@ import { convertSvgToPng, isSvgFile } from './svgToPng';
 import { extractVideoThumbnail, isVideoFile } from './videoProcessor';
 import { isEpsFile, extractEpsMetadata, createEpsMetadataRepresentation } from './epsMetadataExtractor';
 import { determineVideoCategory } from './categorySelector';
+import { toast } from 'sonner';
+
+// Track the last working model index across multiple requests
+// This helps avoid repeated attempts on models that have exceeded their quota
+let lastWorkingModelIndex = 0;
+
+// Function to reset the model index, useful when starting a new session
+export function resetGeminiModelIndex(): void {
+  lastWorkingModelIndex = 0;
+  console.log("Reset Gemini model index to 0");
+}
 
 interface AnalysisOptions {
   titleLength?: number;
@@ -52,13 +63,6 @@ interface GeminiModel {
 
 const GEMINI_MODELS: GeminiModel[] = [
   {
-    name: 'gemini-1.5-flash',
-    maxOutputTokens: 1024,
-    temperature: 0.4,
-    topK: 32,
-    topP: 0.95,
-  },
-  {
     name: 'gemini-2.0-flash',
     maxOutputTokens: 1024,
     temperature: 0.4,
@@ -66,7 +70,14 @@ const GEMINI_MODELS: GeminiModel[] = [
     topP: 0.95,
   },
   {
-    name: 'gemini-1.5-pro',
+    name: 'gemini-1.5-flash-8b',
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    topK: 32,
+    topP: 0.95,
+  },
+  {
+    name: 'gemini-1.5-flash',
     maxOutputTokens: 1024,
     temperature: 0.4,
     topK: 32,
@@ -115,7 +126,22 @@ async function callGeminiAPI(
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData?.error?.message || `Failed to analyze image with ${model.name}`);
+    const errorMessage = errorData?.error?.message || `Failed to analyze image with ${model.name}`;
+    const errorCode = response.status;
+    
+    // Check specifically for quota/rate limiting errors
+    if (
+      errorCode === 429 ||
+      errorCode === 403 ||
+      errorMessage.toLowerCase().includes('quota') ||
+      errorMessage.toLowerCase().includes('rate limit') ||
+      errorMessage.toLowerCase().includes('resource exhausted') ||
+      errorMessage.toLowerCase().includes('limit exceeded')
+    ) {
+      throw new Error(`QUOTA_EXCEEDED: ${errorMessage}`);
+    }
+    
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -147,6 +173,8 @@ export async function analyzeImageWithGemini(
   const isFreepikOnly = platforms.length === 1 && platforms[0] === 'Freepik';
   const isShutterstock = platforms.length === 1 && platforms[0] === 'Shutterstock';
   const isAdobeStock = platforms.length === 1 && platforms[0] === 'AdobeStock';
+  
+  console.log('Starting image analysis with Gemini. Will fallback through models if needed.');
   
   try {
     // Store original filename
@@ -413,10 +441,19 @@ Generate appropriate metadata for this design file:
     
     // Try each model in sequence until one succeeds
     let lastError: Error | null = null;
-    for (const model of GEMINI_MODELS) {
+    
+    // Start from the last working model index instead of always starting from the first model
+    // This avoids repeatedly trying models that have already hit their quota limits
+    for (let i = lastWorkingModelIndex; i < GEMINI_MODELS.length; i++) {
+      const model = GEMINI_MODELS[i];
       try {
         console.log(`Attempting to use ${model.name}...`);
         const data = await callGeminiAPI(model, prompt, base64Image, originalIsEps, apiKey);
+        console.log(`Successfully generated content with ${model.name} model.`);
+        
+        // Remember this model as the last working one
+        lastWorkingModelIndex = i;
+        
         const text = data.candidates[0]?.content?.parts[0]?.text || '';
         
         // For image-to-prompt mode, just return the description
@@ -629,29 +666,52 @@ Generate appropriate metadata for this design file:
         // Check if this is a quota/rate limit error
         const errorMessage = error instanceof Error ? error.message.toLowerCase() : '';
         if (
+          errorMessage.includes('quota_exceeded:') || 
           errorMessage.includes('quota') || 
           errorMessage.includes('rate limit') || 
-          errorMessage.includes('429')
+          errorMessage.includes('429') ||
+          errorMessage.includes('403') ||
+          errorMessage.includes('resource exhausted') ||
+          errorMessage.includes('limit exceeded')
         ) {
-          console.log(`${model.name} quota exceeded, trying next model...`);
+          console.log(`${model.name} quota exceeded or rate limited, trying next model...`);
+          // Show a toast notification about model fallback
+          if (i === lastWorkingModelIndex) {
+            // Only show the first fallback notification to avoid spamming
+            toast.info(`${model.name} quota exceeded. Falling back to alternative models...`, {
+              duration: 3000,
+            });
+          }
+          
+          // Move to the next model by incrementing lastWorkingModelIndex
+          lastWorkingModelIndex = i + 1;
           continue;
         }
         
         // If it's not a quota error, throw it
+        console.error(`Non-quota error with ${model.name}, stopping fallback sequence.`);
         throw error;
       }
     }
 
     // If we get here, all models failed
-    throw lastError || new Error('All Gemini models failed');
+    console.error('All Gemini models exceeded their quotas or failed.');
+    throw lastError || new Error('All Gemini models failed. Please try again later.');
   } catch (error) {
     console.error('Processing error:', error instanceof Error ? error.message : 'Unknown error');
+    
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    const isQuotaError = errorMessage.toLowerCase().includes('quota') || 
+                         errorMessage.toLowerCase().includes('rate limit') || 
+                         errorMessage.toLowerCase().includes('resource exhausted');
     
     return {
       title: '',
       description: '',
       keywords: [],
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
+      error: isQuotaError 
+        ? 'All Gemini models have reached their quota limits. Please try again later or check your API key.' 
+        : errorMessage,
       isVideo: isVideoFile(imageFile),
       isEps: isEpsFile(imageFile),
       filename: imageFile.name
