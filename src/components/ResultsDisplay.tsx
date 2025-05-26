@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film, FileType, CheckCircle, Clock } from 'lucide-react';
+import { Download, Copy, X, Check, Film, FileType, CheckCircle, Clock, Save } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
 import { Platform } from '@/components/PlatformSelector';
 import { getCategoryNameById } from '@/utils/categorySelector';
+import { writeMetadataToFile } from '@/utils/metadataWriter';
 
 interface ResultsDisplayProps {
   images: ProcessedImage[];
@@ -150,6 +151,37 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     document.body.removeChild(element);
     toast.success('All prompts downloaded as text file');
   };
+  
+  // Function to write metadata to file
+  const handleSaveMetadataToFile = async (image: ProcessedImage) => {
+    if (!image.result) {
+      toast.error('No metadata available to save');
+      return;
+    }
+    
+    // Check if it's a JPEG image first
+    const isJpeg = image.file.type === "image/jpeg";
+    
+    try {
+      toast.info('Preparing metadata for embedding...');
+      
+      // If it's not a JPEG, warn the user
+      if (!isJpeg) {
+        toast.warning('Full metadata embedding only works with JPEG images. Other formats will use descriptive filenames.');
+      }
+      
+      const success = await writeMetadataToFile(image);
+      if (success) {
+        toast.success('Metadata processed! Check your downloads folder for the file.');
+      } else {
+        toast.error('Unable to write metadata to file. See console for details.');
+      }
+    } catch (error) {
+      console.error('Error writing metadata to file:', error);
+      toast.error('Failed to write metadata to file. Please try again with a different image.');
+    }
+  };
+  
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
@@ -255,10 +287,16 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           </div>
                         )}
                       </div>
-                      <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
-                        <Download className="h-4 w-4" />
-                        <span>Download CSV</span>
-                      </Button>
+                      <div className="flex flex-col gap-2">
+                        <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
+                          <Download className="h-4 w-4" />
+                          <span>Download CSV</span>
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => handleSaveMetadataToFile(image)} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
+                          <Save className="h-4 w-4" />
+                          <span>Save Metadata</span>
+                        </Button>
+                      </div>
                     </div>
                     
                     <div className="space-y-4">
