@@ -21,7 +21,7 @@ interface MetadataToWrite {
  * @param image The processed image with metadata to write
  * @returns A promise that resolves to true if successful, or false if failed
  */
-export async function writeMetadataToFile(image: ProcessedImage): Promise<boolean> {
+export async function writeMetadataToFile(image: ProcessedImage, folderName?: string): Promise<boolean> {
   if (!image.result) {
     console.error("No generated metadata available to write");
     return false;
@@ -47,11 +47,11 @@ export async function writeMetadataToFile(image: ProcessedImage): Promise<boolea
     // Handle based on file type
     if (image.file.type === "image/jpeg") {
       console.log("Processing as JPEG");
-      return await writeJpegMetadataAndDownload(image, metadata);
+      return await writeJpegMetadataAndDownload(image, metadata, folderName);
     } 
     else if (image.file.type.startsWith("image/")) {
       console.log("Processing as non-JPEG image");
-      return await writeImageMetadataAndDownload(image, metadata);
+      return await writeImageMetadataAndDownload(image, metadata, folderName);
     }
     else {
       console.warn("File type not supported for metadata embedding:", image.file.type);
@@ -405,7 +405,7 @@ function insertXMPMetadata(xmpData: string, jpegDataUri: string): string {
 /**
  * Writes metadata to a JPEG image using piexifjs and downloads the result
  */
-async function writeJpegMetadataAndDownload(image: ProcessedImage, metadata: MetadataToWrite): Promise<boolean> {
+async function writeJpegMetadataAndDownload(image: ProcessedImage, metadata: MetadataToWrite, folderName?: string): Promise<boolean> {
   try {
     // First load the image data as base64
     const base64Image = await readFileAsBase64(image.file);
@@ -487,7 +487,10 @@ async function writeJpegMetadataAndDownload(image: ProcessedImage, metadata: Met
       const suffix = metadataEmbedded ? "stock_ready" : "no_metadata";
       
       // Use .jpeg extension instead of .jpg - Adobe Stock prefers this
-      link.download = `${safeTitle}_${suffix}.jpeg`;
+      // If folder name is provided, prepend it
+      link.download = folderName 
+        ? `${folderName}/${safeTitle}_${suffix}.jpeg`
+        : `${safeTitle}_${suffix}.jpeg`;
       
       // Trigger download
       document.body.appendChild(link);
@@ -547,7 +550,7 @@ async function writeJpegMetadataAndDownload(image: ProcessedImage, metadata: Met
 /**
  * Writes metadata to other image types using canvas and downloads
  */
-async function writeImageMetadataAndDownload(image: ProcessedImage, metadata: MetadataToWrite): Promise<boolean> {
+async function writeImageMetadataAndDownload(image: ProcessedImage, metadata: MetadataToWrite, folderName?: string): Promise<boolean> {
   try {
     // For non-JPEG images, we cannot add proper Windows metadata
     // but we'll save the image with a meaningful filename
@@ -605,7 +608,10 @@ async function writeImageMetadataAndDownload(image: ProcessedImage, metadata: Me
       : image.file.name.split('.')[0];
     
     const extension = image.file.name.split('.').pop() || '';
-    link.download = `${safeTitle}_${keywords}.${extension}`;
+    // If folder name is provided, prepend it
+    link.download = folderName 
+      ? `${folderName}/${safeTitle}_${keywords}.${extension}`
+      : `${safeTitle}_${keywords}.${extension}`;
     
     link.click();
     

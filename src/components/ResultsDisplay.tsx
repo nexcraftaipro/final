@@ -182,6 +182,55 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }
   };
   
+  // Function to save metadata for all files at once
+  const handleSaveAllMetadata = async () => {
+    const completedImages = images.filter(img => img.status === 'complete');
+    if (completedImages.length === 0) return;
+    
+    toast.info(`Preparing to save metadata for ${completedImages.length} files...`);
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    // Process each image sequentially
+    for (const image of completedImages) {
+      if (!image.result) {
+        failCount++;
+        continue;
+      }
+      
+      try {
+        // Check if it's a JPEG image
+        const isJpeg = image.file.type === "image/jpeg";
+        
+        if (!isJpeg) {
+          toast.warning(`Skipping non-JPEG file: ${image.file.name}`);
+          continue;
+        }
+        
+        // Pass folder name to writeMetadataToFile (it will be handled in the function)
+        const success = await writeMetadataToFile(image, "Pixcraftai Metadat");
+        if (success) {
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (error) {
+        console.error('Error writing metadata for file:', image.file.name, error);
+        failCount++;
+      }
+    }
+    
+    // Show summary toast
+    if (successCount > 0) {
+      toast.success(`Successfully processed metadata for ${successCount} file${successCount !== 1 ? 's' : ''}! Files saved to "Pixcraftai Metadat" folder.`);
+    }
+    
+    if (failCount > 0) {
+      toast.error(`Failed to process metadata for ${failCount} file${failCount !== 1 ? 's' : ''}.`);
+    }
+  };
+  
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
@@ -189,6 +238,10 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
         <div className="flex gap-2">
+          {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleSaveAllMetadata} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
+              <Save className="h-4 w-4" />
+              <span>Save All Metadata</span>
+            </Button>}
           {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
               <span>Download All CSV</span>
