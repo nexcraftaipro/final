@@ -301,6 +301,13 @@ const FileMetadataDisplay: React.FC<FileMetadataDisplayProps> = ({ file, onClose
                       <div>{processedImage.result.baseModel}</div>
                     </>
                   )}
+                  
+                  {processedImage.result?.provider && (
+                    <>
+                      <div className="text-gray-400">Provider</div>
+                      <div>{processedImage.result.provider.toUpperCase()}</div>
+                    </>
+                  )}
                 </>
               )}
               

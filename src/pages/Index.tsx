@@ -68,9 +68,10 @@ const Index: React.FC = () => {
   
   // Get API key from localStorage or auth context
   useEffect(() => {
-    const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
-    if (savedKey) {
-      setApiKey(savedKey);
+    const savedGeminiKey = localStorage.getItem('gemini-api-key') || authApiKey;
+    
+    if (savedGeminiKey) {
+      setApiKey(savedGeminiKey);
     }
   }, [authApiKey]);
   
@@ -182,7 +183,7 @@ const Index: React.FC = () => {
     }
     
     if (!apiKey) {
-      toast.error('Please enter your Gemini API key first');
+      toast.error('Please enter an API key');
       return;
     }
     
@@ -227,84 +228,79 @@ const Index: React.FC = () => {
       // Show notifications for special file types - SVG notification removed
       // The conversion still happens, but we don't show the message
       
-      // Process files with a short delay between each
-      for (const image of pendingImages) {
+      // Process images one by one
+      const updatedImages: ProcessedImage[] = [...images];
+      let successCount = 0;
+      
+      for (let i = 0; i < updatedImages.length; i++) {
+        const img = updatedImages[i];
+        
+        if (img.status !== 'pending') continue;
+        
+        updatedImages[i] = { ...img, status: 'processing' };
+        setImages([...updatedImages]);
+        
         try {
-          // Removing the delay code to make processing faster
-          /* 
-          if (pendingImages.indexOf(image) > 0) {
-            // Add a longer delay for video files to prevent overwhelming the browser
-            const delayTime = isVideoFile(image.file) ? 3000 : 2000;
-            await new Promise(resolve => setTimeout(resolve, delayTime));
-          }
-          */
+          console.log(`Processing image ${i + 1}/${pendingImages.length}: ${img.file.name}`);
           
-          const options = {
-            titleLength,
-            descriptionLength,
-            keywordCount,
-            platforms,
-            generationMode,
-            minTitleWords,
-            maxTitleWords,
-            minKeywords,
-            maxKeywords,
-            minDescriptionWords,
-            maxDescriptionWords,
-            customPromptEnabled,
-            customPrompt,
-            prohibitedWords,
-            prohibitedWordsEnabled,
-            transparentBgEnabled,
-            silhouetteEnabled,
-            singleWordKeywordsEnabled
-          };
-          
-          // Track processing time
-          const startTime = Date.now();
-          
-          // Process the image/video with Gemini API
-          const result = await analyzeImageWithGemini(image.file, apiKey, options);
-          
-          // Calculate processing time in seconds
-          const processingTime = ((Date.now() - startTime) / 1000).toFixed(2);
+          // Update to only pass the Gemini API key
+          const result = await analyzeImageWithGemini(
+            img.file, 
+            apiKey,
+            {
+              titleLength,
+              descriptionLength,
+              keywordCount,
+              platforms,
+              generationMode,
+              minTitleWords,
+              maxTitleWords,
+              minKeywords,
+              maxKeywords,
+              minDescriptionWords,
+              maxDescriptionWords,
+              customPromptEnabled,
+              customPrompt,
+              prohibitedWords,
+              prohibitedWordsEnabled,
+              transparentBgEnabled,
+              silhouetteEnabled,
+              singleWordKeywordsEnabled
+            }
+          );
           
           // Update UI on success
-          setImages(prev => prev.map(img => img.id === image.id ? {
+          updatedImages[i] = {
             ...img,
-            status: result.error ? 'error' as const : 'complete' as const,
-            processingTime: parseFloat(processingTime),
+            status: result.error ? 'error' : 'complete',
+            processingTime: result.processingTime || 0,
             result: result.error ? undefined : {
               title: result.title,
               description: result.description,
               keywords: result.keywords,
-              // Always include baseModel information for all platforms
+              category: result.category,
+              categories: result.categories,
               baseModel: result.baseModel,
-              // Include fields for video files
-              ...(result.isVideo && {
-                isVideo: true,
-                category: result.category,
-                filename: result.filename
-              }),
-              // Include prompt field for Freepik
-              ...(platforms.length === 1 && platforms[0] === 'Freepik' && {
-                prompt: result.prompt
-              }),
-              // Include categories for Shutterstock
-              ...(platforms.length === 1 && platforms[0] === 'Shutterstock' && {
-                categories: result.categories
-              })
+              provider: result.provider
             },
             error: result.error
-          } : img));
-        } catch (error) {
-          console.error(`Error processing file ${image.file.name}:`, error);
+          };
           
-          setImages(prev => prev.map(img => img.id === image.id ? {
+          setImages([...updatedImages]);
+          
+          if (!result.error) {
+            successCount++;
+          }
+        } catch (error) {
+          console.error(`Error processing file ${img.file.name}:`, error);
+          
+          updatedImages[i] = {
             ...img,
-            status: 'error' as const,
-            error: error instanceof Error ? error.message : 'Unknown error occurred'
-          } : img));
+            status: 'error',
+            error: error instanceof Error ? error.message : 'An unknown error occurred'
+          };
+          
+          setImages([...updatedImages]);
         }
       }
       
@@ -329,9 +325,9 @@ const Index: React.FC = () => {
   
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <AppHeader
-        remainingCredits={remainingCredits}
-        apiKey={apiKey}
+      <AppHeader 
+        remainingCredits={profile?.credits_used ? Math.max(0, 10 - profile.credits_used) : 0} 
+        apiKey={apiKey} 
         onApiKeyChange={handleApiKeyChange}
       />
       

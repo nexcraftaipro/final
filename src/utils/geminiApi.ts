@@ -12,10 +12,26 @@ import { toast } from 'sonner';
 // This helps avoid repeated attempts on models that have exceeded their quota
 let lastWorkingModelIndex = 0;
 
+// Track the currently active API provider
+let currentApiProvider: 'gemini' | 'openai' = 'gemini';
+
 // Function to reset the model index, useful when starting a new session
 export function resetGeminiModelIndex(): void {
   lastWorkingModelIndex = 0;
-  console.log("Reset Gemini model index to 0");
+  currentApiProvider = 'gemini';
+  console.log("Reset model index to 0 and provider to Gemini");
+}
+
+// Function to get the current API provider
+export function getCurrentApiProvider(): 'gemini' | 'openai' {
+  return currentApiProvider;
+}
+
+// Function to manually set the API provider
+export function setApiProvider(provider: 'gemini' | 'openai'): void {
+  currentApiProvider = provider;
+  lastWorkingModelIndex = 0; // Reset index when switching providers
+  console.log(`Switched API provider to ${provider}`);
 }
 
 interface AnalysisOptions {
@@ -51,6 +67,13 @@ interface AnalysisResult {
   isVideo?: boolean;
   category?: number;
   isEps?: boolean;
+  provider?: 'gemini' | 'openai';
+  processingTime?: number;
+}
+
+interface ApiKeyConfig {
+  geminiApiKey: string;
+  openaiApiKey?: string;
 }
 
 interface GeminiModel {
@@ -59,6 +82,8 @@ interface GeminiModel {
   temperature: number;
   topK: number;
   topP: number;
+  provider: 'gemini' | 'openai';
+  modelPath?: string; // For OpenAI API endpoint path
 }
 
 const GEMINI_MODELS: GeminiModel[] = [
@@ -68,6 +93,7 @@ const GEMINI_MODELS: GeminiModel[] = [
     temperature: 0.4,
     topK: 32,
     topP: 0.95,
+    provider: 'gemini',
   },
   {
     name: 'gemini-1.5-flash-8b',
@@ -75,6 +101,7 @@ const GEMINI_MODELS: GeminiModel[] = [
     temperature: 0.4,
     topK: 32,
     topP: 0.95,
+    provider: 'gemini',
   },
   {
     name: 'gemini-1.5-flash',
@@ -82,6 +109,34 @@ const GEMINI_MODELS: GeminiModel[] = [
     temperature: 0.4,
     topK: 32,
     topP: 0.95,
+    provider: 'gemini',
+  },
+  {
+    name: 'gemini-1.5-pro',
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    topK: 32,
+    topP: 0.95,
+    provider: 'gemini',
+  },
+  // OpenAI fallback models
+  {
+    name: 'gpt-4-vision-preview',
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    topK: 0,
+    topP: 0.95,
+    provider: 'openai',
+    modelPath: 'chat/completions'
+  },
+  {
+    name: 'gpt-4o',
+    maxOutputTokens: 1024,
+    temperature: 0.4,
+    topK: 0,
+    topP: 0.95,
+    provider: 'openai',
+    modelPath: 'chat/completions'
   }
 ];
 
@@ -90,8 +145,23 @@ async function callGeminiAPI(
   prompt: string,
   base64Image: string,
   originalIsEps: boolean,
-  apiKey: string
+  apiKeyConfig: ApiKeyConfig
 ): Promise<any> {
+  // Use the appropriate API key based on provider
+  const apiKey = model.provider === 'gemini' 
+    ? apiKeyConfig.geminiApiKey 
+    : apiKeyConfig.openaiApiKey;
+  
+  if (!apiKey) {
+    throw new Error(`No API key provided for ${model.provider} provider`);
+  }
+
+  // For OpenAI provider
+  if (model.provider === 'openai') {
+    return callOpenAiAPI(model, prompt, base64Image, originalIsEps, apiKey);
+  }
+
+  // For Gemini provider (existing implementation)
   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model.name}:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
@@ -147,11 +217,103 @@ async function callGeminiAPI(
   return response.json();
 }
 
+// New function for OpenAI API calls
+async function callOpenAiAPI(
+  model: GeminiModel,
+  prompt: string,
+  base64Image: string,
+  originalIsEps: boolean,
+  apiKey: string
+): Promise<any> {
+  const url = `https://api.openai.com/v1/${model.modelPath}`;
+  
+  // Structure message content based on whether it's an EPS file or not
+  const messageContent = originalIsEps
+    ? [
+        { type: "text", text: prompt },
+        { type: "text", text: base64Image }
+      ]
+    : [
+        { type: "text", text: prompt },
+        {
+          type: "image_url",
+          image_url: {
+            url: base64Image,
+            detail: "high"
+          }
+        }
+      ];
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: model.name,
+      messages: [
+        {
+          role: "user",
+          content: messageContent
+        }
+      ],
+      max_tokens: model.maxOutputTokens,
+      temperature: model.temperature,
+      top_p: model.topP
+    })
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage = errorData?.error?.message || `Failed to analyze image with OpenAI model ${model.name}`;
+    const errorCode = response.status;
+    
+    // Check specifically for quota/rate limiting errors
+    if (
+      errorCode === 429 ||
+      errorCode === 403 ||
+      errorMessage.toLowerCase().includes('quota') ||
+      errorMessage.toLowerCase().includes('rate limit') ||
+      errorMessage.toLowerCase().includes('resource exhausted') ||
+      errorMessage.toLowerCase().includes('limit exceeded')
+    ) {
+      throw new Error(`QUOTA_EXCEEDED: ${errorMessage}`);
+    }
+    
+    throw new Error(errorMessage);
+  }
+
+  const data = await response.json();
+  
+  // Transform OpenAI response format to match Gemini format
+  return {
+    candidates: [
+      {
+        content: {
+          parts: [
+            { text: data.choices[0].message.content }
+          ]
+        }
+      }
+    ]
+  };
+}
+
 export async function analyzeImageWithGemini(
   imageFile: File,
   apiKey: string,
-  options: AnalysisOptions = {}
+  options: AnalysisOptions = {},
+  openaiApiKey?: string
 ): Promise<AnalysisResult> {
+  const apiKeyConfig: ApiKeyConfig = {
+    geminiApiKey: apiKey,
+    openaiApiKey
+  };
+
+  // Track processing time
+  const startTime = Date.now();
+
   const {
     platforms = ['AdobeStock'],
     generationMode = 'metadata',
@@ -439,20 +601,62 @@ Generate appropriate metadata for this design file:
       }
     }
     
+    // Filter models based on available API keys
+    const availableModels = GEMINI_MODELS.filter(model => 
+      (model.provider === 'gemini' && apiKeyConfig.geminiApiKey) || 
+      (model.provider === 'openai' && apiKeyConfig.openaiApiKey)
+    );
+
+    if (availableModels.length === 0) {
+      throw new Error("No API keys provided for any available models");
+    }
+
+    // Get models for the current provider first
+    const currentProviderModels = availableModels.filter(model => model.provider === currentApiProvider);
+    
+    // Start with models from the current provider, then try the other provider if available
+    let modelsToTry = [
+      ...currentProviderModels.slice(lastWorkingModelIndex), 
+    ];
+
+    // If we're starting with Gemini models, add OpenAI models as backup
+    if (currentApiProvider === 'gemini' && apiKeyConfig.openaiApiKey) {
+      const openaiModels = availableModels.filter(model => model.provider === 'openai');
+      modelsToTry = [...modelsToTry, ...openaiModels];
+    }
+    // If we're starting with OpenAI models, add Gemini models as backup
+    else if (currentApiProvider === 'openai' && apiKeyConfig.geminiApiKey) {
+      const geminiModels = availableModels.filter(model => model.provider === 'gemini');
+      modelsToTry = [...modelsToTry, ...geminiModels];
+    }
+    
     // Try each model in sequence until one succeeds
     let lastError: Error | null = null;
-    
-    // Start from the last working model index instead of always starting from the first model
-    // This avoids repeatedly trying models that have already hit their quota limits
-    for (let i = lastWorkingModelIndex; i < GEMINI_MODELS.length; i++) {
-      const model = GEMINI_MODELS[i];
+    let providerSwitched = false;
+
+    for (let i = 0; i < modelsToTry.length; i++) {
+      const model = modelsToTry[i];
+      
       try {
-        console.log(`Attempting to use ${model.name}...`);
-        const data = await callGeminiAPI(model, prompt, base64Image, originalIsEps, apiKey);
+        console.log(`Attempting to use ${model.name} (${model.provider})...`);
+        const data = await callGeminiAPI(model, prompt, base64Image, originalIsEps, apiKeyConfig);
         console.log(`Successfully generated content with ${model.name} model.`);
         
-        // Remember this model as the last working one
-        lastWorkingModelIndex = i;
+        // Update the current provider if it changed
+        if (currentApiProvider !== model.provider) {
+          currentApiProvider = model.provider;
+          console.log(`Switched to ${currentApiProvider} provider`);
+          providerSwitched = true;
+        }
+        
+        // Update the lastWorkingModelIndex only for the current provider
+        if (model.provider === currentApiProvider) {
+          // Find the index in the original GEMINI_MODELS array
+          const modelIndex = GEMINI_MODELS.findIndex(m => m.name === model.name && m.provider === model.provider);
+          if (modelIndex !== -1) {
+            lastWorkingModelIndex = modelIndex;
+          }
+        }
         
         const text = data.candidates[0]?.content?.parts[0]?.text || '';
         
@@ -465,7 +669,9 @@ Generate appropriate metadata for this design file:
             filename: originalFilename,
             isVideo: originalIsVideo,
             isEps: originalIsEps,
-            baseModel: model.name
+            baseModel: model.name,
+            provider: model.provider,
+            processingTime: (Date.now() - startTime) / 1000
           };
         }
         
@@ -483,6 +689,7 @@ Generate appropriate metadata for this design file:
         try {
           result = JSON.parse(jsonStr);
           result.baseModel = model.name; // Add the model name to the result
+          result.provider = model.provider; // Add the provider to the result
           
           // Ensure titles don't have symbols
           if (result.title) {
@@ -634,6 +841,7 @@ Generate appropriate metadata for this design file:
               filename: originalFilename,
               isVideo: true,
               isEps: false,
+              processingTime: (Date.now() - startTime) / 1000,
               ...(!isFreepikOnly && !isShutterstock && !isAdobeStock ? { categories: result.categories } : {}),
             };
           }
@@ -650,9 +858,12 @@ Generate appropriate metadata for this design file:
               filename: originalFilename,
               isVideo: false,
               isEps: true,
+              processingTime: (Date.now() - startTime) / 1000,
             };
           }
           
+          // Add processing time to the result
+          result.processingTime = (Date.now() - startTime) / 1000;
           return result;
         } catch (e) {
           console.error('Failed to parse JSON from response:', jsonStr);
@@ -675,16 +886,34 @@ Generate appropriate metadata for this design file:
           errorMessage.includes('limit exceeded')
         ) {
           console.log(`${model.name} quota exceeded or rate limited, trying next model...`);
+          
           // Show a toast notification about model fallback
-          if (i === lastWorkingModelIndex) {
+          if (!providerSwitched) {
             // Only show the first fallback notification to avoid spamming
-            toast.info(`${model.name} quota exceeded. Falling back to alternative models...`, {
+            toast.info(`${model.name} quota exceeded. Trying alternative models...`, {
               duration: 3000,
             });
           }
           
-          // Move to the next model by incrementing lastWorkingModelIndex
-          lastWorkingModelIndex = i + 1;
+          // If we're at the last model of the current provider, prepare to switch providers
+          const isLastModelOfCurrentProvider = !modelsToTry
+            .slice(i + 1)
+            .some(m => m.provider === model.provider);
+            
+          if (isLastModelOfCurrentProvider && !providerSwitched) {
+            const nextProvider = model.provider === 'gemini' ? 'openai' : 'gemini';
+            const hasNextProviderKey = nextProvider === 'gemini' 
+              ? !!apiKeyConfig.geminiApiKey 
+              : !!apiKeyConfig.openaiApiKey;
+              
+            if (hasNextProviderKey) {
+              toast.info(`Switching to ${nextProvider.toUpperCase()} models...`, {
+                duration: 3000,
+              });
+              providerSwitched = true;
+            }
+          }
+          
           continue;
         }
         
@@ -695,8 +924,8 @@ Generate appropriate metadata for this design file:
     }
 
     // If we get here, all models failed
-    console.error('All Gemini models exceeded their quotas or failed.');
-    throw lastError || new Error('All Gemini models failed. Please try again later.');
+    console.error('All models exceeded their quotas or failed.');
+    throw lastError || new Error('All models failed. Please try again later.');
   } catch (error) {
     console.error('Processing error:', error instanceof Error ? error.message : 'Unknown error');
     
@@ -710,11 +939,12 @@ Generate appropriate metadata for this design file:
       description: '',
       keywords: [],
       error: isQuotaError 
-        ? 'All Gemini models have reached their quota limits. Please try again later or check your API key.' 
+        ? 'All available models have reached their quota limits. Please try again later or check your API keys.' 
         : errorMessage,
       isVideo: isVideoFile(imageFile),
       isEps: isEpsFile(imageFile),
-      filename: imageFile.name
+      filename: imageFile.name,
+      processingTime: (Date.now() - startTime) / 1000
     };
   }
 }
