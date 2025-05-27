@@ -120,11 +120,11 @@ export const downloadCSV = (csvContent: string, filename: string, platform?: Pla
   
   a.href = url;
   
-  // Use platform to create a custom folder name
-  const folderName = platform ? `${platform}-metadata` : 'pixcraftai metadata';
+  // Add platform prefix to filename if provided
+  const filenameWithPrefix = platform ? `${platform}-${filename}` : filename;
   
-  // Append folder name to filename
-  a.download = `${folderName}/${filename}`;
+  // Set the download filename
+  a.download = filenameWithPrefix;
   
   document.body.appendChild(a);
   a.click();

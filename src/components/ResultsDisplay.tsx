@@ -97,44 +97,26 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isDepositphotos = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Depositphotos';
   const is123RF = selectedPlatforms.length === 1 && selectedPlatforms[0] === '123RF';
   const isAlamy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Alamy';
-  const handleDownloadCSV = async () => {
+  const handleDownloadCSV = () => {
     // Check if there are any videos to process
     const videoImages = images.filter(img => img.result?.isVideo);
     const regularImages = images.filter(img => !img.result?.isVideo);
 
-    try {
-      const zip = new JSZip();
-      
-      // Process videos if they exist
-      if (videoImages.length > 0) {
-        const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
-        const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
-        zip.file('video-metadata.csv', videoCsvContent);
-      }
+    // Process videos if they exist
+    if (videoImages.length > 0) {
+      const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
+      downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);
+      toast.success('Video metadata CSV file downloaded');
+    }
 
-      // Process regular images if they exist
-      if (regularImages.length > 0) {
-        const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
-        // Create a filename based on platform
-        const fileName = selectedPlatforms.length === 1 ? `${selectedPlatforms[0]}-metadata.csv` : 'image-metadata.csv';
-        zip.file(fileName, csvContent);
-      }
-      
-      // Generate and download the zip
-      const zipContent = await zip.generateAsync({ type: 'blob' });
-      const url = URL.createObjectURL(zipContent);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'pixcraftai-metadata-csv.zip';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
-      toast.success('Metadata CSV files downloaded as ZIP archive');
-    } catch (error) {
-      console.error('Error creating CSV zip archive:', error);
-      toast.error('Failed to create CSV zip archive');
+    // Process regular images if they exist
+    if (regularImages.length > 0) {
+      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
+      // Pass the platform name for custom folder naming
+      const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
+      downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
+      toast.success('Image metadata CSV file downloaded');
     }
   };
   const downloadPromptText = (text: string, filename: string) => {
@@ -288,7 +270,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </Button>}
           {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
-              <span>Download CSV as ZIP</span>
+              <span>Download All CSV</span>
             </Button>}
           {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
