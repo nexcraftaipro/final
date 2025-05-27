@@ -38,8 +38,8 @@ export async function createMetadataFileContent(image: ProcessedImage): Promise<
       title: image.result.title,
       description: image.result.description,
       keywords: image.result.keywords,
-      // Add default author and copyright fields which are required by stock sites
-      author: "Created with PixcraftAI", 
+      // Empty author field as requested
+      author: "", 
       copyright: `© ${new Date().getFullYear()} All Rights Reserved`,
       // Always set 5-star rating
       rating: 5
@@ -212,8 +212,8 @@ export async function writeMetadataToFile(image: ProcessedImage, folderName?: st
       title: image.result.title,
       description: image.result.description,
       keywords: image.result.keywords,
-      // Add default author and copyright fields which are required by stock sites
-      author: "Created with PixcraftAI", 
+      // Empty author field as requested
+      author: "", 
       copyright: `© ${new Date().getFullYear()} All Rights Reserved`,
       // Always set 5-star rating
       rating: 5
