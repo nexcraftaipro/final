@@ -7,7 +7,8 @@ import { GenerationMode } from '@/components/GenerationModeSelector';
 import { Card } from '@/components/ui/card';
 import { Platform } from '@/components/PlatformSelector';
 import { getCategoryNameById } from '@/utils/categorySelector';
-import { writeMetadataToFile } from '@/utils/metadataWriter';
+import { writeMetadataToFile, createMetadataFileContent } from '@/utils/metadataWriter';
+import JSZip from 'jszip';
 
 interface ResultsDisplayProps {
   images: ProcessedImage[];
@@ -96,26 +97,44 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const isDepositphotos = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Depositphotos';
   const is123RF = selectedPlatforms.length === 1 && selectedPlatforms[0] === '123RF';
   const isAlamy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Alamy';
-  const handleDownloadCSV = () => {
+  const handleDownloadCSV = async () => {
     // Check if there are any videos to process
     const videoImages = images.filter(img => img.result?.isVideo);
     const regularImages = images.filter(img => !img.result?.isVideo);
 
-    // Process videos if they exist
-    if (videoImages.length > 0) {
-      const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
-      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
-      downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);  // Fixed type issue
-      toast.success('Video metadata CSV file downloaded');
-    }
+    try {
+      const zip = new JSZip();
+      
+      // Process videos if they exist
+      if (videoImages.length > 0) {
+        const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+        const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
+        zip.file('video-metadata.csv', videoCsvContent);
+      }
 
-    // Process regular images if they exist
-    if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
-      // Pass the platform name for custom folder naming
-      const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
-      downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
-      toast.success('Image metadata CSV file downloaded');
+      // Process regular images if they exist
+      if (regularImages.length > 0) {
+        const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
+        // Create a filename based on platform
+        const fileName = selectedPlatforms.length === 1 ? `${selectedPlatforms[0]}-metadata.csv` : 'image-metadata.csv';
+        zip.file(fileName, csvContent);
+      }
+      
+      // Generate and download the zip
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(zipContent);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'pixcraftai-metadata-csv.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Metadata CSV files downloaded as ZIP archive');
+    } catch (error) {
+      console.error('Error creating CSV zip archive:', error);
+      toast.error('Failed to create CSV zip archive');
     }
   };
   const downloadPromptText = (text: string, filename: string) => {
@@ -152,7 +171,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     toast.success('All prompts downloaded as text file');
   };
   
-  // Function to write metadata to file
+  // Function to write metadata to file for a single image
   const handleSaveMetadataToFile = async (image: ProcessedImage) => {
     if (!image.result) {
       toast.error('No metadata available to save');
@@ -182,52 +201,77 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }
   };
   
-  // Function to save metadata for all files at once
+  // Function to save metadata for all files at once as a zip archive
   const handleSaveAllMetadata = async () => {
     const completedImages = images.filter(img => img.status === 'complete');
     if (completedImages.length === 0) return;
     
-    toast.info(`Preparing to save metadata for ${completedImages.length} files...`);
+    toast.info(`Preparing to create zip archive with ${completedImages.length} files...`);
     
-    let successCount = 0;
-    let failCount = 0;
-    
-    // Process each image sequentially
-    for (const image of completedImages) {
-      if (!image.result) {
-        failCount++;
-        continue;
-      }
+    try {
+      // Create a new JSZip instance
+      const zip = new JSZip();
       
-      try {
-        // Check if it's a JPEG image
-        const isJpeg = image.file.type === "image/jpeg";
-        
-        if (!isJpeg) {
-          toast.warning(`Skipping non-JPEG file: ${image.file.name}`);
+      let successCount = 0;
+      let failCount = 0;
+      
+      // Process each image sequentially
+      for (const image of completedImages) {
+        if (!image.result) {
+          failCount++;
           continue;
         }
         
-        // Pass folder name to writeMetadataToFile (it will be handled in the function)
-        const success = await writeMetadataToFile(image, "Pixcraftai Metadat");
-        if (success) {
-          successCount++;
-        } else {
+        try {
+          // Get the file content with metadata instead of downloading directly
+          const fileContent = await createMetadataFileContent(image);
+          
+          if (fileContent) {
+            // Generate file name
+            const safeTitle = image.result.title 
+              ? image.result.title.replace(/[<>:"/\\|?*]/g, '-') 
+              : image.file.name.split('.')[0];
+            
+            const suffix = fileContent.metadataEmbedded ? "stock_ready" : "no_metadata";
+            const fileName = image.file.type === "image/jpeg" 
+              ? `${safeTitle}_${suffix}.jpeg`
+              : image.file.name;
+            
+            // Add the file to the zip
+            zip.file(fileName, fileContent.data);
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          console.error('Error processing file for zip:', image.file.name, error);
           failCount++;
         }
-      } catch (error) {
-        console.error('Error writing metadata for file:', image.file.name, error);
-        failCount++;
       }
-    }
-    
-    // Show summary toast
-    if (successCount > 0) {
-      toast.success(`Successfully processed metadata for ${successCount} file${successCount !== 1 ? 's' : ''}! Files saved to "Pixcraftai Metadat" folder.`);
-    }
-    
-    if (failCount > 0) {
-      toast.error(`Failed to process metadata for ${failCount} file${failCount !== 1 ? 's' : ''}.`);
+      
+      if (successCount > 0) {
+        // Generate the zip file
+        const zipContent = await zip.generateAsync({ type: 'blob' });
+        
+        // Create download link
+        const url = URL.createObjectURL(zipContent);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'pixcraftai-metadata.zip';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success(`Successfully created zip archive with ${successCount} file${successCount !== 1 ? 's' : ''}!`);
+      }
+      
+      if (failCount > 0) {
+        toast.error(`Failed to process ${failCount} file${failCount !== 1 ? 's' : ''}.`);
+      }
+    } catch (error) {
+      console.error('Error creating zip archive:', error);
+      toast.error('Failed to create zip archive. Please try again.');
     }
   };
   
@@ -240,11 +284,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         <div className="flex gap-2">
           {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleSaveAllMetadata} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
               <Save className="h-4 w-4" />
-              <span>Save All Metadata</span>
+              <span>Save All as ZIP</span>
             </Button>}
           {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
-              <span>Download All CSV</span>
+              <span>Download CSV as ZIP</span>
             </Button>}
           {hasCompletedImages && generationMode === 'imageToPrompt' && completedImages.length > 1 && <Button variant="outline" size="sm" onClick={downloadAllPrompts} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
@@ -347,7 +391,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => handleSaveMetadataToFile(image)} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
                           <Save className="h-4 w-4" />
-                          <span>Save Metadata</span>
+                          <span>Save With Metadata</span>
                         </Button>
                       </div>
                     </div>

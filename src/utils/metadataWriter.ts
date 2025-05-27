@@ -14,6 +14,185 @@ interface MetadataToWrite {
   rating: number;
 }
 
+interface MetadataFileContent {
+  data: Blob;
+  metadataEmbedded: boolean;
+}
+
+/**
+ * Creates file content with embedded metadata without downloading it
+ * This is used for creating zip archives with multiple files
+ * 
+ * @param image The processed image with metadata to embed
+ * @returns A promise that resolves to an object containing the file data and metadata status
+ */
+export async function createMetadataFileContent(image: ProcessedImage): Promise<MetadataFileContent | null> {
+  if (!image.result) {
+    console.error("No generated metadata available");
+    return null;
+  }
+
+  try {
+    // Create metadata object with the required IPTC fields
+    const metadata: MetadataToWrite = {
+      title: image.result.title,
+      description: image.result.description,
+      keywords: image.result.keywords,
+      // Add default author and copyright fields which are required by stock sites
+      author: "Created with PixcraftAI", 
+      copyright: `© ${new Date().getFullYear()} All Rights Reserved`,
+      // Always set 5-star rating
+      rating: 5
+    };
+    
+    // Handle based on file type
+    if (image.file.type === "image/jpeg") {
+      return await createJpegWithMetadata(image, metadata);
+    } 
+    else if (image.file.type.startsWith("image/")) {
+      return await createImageWithMetadata(image, metadata);
+    }
+    else {
+      console.warn("File type not supported for metadata embedding:", image.file.type);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error creating file with metadata:", error);
+    return null;
+  }
+}
+
+/**
+ * Creates a JPEG file with embedded metadata
+ */
+async function createJpegWithMetadata(image: ProcessedImage, metadata: MetadataToWrite): Promise<MetadataFileContent | null> {
+  try {
+    // First load the image data as base64
+    const base64Image = await readFileAsBase64(image.file);
+    
+    // Ensure this is a valid JPEG image
+    if (!base64Image.startsWith("data:image/jpeg")) {
+      console.error("Not a valid JPEG image");
+      return null;
+    }
+    
+    let newImageData = base64Image;
+    let metadataEmbedded = false;
+    
+    try {
+      // Create Windows-compatible EXIF data (which also includes IPTC data)
+      const exifObj = createWindowsCompatibleExif(metadata);
+      
+      // CRITICAL: First add XMP metadata (Adobe Stock prioritizes this)
+      try {
+        // Generate XMP packet
+        const xmpData = createXMPMetadata(metadata);
+        
+        // Insert XMP data into JPEG using our specialized function
+        newImageData = insertXMPMetadata(xmpData, base64Image);
+        
+        // Then insert Exif after XMP is already in place
+        try {
+          const exifBytes = piexifjs.dump(exifObj);
+          newImageData = piexifjs.insert(exifBytes, newImageData);
+          metadataEmbedded = true;
+        } catch (insertError) {
+          console.error("Error inserting EXIF data:", insertError);
+          // Continue with XMP-only metadata
+          metadataEmbedded = true; // Still consider metadata embedded if XMP worked
+        }
+      } catch (xmpError) {
+        console.warn("Could not add XMP metadata", xmpError);
+        
+        // Fall back to just EXIF/IPTC if XMP fails
+        try {
+          const exifBytes = piexifjs.dump(exifObj);
+          newImageData = piexifjs.insert(exifBytes, base64Image);
+          metadataEmbedded = true;
+        } catch (insertError) {
+          console.error("Error inserting EXIF data:", insertError);
+          // Continue with original image if all metadata insertion fails
+        }
+      }
+      
+      // Convert to blob
+      const byteString = atob(newImageData.split(",")[1]);
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      
+      // Create the blob
+      const blob = new Blob([ab], { type: "image/jpeg" });
+      
+      return {
+        data: blob,
+        metadataEmbedded
+      };
+    } catch (error) {
+      console.error("Error processing JPEG metadata:", error);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error reading file:", error);
+    return null;
+  }
+}
+
+/**
+ * Creates a non-JPEG image with metadata in filename
+ */
+async function createImageWithMetadata(image: ProcessedImage, metadata: MetadataToWrite): Promise<MetadataFileContent | null> {
+  try {
+    // For non-JPEG images, we cannot add proper Windows metadata
+    // but we'll return the original image data
+    
+    // Load the image into a canvas
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.crossOrigin = "Anonymous"; // Try to avoid cross-origin issues
+    img.src = image.previewUrl;
+    
+    // Wait for the image to load
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      // Add timeout to avoid hanging
+      setTimeout(reject, 10000); 
+    });
+    
+    // Set canvas dimensions
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    
+    // Draw the image to canvas
+    ctx?.drawImage(img, 0, 0);
+    
+    // Convert to blob
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      try {
+        canvas.toBlob((b) => {
+          if (b) resolve(b);
+          else reject(new Error("Failed to convert canvas to blob"));
+        }, image.file.type, 0.95);
+      } catch (err) {
+        reject(err);
+      }
+    });
+    
+    return {
+      data: blob,
+      metadataEmbedded: false // Non-JPEG images don't have embedded metadata
+    };
+  } catch (error) {
+    console.error("Error creating image with metadata:", error);
+    return null;
+  }
+}
+
 /**
  * Writes metadata back to a file using the File Properties API
  * Note: This only works in some browsers and requires proper permissions
@@ -487,10 +666,11 @@ async function writeJpegMetadataAndDownload(image: ProcessedImage, metadata: Met
       const suffix = metadataEmbedded ? "stock_ready" : "no_metadata";
       
       // Use .jpeg extension instead of .jpg - Adobe Stock prefers this
-      // If folder name is provided, prepend it
-      link.download = folderName 
-        ? `${folderName}/${safeTitle}_${suffix}.jpeg`
-        : `${safeTitle}_${suffix}.jpeg`;
+      const fileName = `${safeTitle}_${suffix}.jpeg`;
+      
+      // If folder name is provided, prepend it to download attribute
+      // Note: The folder notation in download attribute will cause browsers to attempt to save in that folder
+      link.download = folderName ? `${folderName}/${fileName}` : fileName;
       
       // Trigger download
       document.body.appendChild(link);
@@ -501,48 +681,27 @@ async function writeJpegMetadataAndDownload(image: ProcessedImage, metadata: Met
       
       if (metadataEmbedded) {
         console.log("Image with metadata downloaded successfully");
-        alert("Image with Adobe Stock compatible metadata downloaded. Title and keywords have been optimized for Adobe Stock.");
+        if (!folderName) {
+          // Only show alert when downloading a single file, not in batch mode
+          alert("Image with Adobe Stock compatible metadata downloaded. Title and keywords have been optimized for Adobe Stock.");
+        }
       } else {
         console.log("Image downloaded without metadata");
-        alert("Could not embed metadata in the image. For Adobe Stock, try these steps:\n\n" +
-              "1. Make sure your JPEG is high quality (300dpi)\n" +
-              "2. Use Adobe Bridge or similar to add metadata\n" +
-              "3. Consider using Adobe's own XMP File Info panel");
+        if (!folderName) {
+          // Only show alert when downloading a single file, not in batch mode
+          alert("Could not embed metadata in the image. For Adobe Stock, try these steps:\n\n" +
+                "1. Make sure your JPEG is high quality (300dpi)\n" +
+                "2. Use Adobe Bridge or similar to add metadata\n" +
+                "3. Consider using Adobe's own XMP File Info panel");
+        }
       }
       return true;
-    } catch (exifError) {
-      console.error("Error in EXIF processing:", exifError);
-      
-      // Fall back to a simpler method - no metadata but still provide the image
-      try {
-        // Create a simple download with keywords in the filename
-        const keywords = metadata.keywords && metadata.keywords.length > 0 ? 
-          metadata.keywords.slice(0, 3).join('-').replace(/[<>:"/\\|?*]/g, '-') : '';
-          
-        const safeTitle = metadata.title ? 
-          metadata.title.replace(/[<>:"/\\|?*]/g, '-') : 
-          image.file.name.split('.')[0];
-          
-        const link = document.createElement('a');
-        link.href = base64Image;
-        link.download = `${safeTitle}_${keywords}_no_metadata.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        alert("Could not embed metadata in the image. For stock sites, please try the following:\n\n" +
-              "1. Make sure your JPEG is high quality (300dpi)\n" + 
-              "2. Try saving as TIFF and converting to JPEG in Photoshop\n" +
-              "3. Some stock sites might still require manual input");
-        return true;
-      } catch (fallbackError) {
-        console.error("Even fallback download failed:", fallbackError);
-        alert("Failed to process image. Please try another image format.");
-        return false;
-      }
+    } catch (error) {
+      console.error("Error processing JPEG metadata:", error);
+      return false;
     }
   } catch (error) {
-    console.error("Error writing JPEG metadata:", error);
+    console.error("Error reading file:", error);
     return false;
   }
 }
@@ -608,12 +767,15 @@ async function writeImageMetadataAndDownload(image: ProcessedImage, metadata: Me
       : image.file.name.split('.')[0];
     
     const extension = image.file.name.split('.').pop() || '';
-    // If folder name is provided, prepend it
-    link.download = folderName 
-      ? `${folderName}/${safeTitle}_${keywords}.${extension}`
-      : `${safeTitle}_${keywords}.${extension}`;
+    const fileName = `${safeTitle}_${keywords}.${extension}`;
     
+    // If folder name is provided, prepend it to download attribute
+    // Note: The folder notation in download attribute will cause browsers to attempt to save in that folder
+    link.download = folderName ? `${folderName}/${fileName}` : fileName;
+    
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
     
     URL.revokeObjectURL(url);
     return true;
