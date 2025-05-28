@@ -52,8 +52,8 @@ export const formatImagesAsCSV = (
       const title = img.result?.title ? removeSymbolsFromTitle(img.result.title) : '';
       const description = img.result?.description || '';
       const keywords = (img.result?.keywords || []).join(',');
-      const prompt = img.result?.prompt || '';
-      const baseModel = img.result?.baseModel || 'leonardo';
+      const prompt = img.result?.prompt || description;
+      const baseModel = img.result?.baseModel || 'Ideogram 1.0';
 
       return isFreepikOnly
         ? `"${escapeCSV(filename)}";"${escapeCSV(title)}";"${escapeCSV(keywords)}";"${escapeCSV(prompt)}";"${escapeCSV(baseModel)}"`

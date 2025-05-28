@@ -666,10 +666,11 @@ Generate appropriate metadata for this design file:
             title: '',
             description: text.trim(),
             keywords: [],
+            prompt: text.trim(),
             filename: originalFilename,
             isVideo: originalIsVideo,
             isEps: originalIsEps,
-            baseModel: model.name,
+            baseModel: isFreepikOnly ? "Ideogram 1.0" : model.name,
             provider: model.provider,
             processingTime: (Date.now() - startTime) / 1000
           };
@@ -799,6 +800,14 @@ Generate appropriate metadata for this design file:
               const freepikKeywords = getRelevantFreepikKeywords(result.prompt || '', singleWordKeywordsEnabled);
               result.keywords = freepikKeywords;
             }
+            
+            // IMPORTANT: Always ensure prompt is generated for Freepik
+            // Set the prompt even if not downloading CSV
+            if (!result.prompt) {
+              // Generate a descriptive prompt from the title and keywords
+              const keywordText = result.keywords?.slice(0, 10).join(', ') || 'various elements';
+              result.prompt = `Generate a ${result.title?.toLowerCase() || 'image'} with ${keywordText}. ${result.description || ''}`;
+            }
           }
           
           // For Shutterstock, suggest categories based on content
@@ -848,12 +857,16 @@ Generate appropriate metadata for this design file:
           
           // For EPS-specific responses
           if (originalIsEps) {
+            // Generate a prompt if not provided
+            const epsPrompt = result.prompt || result.description || 
+                `Generate a ${result.title?.toLowerCase() || 'vector illustration'} with ${result.keywords?.slice(0, 10).join(', ') || 'various elements'}.`;
+            
             return {
               title: result.title || '',
               description: result.description || '',
               keywords: result.keywords || [],
-              prompt: result.prompt,
-              baseModel: result.baseModel || "leonardo",
+              prompt: epsPrompt,
+              baseModel: isFreepikOnly ? "Ideogram 1.0" : (result.baseModel || "leonardo"),
               categories: result.categories,
               filename: originalFilename,
               isVideo: false,
@@ -864,6 +877,17 @@ Generate appropriate metadata for this design file:
           
           // Add processing time to the result
           result.processingTime = (Date.now() - startTime) / 1000;
+          
+          // Set baseModel to Ideogram 1.0 for Freepik platform
+          if (isFreepikOnly) {
+            result.baseModel = "Ideogram 1.0";
+          }
+          
+          // Ensure prompt is set (use description as fallback)
+          if (!result.prompt && result.description) {
+            result.prompt = result.description;
+          }
+          
           return result;
         } catch (e) {
           console.error('Failed to parse JSON from response:', jsonStr);
@@ -932,12 +956,14 @@ Generate appropriate metadata for this design file:
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     const isQuotaError = errorMessage.toLowerCase().includes('quota') || 
                          errorMessage.toLowerCase().includes('rate limit') || 
-                         errorMessage.toLowerCase().includes('resource exhausted');
+                         errorMessage.includes('resource exhausted');
     
     return {
       title: '',
       description: '',
       keywords: [],
+      prompt: '',
+      baseModel: isFreepikOnly ? "Ideogram 1.0" : "leonardo",
       error: isQuotaError 
         ? 'All available models have reached their quota limits. Please try again later or check your API keys.' 
         : errorMessage,

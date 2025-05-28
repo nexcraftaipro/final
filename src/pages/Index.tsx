@@ -278,6 +278,7 @@ const Index: React.FC = () => {
               title: result.title,
               description: result.description,
               keywords: result.keywords,
+              prompt: result.prompt,
               category: result.category,
               categories: result.categories,
               baseModel: result.baseModel,

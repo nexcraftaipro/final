@@ -309,7 +309,11 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                 <div className="p-4">
                   <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
                   <div className="bg-black border border-gray-800 rounded-lg p-6">
-                    <p className="text-gray-300 whitespace-pre-wrap">{image.result?.description || ''}</p>
+                    {image.result?.prompt ? (
+                      <div className="text-gray-200 whitespace-pre-wrap mb-2">{image.result.prompt}</div>
+                    ) : (
+                      <div className="text-gray-500 italic">Not provided</div>
+                    )}
                   </div>
                   <div className="flex justify-end mt-4 gap-2">
                     <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)} className="flex items-center gap-1">

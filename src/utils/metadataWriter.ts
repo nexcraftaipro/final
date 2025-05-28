@@ -266,11 +266,6 @@ function createWindowsCompatibleExif(metadata: MetadataToWrite) {
   const XPKeywords = 40094; // Used for Tags/Keywords field in Windows
   const XPSubject = 40095;  // Used for Subject field in Windows
   
-  // Special EXIF field for stock sites to find title and subject
-  const TitleField = 270;      // Special title field that stock sites recognize (ImageDescription)
-  const SubjectField = 315;    // Subject field (Artist field often used for subject)
-  const RatingField = 18246;   // Rating field (5 stars = 5)
-  
   // Windows File Explorer uses these IFD fields for Subject
   const ImageDescriptionField = 270;  // For title/subject in many viewers
   const ArtistField = 315;            // Sometimes used for subject
@@ -294,7 +289,7 @@ function createWindowsCompatibleExif(metadata: MetadataToWrite) {
   exifObj["Iptc"][IPTC_TAGS.RecordVersion] = [0, 2]; // IPTC version 4 (binary: 0x0002)
   
   // Add 5-star rating (always)
-  exifObj["0th"][RatingField] = 5;  // 5 stars
+  exifObj["0th"][piexifjs.ImageIFD.Rating] = 5;  // 5 stars
   
   // Helper function to encode Unicode strings for Windows metadata
   function encodeWindowsString(str: string) {
@@ -330,6 +325,7 @@ function createWindowsCompatibleExif(metadata: MetadataToWrite) {
   // Add to the proper place with proper format - uses an array to store in IPTC format
   exifObj["Iptc"][IPTC_TAGS.DateCreated] = [iptcDate];
   
+  // ======== TITLE FIELDS ========
   // Add title (appears in Windows File Explorer)
   if (metadata.title) {
     // Standard EXIF fields
@@ -338,34 +334,22 @@ function createWindowsCompatibleExif(metadata: MetadataToWrite) {
     // Add title to ImageDescription field (commonly used for title)
     exifObj["0th"][ImageDescriptionField] = metadata.title;
     
-    // Add the special title field that stock sites look for
-    exifObj["0th"][TitleField] = metadata.title;
-    
-    // Set Subject field same as Title (per user request) - multiple fields for maximum compatibility
-    exifObj["0th"][SubjectField] = metadata.title;
-    exifObj["0th"][ArtistField] = metadata.title;  // Sometimes used for subject
-    
     // Windows-specific XP fields
     try {
-      // Title field
+      // Title field only
       exifObj["0th"][XPTitle] = encodeWindowsString(metadata.title);
       
       // Subject field - explicitly set for Windows Explorer
       exifObj["0th"][XPSubject] = encodeWindowsString(metadata.title);
       
-      // Also add as comment for maximum compatibility
+      // Add to standard Artist field
+      exifObj["0th"][ArtistField] = metadata.title;
+      
+      // Add as comment for compatibility
       exifObj["0th"][XPComment] = encodeWindowsString(metadata.title);
     } catch (e) {
       console.warn("Failed to set Windows title/subject fields", e);
     }
-    
-    // Add subject to UserComment field in Exif IFD (used by some viewers)
-    const header = [0x55, 0x4E, 0x49, 0x43, 0x4F, 0x44, 0x45, 0x00]; // "UNICODE\0"
-    const commentBytes = [];
-    for (let i = 0; i < metadata.title.length; i++) {
-      commentBytes.push(metadata.title.charCodeAt(i));
-    }
-    exifObj["Exif"][UserCommentField] = header.concat(commentBytes);
     
     // Add IPTC Title/Object Name (2:5) - Important for stock sites!
     // Must use the correct format for IPTC - single string in the array
@@ -386,6 +370,7 @@ function createWindowsCompatibleExif(metadata: MetadataToWrite) {
     }
   }
   
+  // ======== DESCRIPTION FIELDS ========
   // Add description (appears as Subject in Windows File Explorer)
   if (metadata.description) {
     // Standard EXIF fields
@@ -403,11 +388,16 @@ function createWindowsCompatibleExif(metadata: MetadataToWrite) {
     exifObj["Iptc"][IPTC_TAGS.Caption] = [metadata.description];
   }
   
+  // ======== KEYWORDS FIELDS - CRITICAL ========
   // Add keywords (appears as Tags in Windows File Explorer)
   if (metadata.keywords && metadata.keywords.length > 0) {
+    // Use semicolons for Windows, commas for IPTC/XMP
     const keywordsText = metadata.keywords.join("; ");
-    // Windows-specific XP fields
+    
+    // IMPORTANT: Windows-specific XP fields - crucial for File Explorer "Tags" field
     try {
+      // This is the field that directly maps to "Tags" in Windows File Explorer
+      // Only use keyword values here, never mix with title text
       exifObj["0th"][XPKeywords] = encodeWindowsString(keywordsText);
     } catch (e) {
       console.warn("Failed to set Windows keywords field", e);
@@ -837,9 +827,7 @@ function createXMPMetadata(metadata: MetadataToWrite): string {
       dc:format="image/jpeg"
       xmp:Rating="5"
       xmp:MetadataDate="${new Date().toISOString()}"
-      tiff:ImageDescription="${escapeXML(title)}"
-      tiff:Artist="${escapeXML(title)}"
-      exif:UserComment="${escapeXML(title)}">
+      tiff:ImageDescription="${escapeXML(title)}">
       
       <!-- Standard Dublin Core Title -->
       <dc:title>
@@ -902,6 +890,10 @@ function createXMPMetadata(metadata: MetadataToWrite): string {
       <MicrosoftPhoto:Rating>99</MicrosoftPhoto:Rating>
       <xmp:Rating>5</xmp:Rating>
       
+      <!-- IMPORTANT: Microsoft Windows Tags field - ONLY keywords, never the title -->
+      <!-- This ensures the Tags field in Windows is properly populated -->
+      <MicrosoftPhoto:Keywords>${metadata.keywords && metadata.keywords.length > 0 ? escapeXML(keywordsString) : ''}</MicrosoftPhoto:Keywords>
+      
       <!-- Multiple keyword formats -->
       <!-- 1. Standard DC Subject (most widely supported) -->
       ${metadata.keywords && metadata.keywords.length > 0 ? 
@@ -921,6 +913,18 @@ function createXMPMetadata(metadata: MetadataToWrite): string {
           metadata.keywords.map(kw => `<rdf:li>${escapeXML(kw)}</rdf:li>`).join('\n          ') : ''}
         </rdf:Bag>
       </MicrosoftPhoto:LastKeywordXMP>
+      
+      <!-- Windows File Explorer Tags fields (crucial for proper display) -->
+      <MicrosoftPhoto:LastKeywordIPTC>
+        <rdf:Bag>
+          ${metadata.keywords && metadata.keywords.length > 0 ? 
+          metadata.keywords.map(kw => `<rdf:li>${escapeXML(kw)}</rdf:li>`).join('\n          ') : ''}
+        </rdf:Bag>
+      </MicrosoftPhoto:LastKeywordIPTC>
+      
+      <MicrosoftPhoto:LastKeywordIPTC>
+        ${escapeXML(keywordsString)}
+      </MicrosoftPhoto:LastKeywordIPTC>
       
       <!-- 4. IPTC Core format that Adobe Stock prefers -->
       <iptcCore:Keywords>
