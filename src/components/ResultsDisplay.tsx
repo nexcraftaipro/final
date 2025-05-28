@@ -142,6 +142,48 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       toast.success('Image metadata CSV file downloaded');
     }
   };
+
+  // Function to download CSV for a single image
+  const downloadSingleImageCSV = (image: ProcessedImage) => {
+    if (!image.result) {
+      toast.error('No metadata available for this image');
+      return;
+    }
+
+    // Create a single-item array for processing
+    let imagesToProcess = [image];
+    
+    // Apply EPS extension modification if enabled
+    if (epsEnabled) {
+      imagesToProcess = imagesToProcess.map(img => {
+        // Create a shallow copy to avoid modifying the original
+        const modifiedImg = { ...img };
+        // Create a new File object with modified name
+        const originalName = img.file.name;
+        const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+        const newFileName = `${nameWithoutExt}.eps`;
+        // Create a new File object with the same content but different name
+        modifiedImg.file = new File([img.file], newFileName, { type: img.file.type });
+        return modifiedImg;
+      });
+    }
+    
+    if (image.result?.isVideo) {
+      const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+      const videoCsvContent = formatVideosAsCSV(imagesToProcess, isShutterstock);
+      const filename = image.file.name.split('.')[0] || 'video';
+      downloadCSV(videoCsvContent, `${filename}-metadata.csv`, 'videos' as Platform);
+      toast.success('Video metadata CSV file downloaded');
+    } else {
+      const csvContent = formatImagesAsCSV(imagesToProcess, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
+      // Use the image filename as the CSV filename
+      const filename = image.file.name.split('.')[0] || 'image';
+      const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
+      downloadCSV(csvContent, `${filename}-metadata.csv`, selectedPlatform);
+      toast.success('Image metadata CSV file downloaded');
+    }
+  };
+  
   const downloadPromptText = (text: string, filename: string) => {
     const element = document.createElement("a");
     const file = new Blob([text], {
@@ -627,7 +669,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         )}
                       </div>
                       <div className="flex flex-col gap-2">
-                        <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
+                        <Button variant="outline" size="sm" onClick={() => downloadSingleImageCSV(image)} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
                           <Download className="h-4 w-4" />
                           <span>Download CSV</span>
                         </Button>
