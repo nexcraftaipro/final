@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film, FileType, CheckCircle, Clock, Save } from 'lucide-react';
+import { Download, Copy, X, Check, Film, FileType, CheckCircle, Clock, Save, Info, Wand2 } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
@@ -28,6 +28,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const [newlyCompletedIds, setNewlyCompletedIds] = useState<string[]>([]);
   const metadataRefs = useRef<{[key: string]: HTMLDivElement | null}>({});
   const [isAllProcessingComplete, setIsAllProcessingComplete] = useState(false);
+  const [epsEnabled, setEpsEnabled] = useState(false);
+  const [editingTitle, setEditingTitle] = useState<string | null>(null);
+  const [editingKeywords, setEditingKeywords] = useState<string | null>(null);
+  const [editedTitleValue, setEditedTitleValue] = useState<{[key: string]: string}>({});
+  const [editedKeywordsValue, setEditedKeywordsValue] = useState<{[key: string]: string[]}>({});
+  const [keywordSuggestions, setKeywordSuggestions] = useState<{[key: string]: string[]}>({});
+  const [showingSuggestions, setShowingSuggestions] = useState<string | null>(null);
   
   // Track newly completed images
   useEffect(() => {
@@ -112,7 +119,23 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
     // Process regular images if they exist
     if (regularImages.length > 0) {
-      const csvContent = formatImagesAsCSV(regularImages, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
+      // Apply EPS extension modification if enabled
+      let imagesToProcess = regularImages;
+      if (epsEnabled) {
+        imagesToProcess = regularImages.map(img => {
+          // Create a shallow copy to avoid modifying the original
+          const modifiedImg = { ...img };
+          // Create a new File object with modified name
+          const originalName = img.file.name;
+          const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+          const newFileName = `${nameWithoutExt}.eps`;
+          // Create a new File object with the same content but different name
+          modifiedImg.file = new File([img.file], newFileName, { type: img.file.type });
+          return modifiedImg;
+        });
+      }
+      
+      const csvContent = formatImagesAsCSV(imagesToProcess, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
       // Pass the platform name for custom folder naming
       const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
       downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
@@ -260,14 +283,247 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const completedImages = images.filter(img => img.status === 'complete');
   const hasCompletedImages = completedImages.length > 0;
 
+  // Add a function to handle title edits
+  const handleTitleEdit = (imageId: string, title: string) => {
+    setEditedTitleValue(prev => ({...prev, [imageId]: title}));
+    setEditingTitle(imageId);
+  };
+
+  // Add a function to save title edits
+  const saveTitleEdit = (imageId: string) => {
+    const imageIndex = images.findIndex(img => img.id === imageId);
+    if (imageIndex !== -1 && images[imageIndex].result) {
+      // Create a shallow copy of the images array
+      const updatedImages = [...images];
+      // Create a shallow copy of the image object
+      const updatedImage = {...updatedImages[imageIndex]};
+      // Create a shallow copy of the result object
+      const updatedResult = {...updatedImage.result!};
+      // Update the title
+      updatedResult.title = editedTitleValue[imageId];
+      // Update the image with the updated result
+      updatedImage.result = updatedResult;
+      // Update the images array with the updated image
+      updatedImages[imageIndex] = updatedImage;
+      // You would typically update your state here, but since the images are passed as props
+      // you might need to implement a callback to the parent component
+      toast.success('Title updated successfully');
+    }
+    setEditingTitle(null);
+  };
+
+  // Fix the function to handle keywords edits
+  const handleKeywordsEdit = (imageId: string, keywords: string[]) => {
+    setEditedKeywordsValue(prev => ({...prev, [imageId]: keywords}));
+    setEditingKeywords(imageId);
+  };
+
+  // Add a function to save keywords edits
+  const saveKeywordsEdit = (imageId: string) => {
+    const imageIndex = images.findIndex(img => img.id === imageId);
+    if (imageIndex !== -1 && images[imageIndex].result) {
+      // Create a shallow copy of the images array
+      const updatedImages = [...images];
+      // Create a shallow copy of the image object
+      const updatedImage = {...updatedImages[imageIndex]};
+      // Create a shallow copy of the result object
+      const updatedResult = {...updatedImage.result!};
+      // Update the keywords
+      updatedResult.keywords = editedKeywordsValue[imageId];
+      // Update the image with the updated result
+      updatedImage.result = updatedResult;
+      // Update the images array with the updated image
+      updatedImages[imageIndex] = updatedImage;
+      // You would typically update your state here, but since the images are passed as props
+      // you might need to implement a callback to the parent component
+      toast.success('Keywords updated successfully');
+    }
+    setEditingKeywords(null);
+  };
+
+  // Add keyword suggestion function
+  const generateKeywordSuggestions = (imageId: string, existingKeywords: string[]) => {
+    // Create a set of existing keywords to avoid duplicates
+    const existingKeywordSet = new Set(existingKeywords.map(k => k.toLowerCase()));
+    
+    // Common keyword associations and categories
+    const keywordAssociations: {[key: string]: string[]} = {
+      // People and portraits
+      'woman': ['female', 'lady', 'girl', 'person', 'model', 'beautiful', 'attractive'],
+      'man': ['male', 'guy', 'person', 'model', 'handsome'],
+      'portrait': ['face', 'headshot', 'closeup', 'person', 'model', 'expression'],
+      'people': ['person', 'human', 'crowd', 'group', 'social', 'community'],
+      'face': ['portrait', 'expression', 'smile', 'emotion', 'closeup'],
+      
+      // Visual styles
+      'blurred': ['bokeh', 'soft', 'focus', 'dreamy', 'depth', 'background'],
+      'vintage': ['retro', 'old', 'classic', 'nostalgic', 'aged', 'antique'],
+      'minimal': ['simple', 'clean', 'minimalist', 'modern', 'elegant'],
+      'bright': ['colorful', 'vibrant', 'vivid', 'saturated', 'sunny'],
+      'dark': ['moody', 'dramatic', 'shadow', 'low-key', 'contrast'],
+      
+      // Environments
+      'nature': ['outdoor', 'landscape', 'environment', 'scenic', 'natural'],
+      'urban': ['city', 'street', 'building', 'architecture', 'metropolitan'],
+      'indoor': ['interior', 'room', 'inside', 'studio', 'home'],
+      
+      // Colors
+      'red': ['color', 'warm', 'vibrant', 'passionate', 'bold'],
+      'blue': ['color', 'cool', 'calm', 'water', 'sky'],
+      'green': ['color', 'nature', 'fresh', 'grass', 'natural'],
+      'black': ['dark', 'elegant', 'contrast', 'monochrome', 'shadow'],
+      'white': ['bright', 'clean', 'minimal', 'light', 'pure'],
+      
+      // Emotions
+      'happy': ['smile', 'joy', 'positive', 'cheerful', 'fun', 'laughing'],
+      'serious': ['thoughtful', 'professional', 'contemplative', 'focused'],
+      
+      // Photography terms
+      'closeup': ['macro', 'detail', 'close', 'tight', 'zoom'],
+      'landscape': ['scenic', 'nature', 'outdoor', 'panorama', 'vista'],
+      'portraiture': ['vertical', 'person', 'face', 'model'],
+      'silhouette': ['shadow', 'outline', 'dark', 'contrast', 'backlit'],
+      
+      // Style categories
+      'abstract': ['pattern', 'geometric', 'artistic', 'modern', 'creative'],
+      'fashion': ['style', 'clothing', 'model', 'trendy', 'outfit'],
+      'art': ['artistic', 'creative', 'design', 'expressive', 'aesthetic'],
+      
+      // Descriptors
+      'beautiful': ['pretty', 'attractive', 'gorgeous', 'stunning', 'lovely'],
+      'professional': ['business', 'corporate', 'formal', 'work', 'expertise'],
+      'creative': ['artistic', 'innovative', 'imaginative', 'original', 'unique'],
+      
+      // Technical terms
+      'bokeh': ['blurred', 'depth', 'background', 'soft', 'focus'],
+      'hdr': ['high-dynamic-range', 'contrast', 'detailed', 'rich'],
+      'depth of field': ['bokeh', 'blur', 'focus', 'background', 'foreground'],
+      'macro': ['closeup', 'detail', 'micro', 'extreme', 'texture'],
+      
+      // Hair
+      'hair': ['hairstyle', 'haircut', 'beauty', 'salon', 'grooming'],
+      'blonde': ['hair', 'gold', 'light', 'fair', 'yellow'],
+      'brunette': ['hair', 'brown', 'dark', 'chestnut'],
+      'redhead': ['hair', 'ginger', 'auburn', 'copper', 'red'],
+      
+      // Clothing
+      'dress': ['clothing', 'fashion', 'formal', 'elegant', 'garment'],
+      'suit': ['formal', 'business', 'professional', 'clothing', 'elegant'],
+      'casual': ['relaxed', 'informal', 'comfortable', 'everyday', 'leisure'],
+    };
+    
+    // Additional common photography and stock keywords
+    const commonStockKeywords = [
+      'lifestyle', 'candid', 'authentic', 'genuine', 'natural', 'real', 
+      'contemporary', 'modern', 'trendy', 'fashionable', 'stylish',
+      'expressive', 'emotive', 'emotional', 'feeling', 'mood',
+      'minimalist', 'simple', 'clean', 'elegant', 'sophisticated',
+      'dramatic', 'cinematic', 'atmospheric', 'moody', 'ambiance',
+      'concept', 'conceptual', 'symbolic', 'metaphor', 'representation',
+      'healthy', 'wellness', 'fitness', 'wellbeing', 'active',
+      'traditional', 'cultural', 'heritage', 'classic', 'timeless'
+    ];
+    
+    // Generate suggestions based on existing keywords
+    let suggestions: string[] = [];
+    
+    // Add related keywords based on associations
+    existingKeywords.forEach(keyword => {
+      const lowerKeyword = keyword.toLowerCase();
+      if (keywordAssociations[lowerKeyword]) {
+        suggestions = [...suggestions, ...keywordAssociations[lowerKeyword]];
+      }
+      
+      // Check for partial matches (keywords that contain the current keyword)
+      Object.keys(keywordAssociations).forEach(key => {
+        if (key.includes(lowerKeyword) || lowerKeyword.includes(key)) {
+          suggestions = [...suggestions, ...keywordAssociations[key]];
+        }
+      });
+    });
+    
+    // Add some common stock keywords if we don't have many suggestions
+    if (suggestions.length < 10) {
+      suggestions = [...suggestions, ...commonStockKeywords.slice(0, 15)];
+    }
+    
+    // Remove duplicates and existing keywords
+    const filteredSuggestions = [...new Set(suggestions)]
+      .filter(suggestion => !existingKeywordSet.has(suggestion.toLowerCase()))
+      .slice(0, 20); // Limit to 20 suggestions
+    
+    // Store the suggestions
+    setKeywordSuggestions(prev => ({...prev, [imageId]: filteredSuggestions}));
+    setShowingSuggestions(imageId);
+  };
+  
+  // Add a function to add a suggested keyword
+  const addSuggestedKeyword = (imageId: string, keyword: string) => {
+    if (editingKeywords === imageId) {
+      // If already editing, add to the edited value
+      setEditedKeywordsValue(prev => {
+        const currentKeywords = prev[imageId] || [];
+        return {...prev, [imageId]: [...currentKeywords, keyword]};
+      });
+    } else {
+      // If not editing, start editing with the new keyword added
+      const currentKeywords = images.find(img => img.id === imageId)?.result?.keywords || [];
+      handleKeywordsEdit(imageId, [...currentKeywords, keyword]);
+    }
+    
+    // Remove the suggestion from the list
+    setKeywordSuggestions(prev => {
+      const currentSuggestions = prev[imageId] || [];
+      return {...prev, [imageId]: currentSuggestions.filter(k => k !== keyword)};
+    });
+  };
+  
+  // Add a function to close suggestions
+  const closeSuggestions = () => {
+    setShowingSuggestions(null);
+  };
+
   return <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
         <div className="flex gap-2">
-          {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleSaveAllMetadata} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
-              <Save className="h-4 w-4" />
-              <span>Save All as ZIP</span>
-            </Button>}
+          {hasCompletedImages && generationMode === 'metadata' && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-white text-sm">EPS</span>
+                <div 
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${epsEnabled ? 'bg-green-500' : 'bg-gray-200'} cursor-pointer`}
+                  onClick={() => setEpsEnabled(!epsEnabled)}
+                >
+                  <span 
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${epsEnabled ? 'translate-x-6' : 'translate-x-1'} shadow-md`}
+                  />
+                </div>
+                <div className="relative group">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-6 w-6 rounded-full bg-gray-700 hover:bg-gray-600 p-1"
+                  >
+                    <Info className="h-4 w-4 text-white" />
+                    <span className="sr-only">EPS Information</span>
+                  </Button>
+                  <div className="absolute bottom-full mb-2 right-0 w-64 bg-gray-900 text-xs text-white p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                    When enabled, automatically change .JPG, .PNG Or .SVG to .EPS
+                  </div>
+                </div>
+              </div>
+              <div className="relative group">
+                <Button variant="outline" size="sm" onClick={handleSaveAllMetadata} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
+                  <Save className="h-4 w-4" />
+                  <span>Save All as ZIP</span>
+                </Button>
+                <div className="absolute bottom-full mb-2 right-0 w-64 bg-gray-900 text-xs text-white p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                  Upload All metadata Directly to Your Image!
+                </div>
+              </div>
+            </>
+          )}
           {hasCompletedImages && generationMode === 'metadata' && <Button variant="outline" size="sm" onClick={handleDownloadCSV} className="flex items-center gap-1 bg-orange-600 hover:bg-orange-700 text-white border-none">
               <Download className="h-4 w-4" />
               <span>Download All CSV</span>
@@ -375,10 +631,15 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <Download className="h-4 w-4" />
                           <span>Download CSV</span>
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => handleSaveMetadataToFile(image)} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
-                          <Save className="h-4 w-4" />
-                          <span>Save With Metadata</span>
-                        </Button>
+                        <div className="relative group">
+                          <Button variant="outline" size="sm" onClick={() => handleSaveMetadataToFile(image)} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white border-none">
+                            <Save className="h-4 w-4" />
+                            <span>Save With Metadata</span>
+                          </Button>
+                          <div className="absolute bottom-full mb-2 right-0 w-64 bg-gray-900 text-xs text-white p-2 rounded shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-50 pointer-events-none">
+                            Upload All metadata Directly to Your Image!
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
@@ -392,14 +653,52 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         <p className="text-white">{image.file.name}</p>
                       </div>
                       
-                      {/* Show title for all platforms except Shutterstock */}
+                      {/* Modify the title section */}
                       {!isShutterstock && <div>
-                          <h4 className="text-amber-500 flex items-center gap-2">Title:
+                          <h4 className="text-amber-500 flex items-center gap-2">
+                            Title:
                             <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(cleanTitle, image.id + '-title')} className="ml-1 p-1">
                               {copiedId === image.id + '-title' ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-gray-400" />}
                             </Button>
+                            {editingTitle !== image.id && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => handleTitleEdit(image.id, cleanTitle)} 
+                                className="ml-1 p-1 text-xs text-blue-400 hover:text-blue-300"
+                              >
+                                Edit
+                              </Button>
+                            )}
                           </h4>
-                          <p className="text-white">{cleanTitle}</p>
+                          {editingTitle === image.id ? (
+                            <div className="flex items-center mt-1">
+                              <input 
+                                type="text" 
+                                value={editedTitleValue[image.id]} 
+                                onChange={(e) => setEditedTitleValue(prev => ({...prev, [image.id]: e.target.value}))}
+                                className="flex-grow p-2 bg-gray-800 border border-gray-600 rounded text-white"
+                              />
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => saveTitleEdit(image.id)} 
+                                className="ml-2 bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                Save
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => setEditingTitle(null)} 
+                                className="ml-1 bg-gray-600 hover:bg-gray-700 text-white"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <p className="text-white">{cleanTitle}</p>
+                          )}
                         </div>}
                       
                       {/* Show description for platforms other than Freepik and AdobeStock */}
@@ -410,17 +709,93 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                             </div> : <p className="text-white">{image.result?.description || ''}</p>}
                         </div>}
                       
+                      {/* Modify the keywords section */}
                       <div>
-                        <h4 className="text-amber-500 flex items-center gap-2">Keywords:
+                        <h4 className="text-amber-500 flex items-center gap-2">
+                          Keywords:
                           <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard((image.result?.keywords || []).join(', '), image.id + '-keywords')} className="ml-1 p-1">
                             {copiedId === image.id + '-keywords' ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-gray-400" />}
                           </Button>
+                          {editingKeywords !== image.id && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => handleKeywordsEdit(image.id, image.result?.keywords || [])} 
+                              className="ml-1 p-1 text-xs text-blue-400 hover:text-blue-300"
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => generateKeywordSuggestions(image.id, image.result?.keywords || [])} 
+                            className="ml-1 p-1 text-xs text-purple-400 hover:text-purple-300 flex items-center"
+                          >
+                            <Wand2 className="h-3 w-3 mr-1" />
+                            Enhance
+                          </Button>
                         </h4>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => <span key={index} className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
+                        {editingKeywords === image.id ? (
+                          <div className="mt-1">
+                            <textarea 
+                              value={editedKeywordsValue[image.id]?.join(', ')} 
+                              onChange={(e) => {
+                                const keywordsArray = e.target.value.split(',').map(k => k.trim()).filter(k => k);
+                                setEditedKeywordsValue(prev => ({...prev, [image.id]: keywordsArray}));
+                              }}
+                              className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
+                              rows={4}
+                            />
+                            <div className="flex mt-2">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => saveKeywordsEdit(image.id)} 
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                              >
+                                Save
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={() => setEditingKeywords(null)} 
+                                className="ml-2 bg-gray-600 hover:bg-gray-700 text-white"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => <span key={index} className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
                                 {keyword}
                               </span>) : <span className="text-gray-400">No keywords available</span>}
-                        </div>
+                          </div>
+                        )}
+
+                        {/* Keyword suggestions */}
+                        {showingSuggestions === image.id && keywordSuggestions[image.id] && keywordSuggestions[image.id].length > 0 && (
+                          <div className="mt-4 border border-purple-500/30 rounded p-3 bg-purple-900/20">
+                            <div className="flex justify-between items-center mb-2">
+                              <h5 className="text-purple-400 text-sm font-medium">Suggested Keywords</h5>
+                              <Button variant="ghost" size="sm" onClick={closeSuggestions} className="h-6 w-6 p-0">
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {keywordSuggestions[image.id].map((keyword, index) => (
+                                <span 
+                                  key={index} 
+                                  className="bg-purple-600/50 hover:bg-purple-500 text-white text-xs px-3 py-1 rounded-full cursor-pointer flex items-center"
+                                  onClick={() => addSuggestedKeyword(image.id, keyword)}
+                                >
+                                  <span className="mr-1">+</span> {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Show video category if applicable */}
@@ -433,32 +808,32 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           </div>
                         </div>}
 
-                      {/* Show categories for AdobeStock */}
-                      {isAdobeStock && image.result?.categories && <div>
-                          <h4 className="text-amber-500">Category:</h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
-                                {category}
-                              </span>)}
-                          </div>
-                        </div>}
+                        {/* Show categories for AdobeStock */}
+                        {isAdobeStock && image.result?.categories && <div>
+                            <h4 className="text-amber-500">Category:</h4>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
+                                  {category}
+                                </span>)}
+                            </div>
+                          </div>}
 
-                      {/* Show categories for Shutterstock */}
-                      {isShutterstock && image.result?.categories && <div>
-                          <h4 className="text-amber-500">Categories:</h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
-                                {category}
-                              </span>)}
-                          </div>
-                        </div>}
+                          {/* Show categories for Shutterstock */}
+                          {isShutterstock && image.result?.categories && <div>
+                              <h4 className="text-amber-500">Categories:</h4>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                {image.result.categories.map((category, index) => <span key={index} className="bg-purple-600 text-white text-xs px-3 py-1 rounded-full">
+                                    {category}
+                                  </span>)}
+                              </div>
+                            </div>}
 
-                      {isFreepikOnly && <>
-                          <div>
-                            <h4 className="text-amber-500">Prompt:</h4>
-                            <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
-                          </div>
-                        </>}
+                            {isFreepikOnly && <>
+                                <div>
+                                  <h4 className="text-amber-500">Prompt:</h4>
+                                  <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
+                                </div>
+                              </>}
                     </div>
                   </div>
                 </div>

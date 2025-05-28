@@ -53,7 +53,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
       const promise = (async () => {
         // Validate file is an image or video
         if (!isValidImageType(file)) {
-          toast.error(`${file.name} is not a valid file. Supported formats: JPEG, PNG, SVG, EPS, MP4, MOV, and other image/video formats.`);
+          toast.error(`${file.name} is not a valid file. Supported formats: JPEG, PNG, SVG, MP4, MOV, and other image/video formats. EPS files are no longer supported.`);
           return null;
         }
 
@@ -236,7 +236,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             type="file" 
             ref={fileInputRef} 
             onChange={handleFileInputChange} 
-            accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
+            accept="image/jpeg,image/png,image/jpg,image/svg+xml,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
             multiple 
             className="hidden" 
             disabled={isProcessing} 

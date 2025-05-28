@@ -7,13 +7,8 @@
  * Checks if a file is an EPS file
  */
 export function isEpsFile(file: File): boolean {
-  return (
-    file.type === 'application/postscript' || 
-    file.type === 'application/eps' || 
-    file.type === 'application/x-eps' ||
-    file.type === 'image/eps' ||
-    file.name.toLowerCase().endsWith('.eps')
-  );
+  // Disabled EPS file processing
+  return false;
 }
 
 /**
