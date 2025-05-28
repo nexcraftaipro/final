@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileType, Eye, EyeOff, CreditCard, Video, FileVideo, RefreshCcw, PanelLeftClose, PanelLeftOpen, LogIn } from 'lucide-react';
+import { FileType, Eye, EyeOff, CreditCard, Video, FileVideo, RefreshCcw, PanelLeftClose, PanelLeftOpen, LogIn, Diamond } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
@@ -27,7 +27,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const navigate = useNavigate();
   const {
     user,
-    apiKey: authApiKey
+    apiKey: authApiKey,
+    profile
   } = useAuth();
   
   // Load sidebar state from localStorage
@@ -176,11 +177,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                 Tutorial
               </Button>
               
-              <Button variant="outline" size="sm" className="text-purple-500 border-purple-700 hover:bg-purple-900/50 hover:text-purple-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" onClick={openEpsProcessVideo}>
-                <FileVideo className="h-4 w-4 mr-1" />
-                EPS Process
-              </Button>
-              
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -232,13 +228,18 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           
           {user && <HoverCard>
               <HoverCardTrigger asChild>
-                <div className="h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
+                <div className="relative h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={getAvatarUrl()} alt={user.email} />
                     <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
                       {user.email.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
+                  {profile?.is_premium && (
+                    <div className="absolute -bottom-1 -right-1 bg-amber-500 rounded-full p-0.5 border border-black shadow-lg">
+                      <Diamond size={12} className="text-black" />
+                    </div>
+                  )}
                 </div>
               </HoverCardTrigger>
               <HoverCardContent className="w-80">
