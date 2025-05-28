@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import UserProfile from '@/components/UserProfile';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import md5 from 'crypto-js/md5';
 
 interface AppHeaderProps {
   remainingCredits: string | number;
@@ -86,11 +87,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.open("https://youtu.be/FJL8F1vn55Q?si=dUpFZQlYSFg6Xvi8", "_blank");
   };
 
-  // Generate consistent avatar URL
+  // Generate avatar URL using Gravatar
   const getAvatarUrl = () => {
-    if (!user) return '';
-    const avatarSeed = user.email || 'default';
-    return `https://api.dicebear.com/7.x/personas/svg?seed=${avatarSeed}`;
+    if (!user || !user.email) return '';
+    
+    // Create MD5 hash of the email for Gravatar
+    const emailHash = md5(user.email.trim().toLowerCase());
+    
+    // Return Gravatar URL with fallback to a default image
+    return `https://www.gravatar.com/avatar/${emailHash}?d=identicon&s=200`;
   };
   
   const navigateToHome = () => {

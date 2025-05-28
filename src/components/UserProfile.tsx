@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { LogOut, Crown, Infinity, Clock } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDistanceToNow } from 'date-fns';
+import md5 from 'crypto-js/md5';
 
 const UserProfile: React.FC = () => {
   const { user, profile, signOut } = useAuth();
@@ -15,9 +15,18 @@ const UserProfile: React.FC = () => {
   const creditPercentage = Math.min(profile.credits_used / 10 * 100, 100);
   const remainingCredits = profile.is_premium ? '∞' : Math.max(0, 10 - profile.credits_used);
 
-  // Generate avatar URL based on user email for consistency
-  const avatarSeed = user.email || 'default';
-  const avatarUrl = `https://api.dicebear.com/7.x/personas/svg?seed=${avatarSeed}`;
+  // Generate Gravatar URL based on user email
+  const getGravatarUrl = () => {
+    if (!user.email) return '';
+    
+    // Create MD5 hash of the email for Gravatar
+    const emailHash = md5(user.email.trim().toLowerCase());
+    
+    // Return Gravatar URL with fallback to a default image
+    return `https://www.gravatar.com/avatar/${emailHash}?d=identicon&s=200`;
+  };
+  
+  const avatarUrl = getGravatarUrl();
 
   // Calculate time remaining if premium user
   const getTimeRemaining = () => {
