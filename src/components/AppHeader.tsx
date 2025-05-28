@@ -236,8 +236,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                     </AvatarFallback>
                   </Avatar>
                   {profile?.is_premium && (
-                    <div className="absolute -bottom-1 -right-1 bg-amber-500 rounded-full p-0.5 border border-black shadow-lg">
-                      <Diamond size={12} className="text-black" />
+                    <div className="absolute -bottom-0.5 -right-0.5 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full p-0.5 border border-black shadow-md">
+                      <Diamond size={10} className="text-black" fill="black" />
                     </div>
                   )}
                 </div>
