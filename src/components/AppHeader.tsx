@@ -87,15 +87,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.open("https://youtu.be/FJL8F1vn55Q?si=dUpFZQlYSFg6Xvi8", "_blank");
   };
 
-  // Generate avatar URL using Gravatar
+  // Get user profile photo URL
   const getAvatarUrl = () => {
     if (!user || !user.email) return '';
     
-    // Create MD5 hash of the email for Gravatar
+    // Use Gravatar which will display Gmail profile photos if connected
     const emailHash = md5(user.email.trim().toLowerCase());
     
-    // Return Gravatar URL with fallback to a default image
-    return `https://www.gravatar.com/avatar/${emailHash}?d=identicon&s=200`;
+    // Using 404 as the fallback means it will show no image if not found
+    // This will trigger the AvatarFallback component to show the first letter
+    return `https://www.gravatar.com/avatar/${emailHash}?d=404&s=200`;
   };
   
   const navigateToHome = () => {

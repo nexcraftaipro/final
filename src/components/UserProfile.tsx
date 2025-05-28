@@ -15,15 +15,16 @@ const UserProfile: React.FC = () => {
   const creditPercentage = Math.min(profile.credits_used / 10 * 100, 100);
   const remainingCredits = profile.is_premium ? '∞' : Math.max(0, 10 - profile.credits_used);
 
-  // Generate Gravatar URL based on user email
+  // Get user profile photo URL
   const getGravatarUrl = () => {
     if (!user.email) return '';
     
-    // Create MD5 hash of the email for Gravatar
+    // Use Gravatar which will display Gmail profile photos if connected
     const emailHash = md5(user.email.trim().toLowerCase());
     
-    // Return Gravatar URL with fallback to a default image
-    return `https://www.gravatar.com/avatar/${emailHash}?d=identicon&s=200`;
+    // Using 404 as the fallback means it will show no image if not found
+    // This will trigger the AvatarFallback component to show the first letter
+    return `https://www.gravatar.com/avatar/${emailHash}?d=404&s=200`;
   };
   
   const avatarUrl = getGravatarUrl();
