@@ -243,7 +243,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             type="file" 
             ref={fileInputRef} 
             onChange={handleFileInputChange} 
-            accept="image/jpeg,image/png,image/jpg,image/svg+xml,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
+            accept="image/jpeg,image/png,image/jpg,image/svg+xml,application/postscript,application/eps,image/eps,application/illustrator,video/mp4,video/quicktime,video/webm,video/ogg,video/x-msvideo,video/x-ms-wmv" 
             multiple 
             className="hidden" 
             disabled={isProcessing} 

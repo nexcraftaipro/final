@@ -7,8 +7,12 @@
  * Checks if a file is an EPS file
  */
 export function isEpsFile(file: File): boolean {
-  // Disabled EPS file processing
-  return false;
+  // Enable EPS file processing
+  return file.name.toLowerCase().endsWith('.eps') || 
+         file.type === 'application/postscript' ||
+         file.type === 'application/eps' ||
+         file.type === 'image/eps' ||
+         file.type === 'application/illustrator';
 }
 
 /**
@@ -60,8 +64,17 @@ export async function extractEpsMetadata(epsFile: File): Promise<EpsMetadata> {
   // Store all DSC comments in the metadata
   metadata.documentStructuringConventions = dscComments;
   
+  // Check for content-specific keywords in the EPS text
+  const contentType = detectContentType(epsText, epsFile.name);
+  
   // Extract file information from the filename to help with content identification
-  metadata.documentType = inferDocumentTypeFromFilename(epsFile.name);
+  // Use content-based detection first, then fall back to filename inference
+  metadata.documentType = contentType || inferDocumentTypeFromFilename(epsFile.name);
+  
+  // If we detected cat content, override the title if none exists
+  if (contentType === 'Cat Illustration' && !metadata.title) {
+    metadata.title = 'Cat Illustration in Vector Format';
+  }
   
   // Try to extract additional useful information from the content
   metadata.imageCount = countImageInstances(epsText);
@@ -72,11 +85,58 @@ export async function extractEpsMetadata(epsFile: File): Promise<EpsMetadata> {
 }
 
 /**
+ * Detects specific content types based on keywords in the EPS content
+ * @param epsText - The EPS file content
+ * @param filename - The filename for additional context
+ * @returns The detected content type, or undefined if no specific type detected
+ */
+function detectContentType(epsText: string, filename: string): string | undefined {
+  const lowerText = epsText.toLowerCase();
+  const lowerName = filename.toLowerCase();
+  
+  // Check for cat-related content
+  const catKeywords = ['cat', 'kitten', 'feline', 'meow', 'whiskers', 'paws', 'tabby', 'kitty'];
+  for (const keyword of catKeywords) {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+    if (regex.test(lowerText) || regex.test(lowerName)) {
+      return 'Cat Illustration';
+    }
+  }
+  
+  // Check for dog-related content
+  const dogKeywords = ['dog', 'puppy', 'canine', 'bark', 'paws', 'pup', 'hound', 'terrier', 'retriever'];
+  for (const keyword of dogKeywords) {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+    if (regex.test(lowerText) || regex.test(lowerName)) {
+      return 'Dog Illustration';
+    }
+  }
+  
+  // Check for animal-related content
+  const animalKeywords = ['animal', 'pet', 'wildlife', 'creature', 'mammal', 'bird', 'fish'];
+  for (const keyword of animalKeywords) {
+    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+    if (regex.test(lowerText) || regex.test(lowerName)) {
+      return 'Animal Illustration';
+    }
+  }
+  
+  // Add more content detection blocks here for other common subjects
+  
+  return undefined;
+}
+
+/**
  * Helper function to infer the document type from filename
  * This helps provide better context for content identification
  */
 function inferDocumentTypeFromFilename(filename: string): string {
   const lowerName = filename.toLowerCase();
+  
+  // Check for animals first
+  if (lowerName.includes('cat') || lowerName.includes('kitten') || lowerName.includes('feline')) return 'Cat Illustration';
+  if (lowerName.includes('dog') || lowerName.includes('puppy') || lowerName.includes('canine')) return 'Dog Illustration';
+  if (lowerName.includes('animal') || lowerName.includes('pet') || lowerName.includes('wildlife')) return 'Animal Illustration';
   
   // Pattern matching for common design types in filenames
   if (lowerName.includes('icon') || lowerName.includes('icons')) return 'Icon Set';
@@ -100,7 +160,7 @@ function inferDocumentTypeFromFilename(filename: string): string {
   if (lowerName.includes('abstract')) return 'Abstract Design';
   if (lowerName.includes('floral') || lowerName.includes('flower')) return 'Floral Design';
   if (lowerName.includes('food') || lowerName.includes('drink')) return 'Food/Drink Illustration';
-  if (lowerName.includes('animal') || lowerName.includes('nature')) return 'Nature/Animal Illustration';
+  if (lowerName.includes('nature')) return 'Nature Illustration';
   
   // Default value if no patterns match
   return 'Vector Design';
@@ -279,7 +339,7 @@ export function serializeEpsMetadata(metadata: EpsMetadata): string {
     ``,
     `DOCUMENT PROPERTIES`,
     `------------------`,
-    `Title: ${metadata.title || metadata.documentStructuringConventions?.['ExtractedTitle'] || extractTitleFromFilename(metadata.filename)}`,
+    `Title: ${getTitle(metadata)}`,
     `Creator: ${metadata.creator || 'Unknown'}`,
     `Creation Date: ${metadata.creationDate || 'Unknown'}`,
     `Bounding Box: ${metadata.boundingBox || 'Unknown'}`,
@@ -336,6 +396,37 @@ export function serializeEpsMetadata(metadata: EpsMetadata): string {
     });
   
   return sections.join('\n');
+}
+
+/**
+ * Gets the best title for the metadata
+ */
+function getTitle(metadata: EpsMetadata): string {
+  // Use existing title if available
+  if (metadata.title) {
+    return metadata.title;
+  }
+  
+  // Use extracted title from DSC comments if available
+  if (metadata.documentStructuringConventions?.['ExtractedTitle']) {
+    return metadata.documentStructuringConventions?.['ExtractedTitle'];
+  }
+  
+  // Generate title based on the document type
+  if (metadata.documentType) {
+    if (metadata.documentType === 'Cat Illustration') {
+      return 'Cat Illustration in Vector Format';
+    } else if (metadata.documentType === 'Dog Illustration') {
+      return 'Dog Illustration in Vector Format';
+    } else if (metadata.documentType === 'Animal Illustration') {
+      return 'Animal Illustration in Vector Format';
+    } else {
+      return `${metadata.documentType} in Vector Format`;
+    }
+  }
+  
+  // Fall back to filename-based title
+  return extractTitleFromFilename(metadata.filename);
 }
 
 /**
