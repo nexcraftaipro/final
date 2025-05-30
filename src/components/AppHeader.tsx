@@ -118,7 +118,17 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     window.location.reload();
   };
   
-  return <header className="bg-secondary border-b border-gray-700 py-2 px-4">
+  return <>
+    {/* Static centered banner */}
+    <div className="bg-black w-full py-2">
+      <div className="flex justify-center items-center h-6">
+        <span className="text-white font-bold text-lg text-center">
+          ঈদ উপলক্ষে, ০১/০৬/২৫ অর্থাৎ কাল ইয়ারলি প্যাকেজ এর উপর থাকছে দারুণ একটি বিশাল ডিসকাউন্ট অফার!🌙✨
+        </span>
+      </div>
+    </div>
+  
+    <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
@@ -248,7 +258,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             </HoverCard>}
         </div>
       </div>
-    </header>;
+    </header>
+  </>;
 };
 
 export default AppHeader;
