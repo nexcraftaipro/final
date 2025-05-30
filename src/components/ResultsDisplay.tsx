@@ -96,14 +96,14 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }, 2000);
   };
 
-  // Check for specific platforms
-  const isFreepikOnly = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Freepik';
-  const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
-  const isAdobeStock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'AdobeStock';
-  const isVecteezy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Vecteezy';
-  const isDepositphotos = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Depositphotos';
-  const is123RF = selectedPlatforms.length === 1 && selectedPlatforms[0] === '123RF';
-  const isAlamy = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Alamy';
+  // Update platform checks to check for inclusion rather than exclusivity
+  const isFreepikOnly = selectedPlatforms.includes('Freepik');
+  const isShutterstock = selectedPlatforms.includes('Shutterstock');
+  const isAdobeStock = selectedPlatforms.includes('AdobeStock');
+  const isVecteezy = selectedPlatforms.includes('Vecteezy');
+  const isDepositphotos = selectedPlatforms.includes('Depositphotos');
+  const is123RF = selectedPlatforms.includes('123RF');
+  const isAlamy = selectedPlatforms.includes('Alamy');
   const handleDownloadCSV = () => {
     // Check if there are any videos to process
     const videoImages = images.filter(img => img.result?.isVideo);
@@ -111,7 +111,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
 
     // Process videos if they exist
     if (videoImages.length > 0) {
-      const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+      const isShutterstock = selectedPlatforms.includes('Shutterstock');
       const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
       downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);
       toast.success('Video metadata CSV file downloaded');
@@ -135,11 +135,31 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         });
       }
       
-      const csvContent = formatImagesAsCSV(imagesToProcess, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
-      // Pass the platform name for custom folder naming
-      const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
-      downloadCSV(csvContent, 'image-metadata.csv', selectedPlatform);
-      toast.success('Image metadata CSV file downloaded');
+      // Generate and download CSV for each selected platform
+      selectedPlatforms.forEach(platform => {
+        const isFreepikOnly = platform === 'Freepik';
+        const isShutterstock = platform === 'Shutterstock';
+        const isAdobeStock = platform === 'AdobeStock';
+        const isVecteezy = platform === 'Vecteezy';
+        const isDepositphotos = platform === 'Depositphotos';
+        const is123RF = platform === '123RF';
+        const isAlamy = platform === 'Alamy';
+        
+        const csvContent = formatImagesAsCSV(
+          imagesToProcess, 
+          isFreepikOnly, 
+          isShutterstock, 
+          isAdobeStock, 
+          isVecteezy, 
+          isDepositphotos, 
+          is123RF, 
+          isAlamy
+        );
+        
+        downloadCSV(csvContent, 'image-metadata.csv', platform);
+      });
+      
+      toast.success(`Metadata CSV files downloaded for ${selectedPlatforms.length} platforms`);
     }
   };
 
@@ -169,18 +189,39 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }
     
     if (image.result?.isVideo) {
-      const isShutterstock = selectedPlatforms.length === 1 && selectedPlatforms[0] === 'Shutterstock';
+      const isShutterstock = selectedPlatforms.includes('Shutterstock');
       const videoCsvContent = formatVideosAsCSV(imagesToProcess, isShutterstock);
       const filename = image.file.name.split('.')[0] || 'video';
       downloadCSV(videoCsvContent, `${filename}-metadata.csv`, 'videos' as Platform);
       toast.success('Video metadata CSV file downloaded');
     } else {
-      const csvContent = formatImagesAsCSV(imagesToProcess, isFreepikOnly, isShutterstock, isAdobeStock, isVecteezy, isDepositphotos, is123RF, isAlamy);
-      // Use the image filename as the CSV filename
-      const filename = image.file.name.split('.')[0] || 'image';
-      const selectedPlatform = selectedPlatforms.length === 1 ? selectedPlatforms[0] : undefined;
-      downloadCSV(csvContent, `${filename}-metadata.csv`, selectedPlatform);
-      toast.success('Image metadata CSV file downloaded');
+      // Generate and download CSV for each selected platform
+      selectedPlatforms.forEach(platform => {
+        const isFreepikOnly = platform === 'Freepik';
+        const isShutterstock = platform === 'Shutterstock';
+        const isAdobeStock = platform === 'AdobeStock';
+        const isVecteezy = platform === 'Vecteezy';
+        const isDepositphotos = platform === 'Depositphotos';
+        const is123RF = platform === '123RF';
+        const isAlamy = platform === 'Alamy';
+        
+        const csvContent = formatImagesAsCSV(
+          imagesToProcess, 
+          isFreepikOnly, 
+          isShutterstock, 
+          isAdobeStock, 
+          isVecteezy, 
+          isDepositphotos, 
+          is123RF, 
+          isAlamy
+        );
+        
+        // Use the image filename as the CSV filename
+        const filename = image.file.name.split('.')[0] || 'image';
+        downloadCSV(csvContent, `${filename}-metadata.csv`, platform);
+      });
+      
+      toast.success(`Metadata CSV files downloaded for ${selectedPlatforms.length} platforms`);
     }
   };
   

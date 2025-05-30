@@ -42,7 +42,7 @@ const Index: React.FC = () => {
   const [keywordCount, setKeywordCount] = useState(50);
   
   // Updated to only have one platform selected by default
-  const [platforms, setPlatforms] = useState<Platform[]>(['AdobeStock']);
+  const [platforms, setPlatforms] = useState<Platform[]>(['Freepik', 'AdobeStock', 'Shutterstock', 'Vecteezy']);
   
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');
@@ -110,7 +110,9 @@ const Index: React.FC = () => {
   };
   
   const handlePlatformChange = (newPlatforms: Platform[]) => {
-    setPlatforms(newPlatforms);
+    if (newPlatforms.length > 0) {
+      setPlatforms(newPlatforms);
+    }
   };
   
   const handleModeChange = (mode: GenerationMode) => {

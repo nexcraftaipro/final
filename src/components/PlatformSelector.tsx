@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -108,8 +107,15 @@ const PlatformSelector: React.FC<PlatformSelectorProps> = ({
   onPlatformChange
 }) => {
   const togglePlatform = (platform: Platform) => {
-    // Changed to only allow single platform selection
-    onPlatformChange([platform]);
+    // Allow multiple platform selection
+    if (selectedPlatforms.includes(platform)) {
+      // Don't allow deselecting if it would result in no platforms selected
+      if (selectedPlatforms.length > 1) {
+        onPlatformChange(selectedPlatforms.filter(p => p !== platform));
+      }
+    } else {
+      onPlatformChange([...selectedPlatforms, platform]);
+    }
   };
 
   return (

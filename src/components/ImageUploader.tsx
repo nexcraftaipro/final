@@ -193,9 +193,9 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
   return (
     <>
-      <div className="dropzone-container bg-gradient-to-br from-[#121212] to-[#1f1f1f] border border-solid border-gray-700 rounded-xl overflow-hidden shadow-lg">      
+      <div className="dropzone-container rgb-corners bg-gradient-to-br from-[#121212] to-[#1f1f1f] shadow-lg">      
         <div 
-          className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer ${isDragging ? 'dropzone-active bg-blue-900/10 border-blue-400' : 'hover:bg-gray-800/30'}`} 
+          className={`drop-zone flex flex-col items-center justify-center p-12 transition-all duration-300 cursor-pointer ${isDragging ? 'dropzone-active bg-blue-900/10 rgb-active' : 'hover:bg-gray-800/30'}`} 
           onDragOver={handleDragOver} 
           onDragEnter={handleDragEnter} 
           onDragLeave={handleDragLeave} 
