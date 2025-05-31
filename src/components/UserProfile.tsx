@@ -12,8 +12,8 @@ const UserProfile: React.FC = () => {
   
   if (!user || !profile) return null;
 
-  const creditPercentage = Math.min(profile.credits_used / 10 * 100, 100);
-  const remainingCredits = profile.is_premium ? '∞' : Math.max(0, 10 - profile.credits_used);
+  const creditPercentage = Math.min(profile.credits_used / 1 * 100, 100);
+  const remainingCredits = profile.is_premium ? '∞' : Math.max(0, 1 - profile.credits_used);
 
   // Get user profile photo URL
   const getGravatarUrl = () => {

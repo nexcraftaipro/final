@@ -29,10 +29,11 @@ const PricingPage: React.FC = () => {
                   <span className="ml-1 text-slate-50 text-4xl">Tk</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">Limited features to get started</p>
+                <p className="text-xs text-yellow-400 mt-1">Now with 1 credit for lifetime</p>
               </CardHeader>
               <CardContent className="pt-6">
                 <ul className="space-y-4">
-                  <PricingItem included text="Limited Metadata Generation" />
+                  <PricingItem included text="Limited Metadata Generation (1 Credit)" />
                   <PricingItem included text="Basic Image to Prompt Features" />
                   <PricingItem included text="Limited Access to Metadata Customization" />
                   <PricingItem included={false} text="More Fast Processing" />
@@ -49,9 +50,6 @@ const PricingPage: React.FC = () => {
             
             {/* Basic Plan */}
             <Card className="bg-[#12151F] border-gray-800 shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-semibold">
-                POPULAR
-              </div>
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Basic</h2>
                 <div className="flex items-baseline mt-2">
@@ -83,6 +81,9 @@ const PricingPage: React.FC = () => {
             
             {/* Premium Plan */}
             <Card className="bg-[#12151F] border-gray-800 shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-semibold">
+                POPULAR
+              </div>
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
@@ -92,8 +93,11 @@ const PricingPage: React.FC = () => {
                 <div className="flex items-center mt-1">
                   <span className="text-sm text-amber-500 line-through">1800Tk</span>
                   <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-500">
-                    Save 1301Tk
+                    72% OFF
                   </span>
+                </div>
+                <div className="mt-1">
+                  <span className="text-sm bg-yellow-400 text-black px-2 py-0.5 rounded font-medium">Limited Time Offer!</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>

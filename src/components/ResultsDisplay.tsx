@@ -442,6 +442,26 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     setEditingKeywords(imageId);
   };
 
+  // Add a function to remove a keyword with one click
+  const removeKeyword = (imageId: string, keywordToRemove: string) => {
+    const imageIndex = images.findIndex(img => img.id === imageId);
+    if (imageIndex !== -1 && images[imageIndex].result) {
+      // If already in edit mode, update the edited value
+      if (editingKeywords === imageId) {
+        const updatedKeywords = editedKeywordsValue[imageId].filter(keyword => keyword !== keywordToRemove);
+        setEditedKeywordsValue(prev => ({...prev, [imageId]: updatedKeywords}));
+      } else {
+        // If not in edit mode, update the result directly and start editing
+        const currentKeywords = images[imageIndex].result?.keywords || [];
+        const updatedKeywords = currentKeywords.filter(keyword => keyword !== keywordToRemove);
+        handleKeywordsEdit(imageId, updatedKeywords);
+        // Save the edit immediately
+        setTimeout(() => saveKeywordsEdit(imageId), 100);
+      }
+      toast.success('Keyword removed');
+    }
+  };
+
   // Add a function to save keywords edits
   const saveKeywordsEdit = (imageId: string) => {
     const imageIndex = images.findIndex(img => img.id === imageId);
@@ -871,6 +891,23 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                               className="w-full p-2 bg-gray-800 border border-gray-600 rounded text-white"
                               rows={4}
                             />
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {editedKeywordsValue[image.id]?.map((keyword, index) => (
+                                <span 
+                                  key={index} 
+                                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1 rounded-full cursor-pointer flex items-center group"
+                                >
+                                  {keyword}
+                                  <X 
+                                    className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 hover:text-red-300" 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      removeKeyword(image.id, keyword);
+                                    }}
+                                  />
+                                </span>
+                              ))}
+                            </div>
                             <div className="flex mt-2">
                               <Button 
                                 variant="ghost" 
@@ -892,9 +929,17 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           </div>
                         ) : (
                           <div className="flex flex-wrap gap-2 mt-2">
-                            {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => <span key={index} className="bg-blue-600 text-white text-xs px-3 py-1 rounded-full">
+                            {image.result?.keywords && image.result.keywords.length > 0 ? image.result.keywords.map((keyword, index) => (
+                              <span 
+                                key={index} 
+                                className="bg-blue-600 hover:bg-blue-500 text-white text-xs px-3 py-1 rounded-full cursor-pointer group relative"
+                                onClick={() => removeKeyword(image.id, keyword)}
+                                title="Click to remove this keyword"
+                              >
                                 {keyword}
-                              </span>) : <span className="text-gray-400">No keywords available</span>}
+                                <X className="hidden group-hover:inline-block absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full p-0.5 border border-white" />
+                              </span>
+                            )) : <span className="text-gray-400">No keywords available</span>}
                           </div>
                         )}
 

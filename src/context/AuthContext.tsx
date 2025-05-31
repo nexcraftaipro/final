@@ -240,8 +240,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Premium users don't consume credits
     if (profile.is_premium) return true;
     
-    // Free users with 10 or more credits used can't generate more
-    if (profile.credits_used >= 10) {
+    // Free users with 1 or more credits used can't generate more
+    if (profile.credits_used >= 1) {
       toast.error('You have reached your free limit. Please upgrade to premium.');
       return false;
     }

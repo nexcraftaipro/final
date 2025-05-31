@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ProcessedImage } from '@/utils/imageHelpers';
 import { analyzeImageWithGemini, resetGeminiModelIndex } from '@/utils/geminiApi';
 import { toast } from 'sonner';
-import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, LogIn } from 'lucide-react';
+import { Sparkles, Loader2, ShieldAlert, Image, Info, Film, LogIn, CreditCard } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Platform } from '@/components/PlatformSelector';
 import PlatformSelector from '@/components/PlatformSelector';
@@ -22,7 +22,7 @@ import { isVideoFile } from '@/utils/videoProcessor';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
 
 // Updated payment gateway link
-const PAYMENT_GATEWAY_URL = "https://pixcraftai.paymently.io/default/paymentlink/pay/E0PQXvAfeChDNE5Q5rohBGproO5NuPXHLYp4rbdz";
+const PAYMENT_GATEWAY_URL = "https://meta.pixcraftai.com/pricing";
 
 const Index: React.FC = () => {
   const {
@@ -403,6 +403,14 @@ const Index: React.FC = () => {
                       <LogIn className="mr-2 h-5 w-5" />
                       Login to Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
                     </Button>
+                  ) : profile?.credits_used >= 1 && !profile?.is_premium ? (
+                    <Button
+                      onClick={handleUpgradePlan}
+                      className="glow-button bg-amber-500 hover:bg-amber-600 text-black px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
+                    >
+                      <CreditCard className="mr-2 h-5 w-5" />
+                      Upgrade to Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
+                    </Button>
                   ) : (
                     <Button
                       onClick={handleProcessImages}
@@ -422,23 +430,6 @@ const Index: React.FC = () => {
                       )}
                     </Button>
                   )}
-                </div>
-              )}
-              
-              {!canGenerateMetadata && user && (
-                <div className="bg-amber-900/30 border border-amber-800/50 rounded-lg p-4 flex flex-col items-center mt-4">
-                  <div className="flex items-center mb-2">
-                    <ShieldAlert className="h-5 w-5 text-amber-500 mr-2" />
-                    <p className="text-sm text-amber-300">
-                      You've reached your free limit of 10 metadata generations. Upgrade for unlimited access.
-                    </p>
-                  </div>
-                  <Button 
-                    onClick={handleUpgradePlan} 
-                    className="mt-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white"
-                  >
-                    Upgrade Now
-                  </Button>
                 </div>
               )}
               

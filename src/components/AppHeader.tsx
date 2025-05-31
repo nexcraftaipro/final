@@ -120,10 +120,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   return <>
     {/* Static centered banner */}
-    <div className="bg-black w-full py-2">
+    <div className="bg-yellow-400 w-full py-2">
       <div className="flex justify-center items-center h-6">
-        <span className="text-white font-bold text-lg text-center">
-          আপডেট: ইপিএস প্রসেসিংসহ ঈদ উপলক্ষে, কাল ইয়ারলি প্যাকেজ এর উপর একটি ডিসকাউন্ট অফার থাকছে!
+        <span className="text-black font-bold text-lg text-center">
+          ঈদ মানে আনন্দ! এখন থেকে ইয়ারলি প্যাকেজ এর ওপরে থাকছে ৭২% ডিসকাউন্ট (Limited time offer) 🌙✨
         </span>
       </div>
     </div>
@@ -177,9 +177,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           )}
         
           {user && <>
-              <Button variant="outline" size="sm" className="text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" onClick={() => navigate('/pricing')}>
+              <Button variant="outline" size="sm" className="text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1 relative" onClick={() => navigate('/pricing')}>
                 <CreditCard className="h-4 w-4 mr-1" />
                 Pricing
+                <span className="absolute -top-2 -right-2 bg-amber-500 text-black text-xs font-bold rounded-full px-1 transform scale-90 animate-pulse">-72%</span>
               </Button>
               
               <Button variant="outline" size="sm" className="text-green-500 border-green-700 hover:bg-green-900/50 hover:text-green-400 transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1" onClick={openTutorialVideo}>

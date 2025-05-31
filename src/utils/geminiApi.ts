@@ -670,7 +670,7 @@ Generate appropriate metadata for this design file:
             filename: originalFilename,
             isVideo: originalIsVideo,
             isEps: originalIsEps,
-            baseModel: isFreepikOnly ? "Ideogram 1.0" : model.name,
+            baseModel: isFreepikOnly ? "midjourney 5" : model.name,
             provider: model.provider,
             processingTime: (Date.now() - startTime) / 1000
           };
@@ -689,7 +689,7 @@ Generate appropriate metadata for this design file:
         let result;
         try {
           result = JSON.parse(jsonStr);
-          result.baseModel = model.name; // Add the model name to the result
+          result.baseModel = isFreepikOnly ? "midjourney 5" : model.name; // Always set "midjourney 5" for Freepik
           result.provider = model.provider; // Add the provider to the result
           
           // Ensure titles don't have symbols
@@ -866,7 +866,7 @@ Generate appropriate metadata for this design file:
               description: result.description || '',
               keywords: result.keywords || [],
               prompt: epsPrompt,
-              baseModel: isFreepikOnly ? "Ideogram 1.0" : (result.baseModel || "leonardo"),
+              baseModel: isFreepikOnly ? "midjourney 5" : (result.baseModel || "leonardo"),
               categories: result.categories,
               filename: originalFilename,
               isVideo: false,
@@ -878,9 +878,9 @@ Generate appropriate metadata for this design file:
           // Add processing time to the result
           result.processingTime = (Date.now() - startTime) / 1000;
           
-          // Set baseModel to Ideogram 1.0 for Freepik platform
+          // Ensure baseModel is set to midjourney 5 for Freepik platform
           if (isFreepikOnly) {
-            result.baseModel = "Ideogram 1.0";
+            result.baseModel = "midjourney 5";
           }
           
           // Ensure prompt is set (use description as fallback)
@@ -963,7 +963,7 @@ Generate appropriate metadata for this design file:
       description: '',
       keywords: [],
       prompt: '',
-      baseModel: isFreepikOnly ? "Ideogram 1.0" : "leonardo",
+      baseModel: isFreepikOnly ? "midjourney 5" : "leonardo",
       error: isQuotaError 
         ? 'All available models have reached their quota limits. Please try again later or check your API keys.' 
         : errorMessage,
