@@ -108,58 +108,128 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     // Check if there are any videos to process
     const videoImages = images.filter(img => img.result?.isVideo);
     const regularImages = images.filter(img => !img.result?.isVideo);
+    
+    // Use the downloadAllCSVsAsZip function to download all CSVs in a zip file
+    downloadAllCSVsAsZip(videoImages, regularImages, selectedPlatforms);
+  };
 
-    // Process videos if they exist
-    if (videoImages.length > 0) {
-      const isShutterstock = selectedPlatforms.includes('Shutterstock');
-      const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
-      downloadCSV(videoCsvContent, 'video-metadata.csv', 'videos' as Platform);
-      toast.success('Video metadata CSV file downloaded');
+  // Function to download all CSVs in a zip file with folder structure
+  const downloadAllCSVsAsZip = async (
+    videoImages: ProcessedImage[], 
+    regularImages: ProcessedImage[], 
+    platforms: Platform[],
+    filenamePrefix?: string
+  ) => {
+    if (videoImages.length === 0 && regularImages.length === 0) {
+      toast.error('No images to process');
+      return;
     }
-
-    // Process regular images if they exist
-    if (regularImages.length > 0) {
-      // Apply EPS extension modification if enabled
-      let imagesToProcess = regularImages;
-      if (epsEnabled) {
-        imagesToProcess = regularImages.map(img => {
-          // Create a shallow copy to avoid modifying the original
-          const modifiedImg = { ...img };
-          // Create a new File object with modified name
-          const originalName = img.file.name;
-          const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
-          const newFileName = `${nameWithoutExt}.eps`;
-          // Create a new File object with the same content but different name
-          modifiedImg.file = new File([img.file], newFileName, { type: img.file.type });
-          return modifiedImg;
-        });
+    
+    toast.info('Preparing metadata CSV files for download...');
+    
+    try {
+      // Create a new JSZip instance
+      const zip = new JSZip();
+      
+      // Create a folder with date
+      const now = new Date();
+      const dateStr = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+      const folderName = `Pixcraftai metadata with ${dateStr}`;
+      const folder = zip.folder(folderName);
+      
+      if (!folder) {
+        throw new Error('Failed to create folder in zip');
       }
       
-      // Generate and download CSV for each selected platform
-      selectedPlatforms.forEach(platform => {
-        const isFreepikOnly = platform === 'Freepik';
-        const isShutterstock = platform === 'Shutterstock';
-        const isAdobeStock = platform === 'AdobeStock';
-        const isVecteezy = platform === 'Vecteezy';
-        const isDepositphotos = platform === 'Depositphotos';
-        const is123RF = platform === '123RF';
-        const isAlamy = platform === 'Alamy';
+      // Process videos if they exist
+      if (videoImages.length > 0) {
+        const isShutterstock = platforms.includes('Shutterstock');
+        const videoCsvContent = formatVideosAsCSV(videoImages, isShutterstock);
         
-        const csvContent = formatImagesAsCSV(
-          imagesToProcess, 
-          isFreepikOnly, 
-          isShutterstock, 
-          isAdobeStock, 
-          isVecteezy, 
-          isDepositphotos, 
-          is123RF, 
-          isAlamy
-        );
-        
-        downloadCSV(csvContent, 'image-metadata.csv', platform);
-      });
+        // Use filename prefix if provided
+        const videoFileName = filenamePrefix 
+          ? `${filenamePrefix}-video-metadata.csv` 
+          : 'videos-metadata.csv';
+          
+        folder.file(videoFileName, videoCsvContent);
+      }
       
-      toast.success(`Metadata CSV files downloaded for ${selectedPlatforms.length} platforms`);
+      // Process regular images if they exist
+      if (regularImages.length > 0) {
+        // Apply EPS extension modification if enabled
+        let imagesToProcess = regularImages;
+        if (epsEnabled) {
+          imagesToProcess = regularImages.map(img => {
+            // Create a shallow copy to avoid modifying the original
+            const modifiedImg = { ...img };
+            // Create a new File object with modified name
+            const originalName = img.file.name;
+            const nameWithoutExt = originalName.substring(0, originalName.lastIndexOf('.')) || originalName;
+            const newFileName = `${nameWithoutExt}.eps`;
+            // Create a new File object with the same content but different name
+            modifiedImg.file = new File([img.file], newFileName, { type: img.file.type });
+            return modifiedImg;
+          });
+        }
+        
+        // Generate CSV for each selected platform
+        for (const platform of platforms) {
+          const isFreepikOnly = platform === 'Freepik';
+          const isShutterstock = platform === 'Shutterstock';
+          const isAdobeStock = platform === 'AdobeStock';
+          const isVecteezy = platform === 'Vecteezy';
+          const isDepositphotos = platform === 'Depositphotos';
+          const is123RF = platform === '123RF';
+          const isAlamy = platform === 'Alamy';
+          
+          const csvContent = formatImagesAsCSV(
+            imagesToProcess, 
+            isFreepikOnly, 
+            isShutterstock, 
+            isAdobeStock, 
+            isVecteezy, 
+            isDepositphotos, 
+            is123RF, 
+            isAlamy
+          );
+          
+          // Use filename prefix if provided
+          const csvFileName = filenamePrefix 
+            ? `${filenamePrefix}-${platform}-metadata.csv` 
+            : `${platform}-metadata.csv`;
+            
+          // Add CSV file to the folder in the zip
+          folder.file(csvFileName, csvContent);
+        }
+      }
+      
+      // Generate the zip file
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+      
+      // Create download link
+      const url = URL.createObjectURL(zipContent);
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Add filename prefix to the zip file name if processing a single image
+      const zipFileName = filenamePrefix 
+        ? `${filenamePrefix}-${folderName}.zip` 
+        : `${folderName}.zip`;
+        
+      link.download = zipFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      const successMessage = filenamePrefix 
+        ? `Metadata CSV files for ${platforms.length} platforms downloaded for image "${filenamePrefix}"`
+        : `Metadata CSV files for ${platforms.length} platforms downloaded in "${folderName}" folder`;
+        
+      toast.success(successMessage);
+    } catch (error) {
+      console.error('Error creating zip archive with CSV files:', error);
+      toast.error('Failed to create zip archive with CSV files. Please try again.');
     }
   };
 
@@ -188,41 +258,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
       });
     }
     
-    if (image.result?.isVideo) {
-      const isShutterstock = selectedPlatforms.includes('Shutterstock');
-      const videoCsvContent = formatVideosAsCSV(imagesToProcess, isShutterstock);
-      const filename = image.file.name.split('.')[0] || 'video';
-      downloadCSV(videoCsvContent, `${filename}-metadata.csv`, 'videos' as Platform);
-      toast.success('Video metadata CSV file downloaded');
-    } else {
-      // Generate and download CSV for each selected platform
-      selectedPlatforms.forEach(platform => {
-        const isFreepikOnly = platform === 'Freepik';
-        const isShutterstock = platform === 'Shutterstock';
-        const isAdobeStock = platform === 'AdobeStock';
-        const isVecteezy = platform === 'Vecteezy';
-        const isDepositphotos = platform === 'Depositphotos';
-        const is123RF = platform === '123RF';
-        const isAlamy = platform === 'Alamy';
-        
-        const csvContent = formatImagesAsCSV(
-          imagesToProcess, 
-          isFreepikOnly, 
-          isShutterstock, 
-          isAdobeStock, 
-          isVecteezy, 
-          isDepositphotos, 
-          is123RF, 
-          isAlamy
-        );
-        
-        // Use the image filename as the CSV filename
-        const filename = image.file.name.split('.')[0] || 'image';
-        downloadCSV(csvContent, `${filename}-metadata.csv`, platform);
-      });
-      
-      toast.success(`Metadata CSV files downloaded for ${selectedPlatforms.length} platforms`);
-    }
+    // Create videos or images array based on content type
+    const videoImages = image.result?.isVideo ? imagesToProcess : [];
+    const regularImages = !image.result?.isVideo ? imagesToProcess : [];
+    
+    // Use the same zip-based download function
+    downloadAllCSVsAsZip(videoImages, regularImages, selectedPlatforms, image.file.name.split('.')[0]);
   };
   
   const downloadPromptText = (text: string, filename: string) => {

@@ -35,9 +35,9 @@ const platforms: {
     icon: <span className="text-sm font-bold">St</span>,
     name: 'AdobeStock',
     colors: {
-      ring: "ring-blue-500",
-      bg: "bg-blue-500/10",
-      glow: "from-purple-600/30 via-blue-500/30 to-cyan-400/30"
+      ring: "ring-purple-500",
+      bg: "bg-purple-500/10",
+      glow: "from-purple-600/30 via-purple-500/30 to-purple-400/30"
     }
   },
   {

@@ -22,7 +22,7 @@ import { isVideoFile } from '@/utils/videoProcessor';
 import { setupVideoDebug, testVideoSupport, testSpecificVideo } from '@/utils/videoDebug';
 
 // Updated payment gateway link
-const PAYMENT_GATEWAY_URL = "https://meta.pixcraftai.com/pricing";
+const PAYMENT_GATEWAY_URL = "https://pixcraftai.paymently.io/default/paymentlink/pay/E0PQXvAfeChDNE5Q5rohBGproO5NuPXHLYp4rbdz";
 
 const Index: React.FC = () => {
   const {
@@ -41,8 +41,8 @@ const Index: React.FC = () => {
   const [descriptionLength, setDescriptionLength] = useState(200);
   const [keywordCount, setKeywordCount] = useState(50);
   
-  // Updated to only have one platform selected by default
-  const [platforms, setPlatforms] = useState<Platform[]>(['Freepik', 'AdobeStock', 'Shutterstock', 'Vecteezy']);
+  // Updated to only have the first three platforms selected by default
+  const [platforms, setPlatforms] = useState<Platform[]>(['Freepik', 'AdobeStock', 'Shutterstock']);
   
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');

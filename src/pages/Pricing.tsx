@@ -38,7 +38,6 @@ const PricingPage: React.FC = () => {
                   <PricingItem included={false} text="More Fast Processing" />
                   <PricingItem included={false} text="Fully Custom Support" />
                   <PricingItem included={false} text="All Future Features" />
-                  <PricingItem included={false} text="Commercial License" />
                 </ul>
               </CardContent>
               <CardFooter>
@@ -69,7 +68,6 @@ const PricingPage: React.FC = () => {
                   <PricingItem included text="More Fast Processing" />
                   <PricingItem included text="Fully Custom Support" />
                   <PricingItem included text="All Future Features" />
-                  <PricingItem included text="Commercial License" />
                 </ul>
               </CardContent>
               <CardFooter>
@@ -88,13 +86,13 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">999</span>
+                  <span className="text-5xl font-extrabold tracking-tight">499</span>
                   <span className="ml-1 text-slate-50 text-xl">Tk/Yearly</span>
                 </div>
                 <div className="flex items-center mt-1">
                   <span className="text-sm text-amber-500 line-through">1800Tk</span>
                   <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-500">
-                    Save 801Tk
+                    Save 1301Tk
                   </span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
@@ -107,14 +105,13 @@ const PricingPage: React.FC = () => {
                   <PricingItem included text="More Fast Processing" />
                   <PricingItem included text="Fully Custom Support" />
                   <PricingItem included text="All Future Features" />
-                  <PricingItem included text="Commercial License" />
                 </ul>
               </CardContent>
               <CardFooter>
                 <Button 
                   size="lg"
                   className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-                  onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/7IRKlEWtpLMoGUkV4CmqG2hLH16yNhH1acUsJC72', '_blank')}
+                  onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/E0PQXvAfeChDNE5Q5rohBGproO5NuPXHLYp4rbdz', '_blank')}
                 >
                   Upgrade to Premium
                 </Button>
