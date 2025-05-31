@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
+import { NoticeBox } from "./components/NoticeBox";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +22,7 @@ const App = () => (
         <AuthProvider>
           <LanguageProvider>
             <TooltipProvider>
+              <NoticeBox />
               <Toaster />
               <Sonner />
               <Routes>
