@@ -35,9 +35,11 @@ const Index: React.FC = () => {
   } = useAuth();
 
   const [apiKey, setApiKey] = useState('');
+  const [openaiApiKey, setOpenaiApiKey] = useState('');
+  const [deepseekApiKey, setDeepseekApiKey] = useState('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');
   const [images, setImages] = useState<ProcessedImage[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [titleLength, setTitleLength] = useState(200);
+  const [titleLength, setTitleLength] = useState([10, 15]);
   const [descriptionLength, setDescriptionLength] = useState(200);
   const [keywordCount, setKeywordCount] = useState(50);
   
@@ -66,14 +68,19 @@ const Index: React.FC = () => {
   const [silhouetteEnabled, setSilhouetteEnabled] = useState(false);
   const [singleWordKeywordsEnabled, setSingleWordKeywordsEnabled] = useState(true);
   
-  // Get API key from localStorage or auth context
+  // Initialize API keys from localStorage
   useEffect(() => {
-    const savedGeminiKey = localStorage.getItem('gemini-api-key') || authApiKey;
+    const savedKey = localStorage.getItem('gemini-api-key');
+    const savedOpenaiKey = localStorage.getItem('openai-api-key');
+    const savedOpenrouterKey = localStorage.getItem('openrouter-api-key') || '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';
     
-    if (savedGeminiKey) {
-      setApiKey(savedGeminiKey);
-    }
-  }, [authApiKey]);
+    if (savedKey) setApiKey(savedKey);
+    if (savedOpenaiKey) setOpenaiApiKey(savedOpenaiKey);
+    if (savedOpenrouterKey) setDeepseekApiKey(savedOpenrouterKey);
+    
+    // Reset the Gemini model index on page load
+    resetGeminiModelIndex();
+  }, []);
   
   if (isLoading) {
     return <div className="flex min-h-screen items-center justify-center">
@@ -83,6 +90,14 @@ const Index: React.FC = () => {
   
   const handleApiKeyChange = (key: string) => {
     setApiKey(key);
+  };
+  
+  const handleOpenaiApiKeyChange = (key: string) => {
+    setOpenaiApiKey(key);
+  };
+  
+  const handleDeepseekApiKeyChange = (key: string) => {
+    setDeepseekApiKey(key);
   };
   
   const handleImagesSelected = (newImages: ProcessedImage[]) => {
@@ -98,7 +113,7 @@ const Index: React.FC = () => {
   };
   
   const handleTitleLengthChange = (value: number[]) => {
-    setTitleLength(value[0]);
+    setTitleLength(value);
   };
   
   const handleDescriptionLengthChange = (value: number[]) => {
@@ -234,9 +249,8 @@ const Index: React.FC = () => {
       const updatedImages: ProcessedImage[] = [...images];
       let successCount = 0;
       
-      for (let i = 0; i < updatedImages.length; i++) {
-        const img = updatedImages[i];
-        
+      for (let i = 0; i < pendingImages.length; i++) {
+        const img = pendingImages[i];
         if (img.status !== 'pending') continue;
         
         updatedImages[i] = { ...img, status: 'processing' };
@@ -245,12 +259,12 @@ const Index: React.FC = () => {
         try {
           console.log(`Processing image ${i + 1}/${pendingImages.length}: ${img.file.name}`);
           
-          // Update to only pass the Gemini API key
+          // Update to pass all API keys
           const result = await analyzeImageWithGemini(
             img.file, 
             apiKey,
             {
-              titleLength,
+              titleLength: titleLength[0],
               descriptionLength,
               keywordCount,
               platforms,
@@ -268,7 +282,9 @@ const Index: React.FC = () => {
               transparentBgEnabled,
               silhouetteEnabled,
               singleWordKeywordsEnabled
-            }
+            },
+            openaiApiKey,
+            deepseekApiKey
           );
           
           // Update UI on success
@@ -286,7 +302,7 @@ const Index: React.FC = () => {
               baseModel: result.baseModel,
               provider: result.provider
             },
-            error: result.error
+            error: result.error ? '' : undefined
           };
           
           setImages([...updatedImages]);
@@ -300,7 +316,7 @@ const Index: React.FC = () => {
           updatedImages[i] = {
             ...img,
             status: 'error',
-            error: error instanceof Error ? error.message : 'An unknown error occurred'
+            error: '' // Don't show error message to user, just set status
           };
           
           setImages([...updatedImages]);
@@ -317,7 +333,8 @@ const Index: React.FC = () => {
       }
     } catch (error) {
       console.error('Error during processing:', error);
-      toast.error('An error occurred during processing');
+      // Don't show error message, just complete silently
+      setIsProcessing(false);
     } finally {
       setIsProcessing(false);
     }
@@ -326,12 +343,28 @@ const Index: React.FC = () => {
   const pendingCount = images.filter(img => img.status === 'pending').length;
   const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
   
+  // Add a new function to handle image updates
+  const handleImageUpdate = (updatedImage: ProcessedImage) => {
+    setImages(prev => {
+      const newImages = [...prev];
+      const index = newImages.findIndex(img => img.id === updatedImage.id);
+      if (index !== -1) {
+        newImages[index] = updatedImage;
+      }
+      return newImages;
+    });
+  };
+  
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader 
         remainingCredits={profile?.credits_used ? Math.max(0, 10 - profile.credits_used) : 0} 
         apiKey={apiKey} 
         onApiKeyChange={handleApiKeyChange}
+        openaiApiKey={openaiApiKey}
+        onOpenaiApiKeyChange={handleOpenaiApiKeyChange}
+        deepseekApiKey={deepseekApiKey}
+        onDeepseekApiKeyChange={handleDeepseekApiKeyChange}
       />
       
       <div className="flex flex-1">
@@ -440,6 +473,7 @@ const Index: React.FC = () => {
                   onClearAll={handleClearAll}
                   generationMode={generationMode}
                   selectedPlatforms={platforms}
+                  onUpdateImage={handleImageUpdate}
                 />
               </div>
             </div>

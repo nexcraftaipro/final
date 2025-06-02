@@ -20,19 +20,25 @@ interface ApiKeyInputProps {
   onApiKeyChange: (key: string) => void;
   openaiApiKey?: string;
   onOpenaiApiKeyChange?: (key: string) => void;
+  deepseekApiKey?: string;
+  onDeepseekApiKeyChange?: (key: string) => void;
 }
 
 const ApiKeyInput: React.FC<ApiKeyInputProps> = ({ 
   apiKey, 
   onApiKeyChange,
   openaiApiKey,
-  onOpenaiApiKeyChange
+  onOpenaiApiKeyChange,
+  deepseekApiKey,
+  onDeepseekApiKeyChange
 }) => {
   const [showApiKey, setShowApiKey] = useState(false);
   const [showOpenaiApiKey, setShowOpenaiApiKey] = useState(false);
+  const [showDeepseekApiKey, setShowDeepseekApiKey] = useState(false);
   const [inputKey, setInputKey] = useState(apiKey);
   const [inputOpenaiKey, setInputOpenaiKey] = useState(openaiApiKey || '');
-  const [activeTab, setActiveTab] = useState('gemini');
+  const [inputDeepseekKey, setInputDeepseekKey] = useState(deepseekApiKey || '');
+  const [activeTab, setActiveTab] = useState('openrouter');
   const { apiKey: authApiKey } = useAuth();
   const currentProvider = getCurrentApiProvider();
 
@@ -40,6 +46,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
     const savedOpenaiKey = localStorage.getItem('openai-api-key');
+    const savedDeepseekKey = localStorage.getItem('openrouter-api-key') || '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';
 
     if (savedKey) {
       setInputKey(savedKey);
@@ -51,9 +58,17 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
       onOpenaiApiKeyChange(savedOpenaiKey);
     }
 
+    if (savedDeepseekKey && onDeepseekApiKeyChange) {
+      setInputDeepseekKey(savedDeepseekKey);
+      onDeepseekApiKeyChange(savedDeepseekKey);
+    } else if (onDeepseekApiKeyChange) {
+      // Set default OpenRouter API key if not saved
+      onDeepseekApiKeyChange('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');
+    }
+
     // Set active tab based on the current provider
     setActiveTab(currentProvider);
-  }, [onApiKeyChange, onOpenaiApiKeyChange, authApiKey]);
+  }, [onApiKeyChange, onOpenaiApiKeyChange, onDeepseekApiKeyChange, authApiKey]);
 
   // Update when apiKey prop changes
   useEffect(() => {
@@ -69,12 +84,23 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     }
   }, [openaiApiKey]);
 
+  // Update when deepseekApiKey prop changes
+  useEffect(() => {
+    if (deepseekApiKey) {
+      setInputDeepseekKey(deepseekApiKey);
+    }
+  }, [deepseekApiKey]);
+
   const toggleShowApiKey = () => {
     setShowApiKey(!showApiKey);
   };
 
   const toggleShowOpenaiApiKey = () => {
     setShowOpenaiApiKey(!showOpenaiApiKey);
+  };
+
+  const toggleShowDeepseekApiKey = () => {
+    setShowDeepseekApiKey(!showDeepseekApiKey);
   };
 
   const handleSaveGeminiKey = () => {
@@ -97,6 +123,16 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     }
   };
 
+  const handleSaveDeepseekKey = () => {
+    if (inputDeepseekKey && onDeepseekApiKeyChange) {
+      localStorage.setItem('openrouter-api-key', inputDeepseekKey);
+      onDeepseekApiKeyChange(inputDeepseekKey);
+      toast.success('OpenRouter API key saved successfully');
+    } else {
+      toast.error('Please enter an OpenRouter API key');
+    }
+  };
+
   const handleClearGeminiKey = () => {
     localStorage.removeItem('gemini-api-key');
     setInputKey('');
@@ -113,11 +149,28 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     }
   };
 
+  const handleClearDeepseekKey = () => {
+    if (onDeepseekApiKeyChange) {
+      localStorage.removeItem('openrouter-api-key');
+      setInputDeepseekKey('');
+      onDeepseekApiKeyChange('');
+      toast.success('OpenRouter API key cleared');
+    }
+  };
+
   return (
     <div className="w-full mb-4">
       <Tabs defaultValue={activeTab} value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-2">
-          <TabsList className="grid grid-cols-2">
+          <TabsList className="grid grid-cols-3">
+            <TabsTrigger value="openrouter" className="relative">
+              OpenRouter API Key
+              {currentProvider === 'openrouter' && (
+                <Badge variant="success" className="absolute -top-2 -right-2 text-[10px] px-1 py-0">
+                  Active
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="gemini" className="relative">
               Gemini API Key
               {currentProvider === 'gemini' && (
@@ -151,6 +204,42 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
             </TooltipProvider>
           </div>
         </div>
+        
+        <TabsContent value="openrouter" className="space-y-2">
+          <div className="flex flex-col space-y-2">
+            <Label htmlFor="deepseek-api-key">OpenRouter API Key (Gemini 1.5 Flash 8B)</Label>
+            <div className="relative">
+              <Input 
+                id="deepseek-api-key"
+                type={showDeepseekApiKey ? "text" : "password"} 
+                placeholder="Enter your OpenRouter API key" 
+                value={inputDeepseekKey} 
+                onChange={e => setInputDeepseekKey(e.target.value)} 
+                className="pr-10"
+              />
+              <Button 
+                type="button" 
+                variant="ghost" 
+                size="sm" 
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                onClick={toggleShowDeepseekApiKey}
+              >
+                {showDeepseekApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </Button>
+            </div>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" className="flex-1" onClick={handleSaveDeepseekKey}>
+                Save
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleClearDeepseekKey}>
+                Clear
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => window.open("https://openrouter.ai/keys", "_blank")}>
+                Get Key
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
         
         <TabsContent value="gemini" className="space-y-2">
           <div className="flex flex-col space-y-2">

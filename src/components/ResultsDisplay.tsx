@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download, Copy, X, Check, Film, FileType, CheckCircle, Clock, Save, Info, Wand2 } from 'lucide-react';
+import { Download, Copy, X, Check, Film, FileType, CheckCircle, Clock, Save, Info, Wand2, RefreshCw } from 'lucide-react';
 import { ProcessedImage, formatImagesAsCSV, formatVideosAsCSV, downloadCSV, formatFileSize, removeSymbolsFromTitle, removeCommasFromDescription } from '@/utils/imageHelpers';
 import { toast } from 'sonner';
 import { GenerationMode } from '@/components/GenerationModeSelector';
@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Platform } from '@/components/PlatformSelector';
 import { getCategoryNameById } from '@/utils/categorySelector';
 import { writeMetadataToFile, createMetadataFileContent } from '@/utils/metadataWriter';
+import { analyzeImageWithGemini } from '@/utils/geminiApi';
 import JSZip from 'jszip';
 
 interface ResultsDisplayProps {
@@ -16,13 +17,15 @@ interface ResultsDisplayProps {
   onClearAll: () => void;
   generationMode: GenerationMode;
   selectedPlatforms?: Platform[];
+  onUpdateImage?: (updatedImage: ProcessedImage) => void;
 }
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   images,
   onRemoveImage,
   onClearAll,
   generationMode,
-  selectedPlatforms = ['AdobeStock']
+  selectedPlatforms = ['AdobeStock'],
+  onUpdateImage
 }) => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [newlyCompletedIds, setNewlyCompletedIds] = useState<string[]>([]);
@@ -627,6 +630,79 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     setShowingSuggestions(null);
   };
 
+  const handleRegenerateImage = async (image: ProcessedImage) => {
+    try {
+      toast.info(`Regenerating metadata for ${image.file.name}...`);
+      
+      // Update image status to processing
+      const updatedImage: ProcessedImage = {
+        ...image,
+        status: 'processing',
+        error: undefined
+      };
+      
+      // If there's an onUpdateImage prop, call it to update the parent component
+      if (onUpdateImage) {
+        onUpdateImage(updatedImage);
+      }
+      
+      // Force use of OpenRouter with Gemini 1.5 Flash 8B model
+      const result = await analyzeImageWithGemini(
+        image.file,
+        '', // Gemini API key (empty to force fallback)
+        {}, // Default options
+        '', // OpenAI API key (empty to force fallback)
+        'USE_OPENROUTER_GEMINI_FLASH_8B' // Special signal for forced OpenRouter Gemini 1.5 Flash 8B
+      );
+      
+      // Update image with result
+      const finalImage: ProcessedImage = {
+        ...image,
+        status: result.error ? 'error' : 'complete',
+        processingTime: result.processingTime || 0,
+        result: result.error ? undefined : {
+          title: result.title,
+          description: result.description,
+          keywords: result.keywords,
+          prompt: result.prompt,
+          category: result.category,
+          categories: result.categories,
+          baseModel: result.baseModel,
+          provider: result.provider
+        },
+        error: result.error
+      };
+      
+      // Update the parent component
+      if (onUpdateImage) {
+        onUpdateImage(finalImage);
+      }
+      
+      if (!result.error) {
+        toast.success(`Successfully processed image`);
+      } else {
+        // Don't show error message, just silently keep the Regenerate button available
+        console.error(`Error regenerating: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error regenerating metadata:', error);
+      
+      // Don't show error toast to the user
+      
+      // Update image with error but don't show the error message to the user
+      const errorImage: ProcessedImage = {
+        ...image,
+        status: 'error',
+        error: '' // Empty error message so it's not displayed
+      };
+      
+      // Update the parent component
+      if (onUpdateImage) {
+        onUpdateImage(errorImage);
+      }
+    }
+  };
+
   return <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
@@ -1047,7 +1123,15 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   </div>}
                 
                 {image.status === 'error' && <div className="h-12 flex items-center justify-center">
-                    <p className="text-xs text-red-500">{image.error || 'Error processing image'}</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 text-xs flex items-center"
+                      onClick={() => handleRegenerateImage(image)}
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Regenerate
+                    </Button>
                   </div>}
               </div>
             </div>)}

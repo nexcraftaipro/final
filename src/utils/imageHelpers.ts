@@ -19,7 +19,7 @@ export interface ProcessedImage {
     isVideo?: boolean;
     category?: number;
     isEps?: boolean;
-    provider?: 'gemini' | 'openai';
+    provider?: 'gemini' | 'openai' | 'openrouter';
   };
   error?: string;
 }
