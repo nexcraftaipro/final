@@ -1427,25 +1427,151 @@ Format your response as a valid JSON object with the fields "title", "descriptio
             
             // Ensure we have enough keywords for all platforms and custom prompts
             if (result.keywords && result.keywords.length < minKeywords) {
-              console.log('Not enough keywords provided, generating more...');
+              console.log(`Not enough keywords provided (${result.keywords.length}), need at least ${minKeywords}. Generating more...`);
               
-              // For custom prompts or any platform, generate additional keywords if needed
-              if (customPromptEnabled || (!isFreepikOnly && !isShutterstock && !isAdobeStock)) {
-                // Use title and description to generate more keywords
-                const contentForKeywords = [
-                  result.title || '',
-                  result.description || '',
-                  result.keywords.join(', ')
-                ].join(' ');
+              // Create content to generate more keywords from
+              const contentForKeywords = [
+                result.title || '',
+                result.description || '',
+                result.keywords.join(', ')
+              ].join(' ');
+              
+              // Try to ensure we meet the minimum keyword requirement
+              let attempts = 0;
+              const maxAttempts = 3;
+              let previousKeywordCount = result.keywords.length;
+              
+              const generateMoreKeywords = () => {
+                attempts++;
+                console.log(`Keyword generation attempt ${attempts}`);
                 
-                // Use the existing Freepik keyword generator as a fallback
+                // Generate additional keywords
                 const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords, singleWordKeywordsEnabled);
                 
                 // Combine existing keywords with new ones, remove duplicates
                 const combinedKeywords = [...new Set([...result.keywords, ...additionalKeywords])];
                 
+                // Check if we have enough keywords now
+                if (combinedKeywords.length < minKeywords && attempts < maxAttempts) {
+                  // Check if we're stuck (no new keywords added)
+                  if (combinedKeywords.length === previousKeywordCount) {
+                    console.log("No new keywords generated, using alternative approach");
+                    // Try splitting existing words and adding common related terms
+                    const splitWords = combinedKeywords.flatMap(kw => kw.split(/[\s-]/));
+                    const uniqueSplitWords = [...new Set(splitWords)].filter(w => w.length > 2);
+                    result.keywords = [...combinedKeywords, ...uniqueSplitWords];
+                  } else {
+                    // Not stuck, proceed with normal variation generation
+                    const existingKeywords = combinedKeywords.join(' ');
+                    const variations = getRelevantFreepikKeywords(existingKeywords, false);
+                    result.keywords = [...new Set([...combinedKeywords, ...variations])];
+                  }
+                  
+                  // Update the previousKeywordCount for next iteration
+                  previousKeywordCount = combinedKeywords.length;
+                  
+                  // If we still don't have enough, repeat with more aggressive settings
+                  if (result.keywords.length < minKeywords) {
+                    return generateMoreKeywords();
+                  }
+                } else {
+                  // We have enough keywords, or we've tried enough times
+                  result.keywords = combinedKeywords;
+                }
+                
                 // Use the combined list, up to maxKeywords
-                result.keywords = combinedKeywords.slice(0, maxKeywords);
+                result.keywords = result.keywords.slice(0, maxKeywords);
+                console.log(`Keywords expanded from original count to ${result.keywords.length}, final count: ${result.keywords.length}`);
+              };
+              
+              generateMoreKeywords();
+            }
+            
+            // Enforce exact keyword count requirements
+            if (result.keywords) {
+              // If we have too many keywords, keep them limited to maxKeywords
+              if (result.keywords.length > maxKeywords) {
+                console.log(`Too many keywords (${result.keywords.length}), limiting to ${maxKeywords}`);
+                result.keywords = result.keywords.slice(0, maxKeywords);
+              }
+              
+              // If we still have too few keywords after all attempts, create new ones using AI-generated 
+              // content and common stock photo terms to reach the minimum
+              if (result.keywords.length < minKeywords) {
+                console.log(`Still not enough keywords (${result.keywords.length}), adding generic stock keywords to reach ${minKeywords}`);
+                
+                // Add common stock photography keywords to fill the gap
+                const stockKeywords = [
+                  "creative", "design", "modern", "artistic", "professional",
+                  "clean", "minimal", "detailed", "high resolution", "stock image", 
+                  "commercial", "business", "concept", "digital", "illustration",
+                  "background", "stylish", "decorative", "trendy", "contemporary",
+                  "graphic", "beautiful", "lifestyle", "creative", "popular",
+                  "elegant", "premium", "quality", "simple", "colorful"
+                ];
+                
+                // Calculate how many more keywords we need
+                const neededKeywords = minKeywords - result.keywords.length;
+                const additionalStockKeywords = stockKeywords.slice(0, neededKeywords);
+                
+                // Add the stock keywords to reach the minimum
+                result.keywords = [...result.keywords, ...additionalStockKeywords];
+                console.log(`Added ${additionalStockKeywords.length} generic stock keywords to reach minimum`);
+              }
+            }
+
+            // Validate and enforce title word count
+            if (result.title) {
+              const titleWords = result.title.trim().split(/\s+/);
+              console.log(`Title word count: ${titleWords.length}, Min: ${minTitleWords}, Max: ${maxTitleWords}`);
+              
+              // If title has fewer words than minimum required, expand it
+              if (titleWords.length < minTitleWords && result.description) {
+                // Try to add words from description or keywords to expand the title
+                console.log('Title has fewer words than minimum, expanding...');
+                const descWords = (result.description || '').split(/\s+/);
+                const keywordWords = result.keywords ? result.keywords.join(' ').split(/\s+/) : [];
+                const potentialWords = [...descWords, ...keywordWords]
+                  .filter(w => !titleWords.includes(w) && w.length > 2)
+                  .slice(0, minTitleWords - titleWords.length);
+                
+                if (potentialWords.length > 0) {
+                  result.title = result.title + ' ' + potentialWords.join(' ');
+                  console.log(`Expanded title to: "${result.title}"`);
+                }
+              }
+              
+              // If title has more words than maximum allowed, truncate it
+              if (titleWords.length > maxTitleWords) {
+                console.log('Title has more words than maximum, truncating...');
+                result.title = titleWords.slice(0, maxTitleWords).join(' ');
+                console.log(`Truncated title to: "${result.title}"`);
+              }
+            }
+            
+            // Validate and enforce description word count
+            if (result.description) {
+              const descWords = result.description.trim().split(/\s+/);
+              console.log(`Description word count: ${descWords.length}, Min: ${minDescriptionWords}, Max: ${maxDescriptionWords}`);
+              
+              // If description has fewer words than minimum required, expand it
+              if (descWords.length < minDescriptionWords) {
+                console.log('Description has fewer words than minimum, expanding...');
+                // Use keywords to add relevant content
+                const keywordSentence = result.keywords ? 
+                  `This image features ${result.keywords.slice(0, 5).join(', ')}.` : '';
+                
+                if (keywordSentence) {
+                  result.description = result.description + ' ' + keywordSentence;
+                  console.log(`Expanded description to: "${result.description}"`);
+                }
+              }
+              
+              // If description has more words than maximum allowed, truncate it
+              if (descWords.length > maxDescriptionWords) {
+                console.log('Description has more words than maximum, truncating...');
+                result.description = descWords.slice(0, maxDescriptionWords).join(' ');
+                console.log(`Truncated description to: "${result.description}"`);
               }
             }
             
@@ -1584,6 +1710,37 @@ Format your response as a valid JSON object with the fields "title", "descriptio
             // Ensure baseModel is set to midjourney 5 for Freepik platform
             if (isFreepikOnly) {
               result.baseModel = "midjourney 5";
+            }
+            
+            // Ensure all required fields have at least an empty value
+            if (!result.title) {
+              console.log('No title provided, generating a default title');
+              if (result.description) {
+                // Extract first sentence from description
+                const firstSentence = result.description.split('.')[0];
+                result.title = firstSentence || 'Stock Image';
+              } else if (result.keywords && result.keywords.length > 0) {
+                // Use top keywords to form a title
+                result.title = `${result.keywords.slice(0, 3).join(' ')} Stock Image`;
+              } else {
+                result.title = 'Stock Image';
+              }
+            }
+            
+            if (!result.description) {
+              console.log('No description provided, generating a default description');
+              if (result.keywords && result.keywords.length > 0) {
+                // Use keywords to create a description
+                result.description = `This image features ${result.keywords.slice(0, 8).join(', ')}. ${result.title}`;
+              } else {
+                result.description = result.title || 'Stock image for commercial use.';
+              }
+            }
+            
+            if (!result.keywords || result.keywords.length === 0) {
+              console.log('No keywords provided, generating default keywords');
+              const contentForKeywords = result.title + ' ' + result.description;
+              result.keywords = getRelevantFreepikKeywords(contentForKeywords, singleWordKeywordsEnabled).slice(0, maxKeywords);
             }
             
             // Ensure prompt is set (use description as fallback)
