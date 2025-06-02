@@ -75,10 +75,14 @@ const failedGeminiModels = new Set<string>();
 // Track the currently active API provider
 let currentApiProvider: 'gemini' | 'openai' | 'openrouter' = 'gemini';
 
+// Track the last working model name
+let lastWorkingModelName: string = 'gemini-2.0-flash';
+
 // Function to reset the model index, useful when starting a new session
 export function resetGeminiModelIndex(): void {
   lastWorkingModelIndex = 0;
   currentApiProvider = 'gemini';
+  lastWorkingModelName = 'gemini-2.0-flash';
   failedGeminiModels.clear();
   console.log("Reset model index to 0 and provider to Gemini (Gemini 2.0 Flash)");
 }
@@ -88,12 +92,18 @@ export function getCurrentApiProvider(): 'gemini' | 'openai' | 'openrouter' {
   return currentApiProvider;
 }
 
+// Function to get the last working model name
+export function getLastWorkingModelName(): string {
+  return lastWorkingModelName;
+}
+
 // Function to manually set the API provider
 export function setApiProvider(provider: 'gemini' | 'openai' | 'openrouter'): void {
   currentApiProvider = provider;
   lastWorkingModelIndex = 0; // Reset index when switching providers
   if (provider === 'gemini') {
     failedGeminiModels.clear(); // Reset failed models when manually switching to Gemini
+    lastWorkingModelName = 'gemini-2.0-flash'; // Reset to default model
   }
   console.log(`Switched API provider to ${provider}`);
 }
@@ -171,7 +181,7 @@ const GEMINI_MODELS: GeminiModel[] = [
     provider: 'gemini',
   },
   {
-    name: 'gemini-1.5-pro',
+    name: 'gemini-1.5-flash-8b',
     maxOutputTokens: 1024,
     temperature: 0.4,
     topK: 32,
@@ -299,25 +309,32 @@ async function callGeminiAPI(
           console.log('Updated failed Gemini models list:', Array.from(failedGeminiModels));
           
           // Check if we should try another Gemini model first
-          const geminiModels = GEMINI_MODELS.filter(m => m.provider === 'gemini');
-          const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
+          // Define the preferred order of Gemini models
+          const preferredGeminiModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
+          
+          // Filter out failed models
+          const availableGeminiModels = preferredGeminiModels.filter(m => !failedGeminiModels.has(m));
           
           if (availableGeminiModels.length > 0) {
             // There are still Gemini models we haven't tried
-            const nextGeminiModel = availableGeminiModels[0];
-            console.log(`Trying next Gemini model: ${nextGeminiModel.name}`);
+            const nextGeminiModelName = availableGeminiModels[0];
+            const nextGeminiModel = GEMINI_MODELS.find(m => m.name === nextGeminiModelName && m.provider === 'gemini');
             
-            // Notify user we're trying another Gemini model
-            toast.info(`${model.name} quota exceeded. Trying ${nextGeminiModel.name}...`, {
-              duration: 3000
-            });
-            
-            // Try the next Gemini model
-            return callGeminiAPI(nextGeminiModel, prompt, base64Image, originalIsEps, config);
+            if (nextGeminiModel) {
+              console.log(`Trying next Gemini model: ${nextGeminiModel.name}`);
+              
+              // Notify user we're trying another Gemini model
+              toast.info(`${model.name} quota exceeded. Trying ${nextGeminiModel.name}...`, {
+                duration: 3000
+              });
+              
+              // Try the next Gemini model
+              return callGeminiAPI(nextGeminiModel, prompt, base64Image, originalIsEps, config);
+            }
           }
           
           // Check if all Gemini models are now known to be failed
-          const allGeminiFailed = geminiModels.every(m => failedGeminiModels.has(m.name));
+          const allGeminiFailed = preferredGeminiModels.every(m => failedGeminiModels.has(m));
           
           if (allGeminiFailed) {
             // If all Gemini models have failed, now switch to OpenRouter
@@ -363,6 +380,13 @@ async function callGeminiAPI(
     // If successful, clear this model from the failed models list (it's working now)
     if (model.provider === 'gemini') {
       failedGeminiModels.delete(model.name);
+      // Remember this as the last working model
+      lastWorkingModelName = model.name;
+      console.log(`Model ${model.name} is working correctly, setting as lastWorkingModelName`);
+    } else if (model.provider === 'openrouter') {
+      // If OpenRouter is working, remember it
+      lastWorkingModelName = 'openrouter-gemini-1.5-flash-8b';
+      console.log(`OpenRouter model is working correctly, setting as lastWorkingModelName`);
     }
 
     return response.json();
@@ -1149,8 +1173,13 @@ Format your response as a valid JSON object with the fields "title", "descriptio
         throw new Error("No API keys provided for any available models");
       }
       
-      // First, get all Gemini models
-      const geminiModels = availableModels.filter(m => m.provider === 'gemini');
+      // Define the preferred order of Gemini models
+      const preferredGeminiModelNames = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-8b'];
+      
+      // First, get all Gemini models in preferred order
+      const geminiModels = preferredGeminiModelNames
+        .map(name => availableModels.find(m => m.name === name && m.provider === 'gemini'))
+        .filter(m => m !== undefined) as GeminiModel[];
       
       // Get OpenRouter models (with priority to Gemini 1.5 Flash 8B)
       const openRouterModels = availableModels.filter(m => m.provider === 'openrouter');
@@ -1164,104 +1193,105 @@ Format your response as a valid JSON object with the fields "title", "descriptio
       // Create the prioritized model list
       let modelsToTry: GeminiModel[] = [];
       
-      // Check if all Gemini models have failed
-      const allGeminiFailed = geminiModels.length > 0 && 
-        geminiModels.every(m => failedGeminiModels.has(m.name));
-      
-      // If all Gemini models have failed, start immediately with OpenRouter
-      if (allGeminiFailed && openRouterGeminiFlash) {
-        console.log('All Gemini models have previously failed. Starting directly with OpenRouter Gemini 1.5 Flash 8B');
-        toast.info('Using OpenRouter Gemini 1.5 Flash 8B (all Gemini models exceeded quota)', { 
-          duration: 4000 
-        });
-        currentApiProvider = 'openrouter'; // Update the provider
-        modelsToTry = [openRouterGeminiFlash]; // Start with OpenRouter Gemini Flash
+      // If the last working model was OpenRouter, ONLY use OpenRouter and don't try Gemini models
+      if (lastWorkingModelName === 'openrouter-gemini-1.5-flash-8b' && openRouterGeminiFlash) {
+        console.log('Last working model was OpenRouter. Only using OpenRouter without trying Gemini models.');
+        modelsToTry = [openRouterGeminiFlash];
         
-        // Add other OpenRouter models
+        // Add other OpenRouter models as fallbacks
         const otherOpenRouterModels = openRouterModels.filter(m => 
           m.openrouterModel !== 'google/gemini-flash-1.5-8b'
         );
         modelsToTry = [...modelsToTry, ...otherOpenRouterModels];
         
-        // Add OpenAI models last
+        // Add OpenAI models as last resort fallbacks, but no Gemini models
         modelsToTry = [...modelsToTry, ...openaiModels];
-      } 
-      // Otherwise use the regular prioritization logic
-      else if (currentApiProvider === 'gemini') {
-        // Start with any Gemini model that hasn't failed yet
-        const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
         
-        // Add all available Gemini models that haven't failed yet
-        modelsToTry = [...availableGeminiModels];
-        
-        // If some Gemini models have already failed, add them at the end of Gemini models
-        // (in case they've recovered since last try)
-        const failedGeminiModelsList = geminiModels.filter(m => failedGeminiModels.has(m.name));
-        modelsToTry = [...modelsToTry, ...failedGeminiModelsList];
-        
-        // Add OpenRouter models next, prioritizing Gemini 1.5 Flash 8B
-        if (openRouterGeminiFlash) {
-          // Add Gemini 1.5 Flash 8B first, then other OpenRouter models
-          const otherOpenRouterModels = openRouterModels.filter(m => 
-            m.openrouterModel !== 'google/gemini-flash-1.5-8b'
-          );
-          modelsToTry = [...modelsToTry, openRouterGeminiFlash, ...otherOpenRouterModels];
-        } else {
-          modelsToTry = [...modelsToTry, ...openRouterModels];
-        }
-        
-        // Add OpenAI models last
-        modelsToTry = [...modelsToTry, ...openaiModels];
+        // Set the current provider to OpenRouter
+        currentApiProvider = 'openrouter';
       }
-      // If starting with OpenRouter, prioritize Gemini 1.5 Flash 8B
-      else if (currentApiProvider === 'openrouter') {
-        if (openRouterGeminiFlash) {
-          // Start with Gemini 1.5 Flash 8B
-          modelsToTry = [openRouterGeminiFlash];
+      // If we have a last working Gemini model, prioritize it
+      else if (lastWorkingModelName && lastWorkingModelName !== 'gemini-2.0-flash') {
+        const lastWorkingModel = geminiModels.find(m => m.name === lastWorkingModelName);
+        if (lastWorkingModel) {
+          console.log(`Using last working model: ${lastWorkingModelName}`);
+          modelsToTry = [lastWorkingModel];
+          
+          // Add other Gemini models that haven't failed
+          const otherGeminiModels = geminiModels.filter(m => 
+            m.name !== lastWorkingModelName && !failedGeminiModels.has(m.name)
+          );
+          modelsToTry = [...modelsToTry, ...otherGeminiModels];
+          
+          // Add OpenRouter and OpenAI models as fallbacks
+          if (openRouterGeminiFlash) {
+            modelsToTry = [...modelsToTry, openRouterGeminiFlash];
+          }
+          modelsToTry = [...modelsToTry, ...openaiModels];
+        } else {
+          // If we can't find the last working model, use default order
+          modelsToTry = getDefaultModelOrder(geminiModels, openRouterGeminiFlash, openaiModels);
+        }
+      } else {
+        // Use default order if no last working model or if it's the default model
+        modelsToTry = getDefaultModelOrder(geminiModels, openRouterGeminiFlash, openaiModels);
+      }
+      
+      // Helper function to get default model order
+      function getDefaultModelOrder(
+        geminiModels: GeminiModel[], 
+        openRouterGeminiFlash: GeminiModel | undefined, 
+        openaiModels: GeminiModel[]
+      ): GeminiModel[] {
+        // Check if all Gemini models have failed
+        const allGeminiFailed = geminiModels.length > 0 && 
+          geminiModels.every(m => failedGeminiModels.has(m.name));
+        
+        // If all Gemini models have failed, start immediately with OpenRouter
+        if (allGeminiFailed && openRouterGeminiFlash) {
+          console.log('All Gemini models have previously failed. Starting directly with OpenRouter Gemini 1.5 Flash 8B');
+          toast.info('Using OpenRouter Gemini 1.5 Flash 8B (all Gemini models exceeded quota)', { 
+            duration: 4000 
+          });
+          currentApiProvider = 'openrouter'; // Update the provider
+          
+          // Start with OpenRouter Gemini Flash, then add other models
+          const result = [openRouterGeminiFlash];
           
           // Add other OpenRouter models
           const otherOpenRouterModels = openRouterModels.filter(m => 
             m.openrouterModel !== 'google/gemini-flash-1.5-8b'
           );
-          modelsToTry = [...modelsToTry, ...otherOpenRouterModels];
-        } else {
-          modelsToTry = [...openRouterModels];
-        }
+          result.push(...otherOpenRouterModels);
+          
+          // Add OpenAI models last
+          result.push(...openaiModels);
+          
+          return result;
+        } 
         
-        // Check if there are any Gemini models that haven't failed yet
+        // Otherwise use the regular prioritization logic
+        // Filter out failed Gemini models
         const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
         
-        // Add Gemini models that haven't failed next
-        if (availableGeminiModels.length > 0) {
-          modelsToTry = [...modelsToTry, ...availableGeminiModels];
+        // Start with available Gemini models
+        const result = [...availableGeminiModels];
+        
+        // Add OpenRouter models next, prioritizing Gemini 1.5 Flash 8B
+        if (openRouterGeminiFlash) {
+          result.push(openRouterGeminiFlash);
         }
+        
+        // Add other OpenRouter models
+        const otherOpenRouterModels = openRouterModels.filter(m => 
+          m.openrouterModel !== 'google/gemini-flash-1.5-8b'
+        );
+        result.push(...otherOpenRouterModels);
         
         // Add OpenAI models last
-        modelsToTry = [...modelsToTry, ...openaiModels];
-      }
-      // If starting with OpenAI
-      else if (currentApiProvider === 'openai') {
-        // Start with OpenAI models
-        modelsToTry = [...openaiModels];
+        result.push(...openaiModels);
         
-        // Check if there are any Gemini models that haven't failed yet
-        const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
-        
-        // Add Gemini models that haven't failed next
-        if (availableGeminiModels.length > 0) {
-          modelsToTry = [...modelsToTry, ...availableGeminiModels];
-        }
-        
-        // Add OpenRouter models last, prioritizing Gemini 1.5 Flash 8B
-        if (openRouterGeminiFlash) {
-          // Add Gemini 1.5 Flash 8B first, then other OpenRouter models
-          const otherOpenRouterModels = openRouterModels.filter(m => 
-            m.openrouterModel !== 'google/gemini-flash-1.5-8b'
-          );
-          modelsToTry = [...modelsToTry, openRouterGeminiFlash, ...otherOpenRouterModels];
-        } else {
-          modelsToTry = [...modelsToTry, ...openRouterModels];
-        }
+        return result;
       }
       
       // Try each model in sequence until one succeeds
@@ -1283,13 +1313,13 @@ Format your response as a valid JSON object with the fields "title", "descriptio
             providerSwitched = true;
           }
           
-          // Update the lastWorkingModelIndex only for the current provider
-          if (model.provider === currentApiProvider) {
-            // Find the index in the original GEMINI_MODELS array
-            const modelIndex = GEMINI_MODELS.findIndex(m => m.name === model.name && m.provider === model.provider);
-            if (modelIndex !== -1) {
-              lastWorkingModelIndex = modelIndex;
-            }
+          // Remember this as the last working model
+          if (model.provider === 'gemini') {
+            lastWorkingModelName = model.name;
+            console.log(`Setting last working model name to ${lastWorkingModelName}`);
+          } else if (model.provider === 'openrouter' && model.openrouterModel === 'google/gemini-flash-1.5-8b') {
+            lastWorkingModelName = 'openrouter-gemini-1.5-flash-8b';
+            console.log(`Setting last working model name to ${lastWorkingModelName} (OpenRouter)`);
           }
           
           const text = data.candidates[0]?.content?.parts[0]?.text || '';
