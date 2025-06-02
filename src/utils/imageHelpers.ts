@@ -53,7 +53,8 @@ export const formatImagesAsCSV = (
       const description = img.result?.description || '';
       const keywords = (img.result?.keywords || []).join(',');
       const prompt = img.result?.prompt || description;
-      const baseModel = img.result?.baseModel || 'Ideogram 1.0';
+      // Always use "midjourney 5" for Freepik platform
+      const baseModel = isFreepikOnly ? "midjourney 5" : (img.result?.baseModel || 'Ideogram 1.0');
 
       return isFreepikOnly
         ? `"${escapeCSV(filename)}";"${escapeCSV(title)}";"${escapeCSV(keywords)}";"${escapeCSV(prompt)}";"${escapeCSV(baseModel)}"`

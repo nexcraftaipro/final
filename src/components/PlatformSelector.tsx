@@ -51,6 +51,16 @@ const platforms: {
     }
   },
   {
+    id: '123RF',
+    icon: <Box className="h-5 w-5 text-purple-400" />,
+    name: '123RF',
+    colors: {
+      ring: "ring-purple-400",
+      bg: "bg-purple-400/10",
+      glow: "from-purple-600/30 via-purple-400/30 to-fuchsia-400/30"
+    }
+  },
+  {
     id: 'Vecteezy',
     icon: <Diamond className="h-5 w-5 text-orange-500" />,
     name: 'Vecteezy',
@@ -68,16 +78,6 @@ const platforms: {
       ring: "ring-blue-500",
       bg: "bg-blue-500/10",
       glow: "from-blue-600/30 via-blue-500/30 to-cyan-400/30"
-    }
-  },
-  {
-    id: '123RF',
-    icon: <Box className="h-5 w-5 text-purple-400" />,
-    name: '123RF',
-    colors: {
-      ring: "ring-purple-400",
-      bg: "bg-purple-400/10",
-      glow: "from-purple-600/30 via-purple-400/30 to-fuchsia-400/30"
     }
   },
   {

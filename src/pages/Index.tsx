@@ -43,8 +43,8 @@ const Index: React.FC = () => {
   const [descriptionLength, setDescriptionLength] = useState(200);
   const [keywordCount, setKeywordCount] = useState(50);
   
-  // Updated to only have the first three platforms selected by default
-  const [platforms, setPlatforms] = useState<Platform[]>(['Freepik', 'AdobeStock', 'Shutterstock']);
+  // Updated to have the first three platforms and 123RF selected by default
+  const [platforms, setPlatforms] = useState<Platform[]>(['Freepik', 'AdobeStock', 'Shutterstock', '123RF']);
   
   const [generationMode, setGenerationMode] = useState<GenerationMode>('metadata');
   const [selectedTab, setSelectedTab] = useState('image');

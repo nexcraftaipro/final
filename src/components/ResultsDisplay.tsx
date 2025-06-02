@@ -38,7 +38,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
   const [editedKeywordsValue, setEditedKeywordsValue] = useState<{[key: string]: string[]}>({});
   const [keywordSuggestions, setKeywordSuggestions] = useState<{[key: string]: string[]}>({});
   const [showingSuggestions, setShowingSuggestions] = useState<string | null>(null);
+  const [platformDisplayPreference] = useState<Platform[]>(['Freepik', 'AdobeStock', 'Shutterstock', '123RF', 'Vecteezy', 'Depositphotos', 'Alamy', 'Dreamstime']);
   
+  useEffect(() => {
+    const allComplete = images.every(img => img.status === 'complete');
+    setIsAllProcessingComplete(allComplete);
+  }, [images]);
+
   // Track newly completed images
   useEffect(() => {
     const currentCompletedIds = images
@@ -99,14 +105,23 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }, 2000);
   };
 
-  // Update platform checks to check for inclusion rather than exclusivity
-  const isFreepikOnly = selectedPlatforms.includes('Freepik');
-  const isShutterstock = selectedPlatforms.includes('Shutterstock');
-  const isAdobeStock = selectedPlatforms.includes('AdobeStock');
-  const isVecteezy = selectedPlatforms.includes('Vecteezy');
-  const isDepositphotos = selectedPlatforms.includes('Depositphotos');
-  const is123RF = selectedPlatforms.includes('123RF');
-  const isAlamy = selectedPlatforms.includes('Alamy');
+  // Update platform checks to prioritize Freepik first
+  // Find the first platform in the preference order that is selected
+  const selectedPlatformsSet = new Set(selectedPlatforms);
+  const prioritizedPlatform = platformDisplayPreference.find(p => selectedPlatformsSet.has(p)) || selectedPlatforms[0];
+  
+  // Set platform flags based on the prioritized platform
+  const isFreepikOnly = prioritizedPlatform === 'Freepik';
+  const isShutterstock = prioritizedPlatform === 'Shutterstock';
+  const isAdobeStock = prioritizedPlatform === 'AdobeStock';
+  const isVecteezy = prioritizedPlatform === 'Vecteezy';
+  const isDepositphotos = prioritizedPlatform === 'Depositphotos';
+  const is123RF = prioritizedPlatform === '123RF';
+  const isAlamy = prioritizedPlatform === 'Alamy';
+  
+  // Check if multiple platforms are selected to determine display mode
+  const isMultiplePlatformsSelected = selectedPlatforms.length > 1;
+  
   const handleDownloadCSV = () => {
     // Check if there are any videos to process
     const videoImages = images.filter(img => img.result?.isVideo);
@@ -922,7 +937,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                         </div>}
                       
                       {/* Show description for platforms other than Freepik and AdobeStock */}
-                      {!isFreepikOnly && !isAdobeStock && <div>
+                      {(!isFreepikOnly || isMultiplePlatformsSelected) && !isAdobeStock && <div>
                           <h4 className="text-amber-500">Description:</h4>
                           {isVecteezy ? <div>
                               <p className="text-white">{image.result?.description ? removeCommasFromDescription(image.result.description) : ''}</p>
@@ -1073,7 +1088,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                               </div>
                             </div>}
 
-                            {isFreepikOnly && <>
+                            {/* Show prompt only for Freepik when single platform is selected */}
+                            {isFreepikOnly && !isMultiplePlatformsSelected && <>
                                 <div>
                                   <h4 className="text-amber-500">Prompt:</h4>
                                   <p className="text-white">{image.result?.prompt || 'Not provided'}</p>
