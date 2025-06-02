@@ -1,3 +1,25 @@
+/**
+ * Gemini API Integration with OpenRouter Fallback
+ * 
+ * This file integrates Gemini API for AI image analysis with an automatic
+ * fallback mechanism to OpenRouter's Gemini 1.5 Flash 8B model when Gemini
+ * API requests fail due to:
+ * 
+ * - Quota exceeded errors (status 429)
+ * - Rate limiting
+ * - Access denied errors (status 403)
+ * - Any other errors that may occur
+ * 
+ * The fallback mechanism preserves the user experience by transparently switching
+ * to OpenRouter while maintaining the same quality of results.
+ * 
+ * Features:
+ * - Automatic fallback from Gemini API to OpenRouter Gemini 1.5 Flash 8B
+ * - Retry mechanism for OpenRouter API calls
+ * - Default OpenRouter API keys for cases where none is provided
+ * - Toast notifications when fallback occurs
+ */
+
 import { Platform } from '@/components/PlatformSelector';
 import { GenerationMode } from '@/components/GenerationModeSelector';
 import { getRelevantFreepikKeywords } from './keywordGenerator';
@@ -35,9 +57,20 @@ export function getDefaultOpenRouterKey(): string {
   return sessionOpenRouterKey;
 }
 
+// Function to ensure we have an API key config with OpenRouter fallback
+export function ensureApiKeyConfig(apiKeyConfig: ApiKeyConfig): ApiKeyConfig {
+  return {
+    ...apiKeyConfig,
+    deepseekApiKey: apiKeyConfig.deepseekApiKey || getDefaultOpenRouterKey()
+  };
+}
+
 // Track the last working model index across multiple requests
 // This helps avoid repeated attempts on models that have exceeded their quota
 let lastWorkingModelIndex = 0;
+
+// Track which Gemini models have failed due to quota in the current session
+const failedGeminiModels = new Set<string>();
 
 // Track the currently active API provider
 let currentApiProvider: 'gemini' | 'openai' | 'openrouter' = 'gemini';
@@ -46,6 +79,7 @@ let currentApiProvider: 'gemini' | 'openai' | 'openrouter' = 'gemini';
 export function resetGeminiModelIndex(): void {
   lastWorkingModelIndex = 0;
   currentApiProvider = 'gemini';
+  failedGeminiModels.clear();
   console.log("Reset model index to 0 and provider to Gemini (Gemini 2.0 Flash)");
 }
 
@@ -58,6 +92,9 @@ export function getCurrentApiProvider(): 'gemini' | 'openai' | 'openrouter' {
 export function setApiProvider(provider: 'gemini' | 'openai' | 'openrouter'): void {
   currentApiProvider = provider;
   lastWorkingModelIndex = 0; // Reset index when switching providers
+  if (provider === 'gemini') {
+    failedGeminiModels.clear(); // Reset failed models when manually switching to Gemini
+  }
   console.log(`Switched API provider to ${provider}`);
 }
 
@@ -179,14 +216,17 @@ async function callGeminiAPI(
   originalIsEps: boolean,
   apiKeyConfig: ApiKeyConfig
 ): Promise<any> {
+  // Ensure we have an OpenRouter API key for fallback
+  const config = ensureApiKeyConfig(apiKeyConfig);
+  
   // Use the appropriate API key based on provider
   let apiKey;
   if (model.provider === 'gemini') {
-    apiKey = apiKeyConfig.geminiApiKey;
+    apiKey = config.geminiApiKey;
   } else if (model.provider === 'openai') {
-    apiKey = apiKeyConfig.openaiApiKey;
+    apiKey = config.openaiApiKey;
   } else if (model.provider === 'openrouter') {
-    apiKey = apiKeyConfig.deepseekApiKey; // Using the deepseekApiKey for all OpenRouter models
+    apiKey = config.deepseekApiKey; // Using the deepseekApiKey for all OpenRouter models
   }
   
   if (!apiKey) {
@@ -204,59 +244,162 @@ async function callGeminiAPI(
   }
 
   // For Gemini provider (existing implementation)
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model.name}:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [
-            { text: prompt },
-            // For EPS files, send the metadata as text without inline_data
-            ...(originalIsEps 
-              ? [{ text: base64Image }] 
-              : [{
-                  inline_data: {
-                    mime_type: 'image/png',
-                    data: base64Image.split(',')[1],
-                  },
-                }]
-            ),
-          ],
-        },
-      ],
-      generationConfig: {
-        temperature: model.temperature,
-        topK: model.topK,
-        topP: model.topP,
-        maxOutputTokens: model.maxOutputTokens,
+  try {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model.name}:generateContent?key=${apiKey}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
       },
-    }),
-  });
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              // For EPS files, send the metadata as text without inline_data
+              ...(originalIsEps 
+                ? [{ text: base64Image }] 
+                : [{
+                    inline_data: {
+                      mime_type: 'image/png',
+                      data: base64Image.split(',')[1],
+                    },
+                  }]
+              ),
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: model.temperature,
+          topK: model.topK,
+          topP: model.topP,
+          maxOutputTokens: model.maxOutputTokens,
+        },
+      }),
+    });
 
-  if (!response.ok) {
-    const errorData = await response.json();
-    const errorMessage = errorData?.error?.message || `Failed to analyze image with ${model.name}`;
-    const errorCode = response.status;
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage = errorData?.error?.message || `Failed to analyze image with ${model.name}`;
+      const errorCode = response.status;
+      
+      // Check specifically for quota/rate limiting errors
+      if (
+        errorCode === 429 ||
+        errorCode === 403 ||
+        errorMessage.toLowerCase().includes('quota') ||
+        errorMessage.toLowerCase().includes('rate limit') ||
+        errorMessage.toLowerCase().includes('resource exhausted') ||
+        errorMessage.toLowerCase().includes('limit exceeded')
+      ) {
+        console.log(`${model.name} quota exceeded. Recording as failed.`);
+        
+        // Add this model to the failed Gemini models set
+        if (model.provider === 'gemini') {
+          failedGeminiModels.add(model.name);
+          console.log('Updated failed Gemini models list:', Array.from(failedGeminiModels));
+          
+          // Check if we should try another Gemini model first
+          const geminiModels = GEMINI_MODELS.filter(m => m.provider === 'gemini');
+          const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
+          
+          if (availableGeminiModels.length > 0) {
+            // There are still Gemini models we haven't tried
+            const nextGeminiModel = availableGeminiModels[0];
+            console.log(`Trying next Gemini model: ${nextGeminiModel.name}`);
+            
+            // Notify user we're trying another Gemini model
+            toast.info(`${model.name} quota exceeded. Trying ${nextGeminiModel.name}...`, {
+              duration: 3000
+            });
+            
+            // Try the next Gemini model
+            return callGeminiAPI(nextGeminiModel, prompt, base64Image, originalIsEps, config);
+          }
+          
+          // Check if all Gemini models are now known to be failed
+          const allGeminiFailed = geminiModels.every(m => failedGeminiModels.has(m.name));
+          
+          if (allGeminiFailed) {
+            // If all Gemini models have failed, now switch to OpenRouter
+            console.log('All Gemini models have exceeded their quota. Falling back to OpenRouter Gemini 1.5 Flash 8B');
+            
+            // Notify user about the fallback to OpenRouter
+            toast.info('All Gemini models exceeded. Falling back to OpenRouter Gemini 1.5 Flash 8B', {
+              duration: 4000
+            });
+          } else {
+            toast.info(`${model.name} quota exceeded. Trying alternative model...`, {
+              duration: 3000
+            });
+          }
+        } else {
+          toast.info(`${model.name} quota exceeded. Falling back to OpenRouter Gemini 1.5 Flash 8B`, {
+            duration: 4000
+          });
+        }
+        
+        // Find the OpenRouter Gemini 1.5 Flash 8B model
+        const geminiFlash8BModel = GEMINI_MODELS.find(m => 
+          m.provider === 'openrouter' && 
+          m.openrouterModel === 'google/gemini-flash-1.5-8b'
+        );
+        
+        if (geminiFlash8BModel && config.deepseekApiKey) {
+          // Update the currently active API provider
+          currentApiProvider = 'openrouter';
+          console.log('Switched API provider to OpenRouter for Gemini 1.5 Flash 8B');
+          
+          // Directly call OpenRouter API with the Gemini Flash 8B model
+          return callOpenRouterAPI(geminiFlash8BModel, prompt, base64Image, originalIsEps, config.deepseekApiKey);
+        } else {
+          // If we can't use OpenRouter, throw the quota exceeded error
+          throw new Error(`QUOTA_EXCEEDED: ${errorMessage}`);
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // If successful, clear this model from the failed models list (it's working now)
+    if (model.provider === 'gemini') {
+      failedGeminiModels.delete(model.name);
+    }
+
+    return response.json();
+  } catch (error) {
+    // For network errors or other unexpected errors
+    console.error('Error in Gemini API call:', error);
     
-    // Check specifically for quota/rate limiting errors
-    if (
-      errorCode === 429 ||
-      errorCode === 403 ||
-      errorMessage.toLowerCase().includes('quota') ||
-      errorMessage.toLowerCase().includes('rate limit') ||
-      errorMessage.toLowerCase().includes('resource exhausted') ||
-      errorMessage.toLowerCase().includes('limit exceeded')
-    ) {
-      throw new Error(`QUOTA_EXCEEDED: ${errorMessage}`);
+    // If the error is coming from our application (already formatted)
+    if (error instanceof Error && error.message.startsWith('QUOTA_EXCEEDED:')) {
+      throw error;
     }
     
-    throw new Error(errorMessage);
+    // For unexpected errors, also try to fall back to OpenRouter
+    console.log('Unexpected Gemini API error. Trying to fall back to OpenRouter Gemini 1.5 Flash 8B');
+    
+    // Notify user about the fallback due to unexpected error
+    toast.info('Gemini API error. Falling back to OpenRouter Gemini 1.5 Flash 8B', {
+      duration: 4000
+    });
+    
+    // Find the OpenRouter Gemini 1.5 Flash 8B model
+    const geminiFlash8BModel = GEMINI_MODELS.find(m => 
+      m.provider === 'openrouter' && 
+      m.openrouterModel === 'google/gemini-flash-1.5-8b'
+    );
+    
+    if (geminiFlash8BModel && config.deepseekApiKey) {
+      // Update the currently active API provider
+      currentApiProvider = 'openrouter';
+      console.log('Switched API provider to OpenRouter for Gemini 1.5 Flash 8B');
+      
+      // Directly call OpenRouter API with the Gemini Flash 8B model
+      return callOpenRouterAPI(geminiFlash8BModel, prompt, base64Image, originalIsEps, config.deepseekApiKey);
+    }
+    
+    throw error;
   }
-
-  return response.json();
 }
 
 // New function for OpenAI API calls
@@ -397,7 +540,19 @@ async function callOpenRouterAPI(
     messages: messages,
     max_tokens: model.maxOutputTokens,
     temperature: model.temperature,
-    top_p: model.topP
+    top_p: model.topP,
+    // Add fallbacks to ensure reliability
+    fallbacks: [
+      {
+        model: "google/gemini-flash-1.5-8b",
+        provider: "openrouter"
+      },
+      {
+        model: "anthropic/claude-3-haiku",
+        provider: "openrouter"
+      }
+    ],
+    route: "fallbacks"
   };
   
   console.log("OpenRouter request payload structure:", JSON.stringify({
@@ -407,141 +562,192 @@ async function callOpenRouterAPI(
       max_tokens: requestPayload.max_tokens,
       temperature: requestPayload.temperature,
       top_p: requestPayload.top_p
-    }
+    },
+    fallbacks: requestPayload.fallbacks,
+    route: requestPayload.route
   }, null, 2));
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-        'HTTP-Referer': window.location.origin,
-        'X-Title': 'PixcraftAI'
-      },
-      body: JSON.stringify(requestPayload)
-    });
+  // Maximum number of retries
+  const MAX_RETRIES = 2;
+  let retryCount = 0;
+  let lastError = null;
 
-    if (!response.ok) {
-      let errorMessage = `Failed to analyze image with DeepSeek model ${model.name}`;
-      const errorCode = response.status;
-      
-      try {
-        const errorData = await response.json();
-        console.error("OpenRouter API error:", errorData);
-        errorMessage = errorData?.error?.message || errorMessage;
-      } catch (e) {
-        console.error("Failed to parse error response:", e);
-      }
-      
-      // Check specifically for quota/rate limiting errors
-      if (
-        errorCode === 429 ||
-        errorCode === 403 ||
-        errorMessage.toLowerCase().includes('quota') ||
-        errorMessage.toLowerCase().includes('rate limit') ||
-        errorMessage.toLowerCase().includes('resource exhausted') ||
-        errorMessage.toLowerCase().includes('limit exceeded')
-      ) {
-        throw new Error(`QUOTA_EXCEEDED: ${errorMessage}`);
-      }
-      
-      throw new Error(errorMessage);
-    }
-
-    // Parse and log the full response for debugging
-    const data = await response.json();
-    console.log("OpenRouter response success:", true);
-    
-    if (!data?.choices?.[0]?.message?.content) {
-      console.error("Unexpected response format:", data);
-      throw new Error("Unexpected response format from OpenRouter API");
-    }
-    
-    // Get the content - special handling for possible JSON
-    let responseContent = data.choices[0].message.content;
-    console.log("Raw content from DeepSeek:", responseContent);
-    
-    // Try to detect if the response is already JSON
-    let parsedJsonContent = null;
+  // Try up to MAX_RETRIES times to get a successful response
+  while (retryCount <= MAX_RETRIES) {
     try {
-      // Check if the response is already a valid JSON object
-      if (responseContent.trim().startsWith('{') && responseContent.trim().endsWith('}')) {
-        parsedJsonContent = JSON.parse(responseContent);
-        console.log("Response is already valid JSON:", parsedJsonContent);
+      if (retryCount > 0) {
+        console.log(`Retrying OpenRouter API call (attempt ${retryCount} of ${MAX_RETRIES})`);
         
-        // Validate expected fields
-        if (
-          parsedJsonContent.title !== undefined || 
-          parsedJsonContent.description !== undefined || 
-          parsedJsonContent.keywords !== undefined
-        ) {
-          // If the response is already valid JSON with expected fields,
-          // we'll return it directly in the Gemini format
+        // Use a different API key on retry if we have a list of default keys
+        if (DEFAULT_OPENROUTER_KEYS.length > 1) {
+          const randomApiKey = getRandomOpenRouterKey();
+          apiKey = randomApiKey;
+          console.log("Using different OpenRouter API key for retry");
+        }
+      }
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'HTTP-Referer': window.location.origin,
+          'X-Title': 'PixcraftAI'
+        },
+        body: JSON.stringify(requestPayload)
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Failed to analyze image with OpenRouter model ${model.name}`;
+        const errorCode = response.status;
+        
+        try {
+          const errorData = await response.json();
+          console.error("OpenRouter API error:", errorData);
+          errorMessage = errorData?.error?.message || errorMessage;
+        } catch (e) {
+          console.error("Failed to parse error response:", e);
+        }
+        
+        // If we're out of retries, throw the error
+        if (retryCount === MAX_RETRIES) {
+          throw new Error(errorMessage);
+        }
+        
+        // Store the error and retry
+        lastError = new Error(errorMessage);
+        retryCount++;
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+        continue;
+      }
+
+      // Parse and log the full response for debugging
+      const data = await response.json();
+      console.log("OpenRouter response success:", true);
+      
+      if (!data?.choices?.[0]?.message?.content) {
+        console.error("Unexpected response format:", data);
+        
+        // If we're out of retries, throw an error
+        if (retryCount === MAX_RETRIES) {
+          throw new Error("Unexpected response format from OpenRouter API");
+        }
+        
+        // Store the error and retry
+        lastError = new Error("Unexpected response format from OpenRouter API");
+        retryCount++;
+        
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+        continue;
+      }
+      
+      // Get the content - special handling for possible JSON
+      let responseContent = data.choices[0].message.content;
+      console.log("Raw content from OpenRouter:", responseContent);
+      
+      // Check which model actually responded
+      if (data.model) {
+        console.log(`Response came from model: ${data.model}`);
+      }
+      
+      // Try to detect if the response is already JSON
+      let parsedJsonContent = null;
+      try {
+        // Check if the response is already a valid JSON object
+        if (responseContent.trim().startsWith('{') && responseContent.trim().endsWith('}')) {
+          parsedJsonContent = JSON.parse(responseContent);
+          console.log("Response is already valid JSON:", parsedJsonContent);
+          
+          // Validate expected fields
+          if (
+            parsedJsonContent.title !== undefined || 
+            parsedJsonContent.description !== undefined || 
+            parsedJsonContent.keywords !== undefined
+          ) {
+            // If the response is already valid JSON with expected fields,
+            // we'll return it directly in the Gemini format
+            return {
+              candidates: [
+                {
+                  content: {
+                    parts: [
+                      { 
+                        text: JSON.stringify(parsedJsonContent) 
+                      }
+                    ]
+                  }
+                }
+              ]
+            };
+          }
+        }
+      } catch (e) {
+        // Not JSON or not parseable, continue with normal handling
+        console.log("Response is not directly parseable JSON:", e);
+      }
+      
+      // Check if response contains code blocks with JSON
+      const jsonMatch = responseContent.match(/```json\n([\s\S]*?)\n```/) || 
+                        responseContent.match(/```\n([\s\S]*?)\n```/);
+                        
+      if (jsonMatch) {
+        try {
+          const extractedJson = jsonMatch[1];
+          console.log("Found JSON in code block:", extractedJson);
+          
+          // Return the extracted JSON within the code block
           return {
             candidates: [
               {
                 content: {
                   parts: [
-                    { 
-                      text: JSON.stringify(parsedJsonContent) 
-                    }
+                    { text: extractedJson }
                   ]
                 }
               }
             ]
           };
+        } catch (e) {
+          console.log("Error parsing JSON from code block:", e);
         }
       }
-    } catch (e) {
-      // Not JSON or not parseable, continue with normal handling
-      console.log("Response is not directly parseable JSON:", e);
-    }
-    
-    // Check if response contains code blocks with JSON
-    const jsonMatch = responseContent.match(/```json\n([\s\S]*?)\n```/) || 
-                      responseContent.match(/```\n([\s\S]*?)\n```/);
-                      
-    if (jsonMatch) {
-      try {
-        const extractedJson = jsonMatch[1];
-        console.log("Found JSON in code block:", extractedJson);
-        
-        // Return the extracted JSON within the code block
-        return {
-          candidates: [
-            {
-              content: {
-                parts: [
-                  { text: extractedJson }
-                ]
-              }
+      
+      // Transform OpenRouter response format to match Gemini format
+      const transformedResponse = {
+        candidates: [
+          {
+            content: {
+              parts: [
+                { text: responseContent }
+              ]
             }
-          ]
-        };
-      } catch (e) {
-        console.log("Error parsing JSON from code block:", e);
-      }
-    }
-    
-    // Transform OpenRouter response format to match Gemini format
-    const transformedResponse = {
-      candidates: [
-        {
-          content: {
-            parts: [
-              { text: responseContent }
-            ]
           }
-        }
-      ]
-    };
-    
-    return transformedResponse;
-  } catch (error) {
-    console.error("Error in OpenRouter API call:", error);
-    throw error;
+        ]
+      };
+      
+      return transformedResponse;
+    } catch (error) {
+      console.error("Error in OpenRouter API call:", error);
+      
+      // If we're out of retries, throw the error
+      if (retryCount === MAX_RETRIES) {
+        throw error;
+      }
+      
+      // Store the error and retry
+      lastError = error;
+      retryCount++;
+      
+      // Wait before retrying (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
+    }
   }
+  
+  // We should never reach here, but just in case
+  throw lastError || new Error("Failed to get response from OpenRouter API after multiple retries");
 }
 
 export async function analyzeImageWithGemini(
@@ -554,11 +760,14 @@ export async function analyzeImageWithGemini(
   // Special case for forced regeneration with OpenRouter Gemini 1.5 Flash 8B
   const forceOpenRouterGemini = deepseekApiKey === 'USE_OPENROUTER_GEMINI_FLASH_8B';
   
-  const apiKeyConfig: ApiKeyConfig = {
+  let apiKeyConfig: ApiKeyConfig = {
     geminiApiKey: apiKey,
     openaiApiKey,
-    deepseekApiKey: forceOpenRouterGemini ? getDefaultOpenRouterKey() : (deepseekApiKey || getDefaultOpenRouterKey())
+    deepseekApiKey: forceOpenRouterGemini ? getDefaultOpenRouterKey() : deepseekApiKey
   };
+  
+  // Ensure we have an OpenRouter API key for fallback
+  apiKeyConfig = ensureApiKeyConfig(apiKeyConfig);
 
   // Track processing time
   const startTime = Date.now();
@@ -573,6 +782,11 @@ export async function analyzeImageWithGemini(
     setTimeout(() => {
       currentApiProvider = originalProvider;
     }, 100);
+  }
+
+  // Log the currently failed models for debugging
+  if (failedGeminiModels.size > 0) {
+    console.log('Currently failed Gemini models:', Array.from(failedGeminiModels));
   }
 
   const {
@@ -934,31 +1148,120 @@ Format your response as a valid JSON object with the fields "title", "descriptio
       if (availableModels.length === 0) {
         throw new Error("No API keys provided for any available models");
       }
-
-      // Get models for the current provider first
-      const currentProviderModels = availableModels.filter(model => model.provider === currentApiProvider);
       
-      // Start with models from the current provider, then try the others as fallbacks
-      let modelsToTry = [...currentProviderModels.slice(lastWorkingModelIndex)];
+      // First, get all Gemini models
+      const geminiModels = availableModels.filter(m => m.provider === 'gemini');
       
-      // Add fallback models based on current provider
-      if (currentApiProvider === 'gemini') {
-        // If starting with Gemini, add OpenRouter models next, then OpenAI models
-        const openRouterModels = availableModels.filter(model => model.provider === 'openrouter');
-        const openaiModels = availableModels.filter(model => model.provider === 'openai');
-        modelsToTry = [...modelsToTry, ...openRouterModels, ...openaiModels];
+      // Get OpenRouter models (with priority to Gemini 1.5 Flash 8B)
+      const openRouterModels = availableModels.filter(m => m.provider === 'openrouter');
+      const openRouterGeminiFlash = openRouterModels.find(m => 
+        m.openrouterModel === 'google/gemini-flash-1.5-8b'
+      );
+      
+      // Get OpenAI models as last resort
+      const openaiModels = availableModels.filter(m => m.provider === 'openai');
+      
+      // Create the prioritized model list
+      let modelsToTry: GeminiModel[] = [];
+      
+      // Check if all Gemini models have failed
+      const allGeminiFailed = geminiModels.length > 0 && 
+        geminiModels.every(m => failedGeminiModels.has(m.name));
+      
+      // If all Gemini models have failed, start immediately with OpenRouter
+      if (allGeminiFailed && openRouterGeminiFlash) {
+        console.log('All Gemini models have previously failed. Starting directly with OpenRouter Gemini 1.5 Flash 8B');
+        toast.info('Using OpenRouter Gemini 1.5 Flash 8B (all Gemini models exceeded quota)', { 
+          duration: 4000 
+        });
+        currentApiProvider = 'openrouter'; // Update the provider
+        modelsToTry = [openRouterGeminiFlash]; // Start with OpenRouter Gemini Flash
+        
+        // Add other OpenRouter models
+        const otherOpenRouterModels = openRouterModels.filter(m => 
+          m.openrouterModel !== 'google/gemini-flash-1.5-8b'
+        );
+        modelsToTry = [...modelsToTry, ...otherOpenRouterModels];
+        
+        // Add OpenAI models last
+        modelsToTry = [...modelsToTry, ...openaiModels];
+      } 
+      // Otherwise use the regular prioritization logic
+      else if (currentApiProvider === 'gemini') {
+        // Start with any Gemini model that hasn't failed yet
+        const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
+        
+        // Add all available Gemini models that haven't failed yet
+        modelsToTry = [...availableGeminiModels];
+        
+        // If some Gemini models have already failed, add them at the end of Gemini models
+        // (in case they've recovered since last try)
+        const failedGeminiModelsList = geminiModels.filter(m => failedGeminiModels.has(m.name));
+        modelsToTry = [...modelsToTry, ...failedGeminiModelsList];
+        
+        // Add OpenRouter models next, prioritizing Gemini 1.5 Flash 8B
+        if (openRouterGeminiFlash) {
+          // Add Gemini 1.5 Flash 8B first, then other OpenRouter models
+          const otherOpenRouterModels = openRouterModels.filter(m => 
+            m.openrouterModel !== 'google/gemini-flash-1.5-8b'
+          );
+          modelsToTry = [...modelsToTry, openRouterGeminiFlash, ...otherOpenRouterModels];
+        } else {
+          modelsToTry = [...modelsToTry, ...openRouterModels];
+        }
+        
+        // Add OpenAI models last
+        modelsToTry = [...modelsToTry, ...openaiModels];
       }
+      // If starting with OpenRouter, prioritize Gemini 1.5 Flash 8B
       else if (currentApiProvider === 'openrouter') {
-        // If starting with OpenRouter, try Gemini models next, then OpenAI models
-        const geminiModels = availableModels.filter(model => model.provider === 'gemini');
-        const openaiModels = availableModels.filter(model => model.provider === 'openai');
-        modelsToTry = [...modelsToTry, ...geminiModels, ...openaiModels];
+        if (openRouterGeminiFlash) {
+          // Start with Gemini 1.5 Flash 8B
+          modelsToTry = [openRouterGeminiFlash];
+          
+          // Add other OpenRouter models
+          const otherOpenRouterModels = openRouterModels.filter(m => 
+            m.openrouterModel !== 'google/gemini-flash-1.5-8b'
+          );
+          modelsToTry = [...modelsToTry, ...otherOpenRouterModels];
+        } else {
+          modelsToTry = [...openRouterModels];
+        }
+        
+        // Check if there are any Gemini models that haven't failed yet
+        const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
+        
+        // Add Gemini models that haven't failed next
+        if (availableGeminiModels.length > 0) {
+          modelsToTry = [...modelsToTry, ...availableGeminiModels];
+        }
+        
+        // Add OpenAI models last
+        modelsToTry = [...modelsToTry, ...openaiModels];
       }
+      // If starting with OpenAI
       else if (currentApiProvider === 'openai') {
-        // If starting with OpenAI, try Gemini next, then OpenRouter
-        const geminiModels = availableModels.filter(model => model.provider === 'gemini');
-        const openRouterModels = availableModels.filter(model => model.provider === 'openrouter');
-        modelsToTry = [...modelsToTry, ...geminiModels, ...openRouterModels];
+        // Start with OpenAI models
+        modelsToTry = [...openaiModels];
+        
+        // Check if there are any Gemini models that haven't failed yet
+        const availableGeminiModels = geminiModels.filter(m => !failedGeminiModels.has(m.name));
+        
+        // Add Gemini models that haven't failed next
+        if (availableGeminiModels.length > 0) {
+          modelsToTry = [...modelsToTry, ...availableGeminiModels];
+        }
+        
+        // Add OpenRouter models last, prioritizing Gemini 1.5 Flash 8B
+        if (openRouterGeminiFlash) {
+          // Add Gemini 1.5 Flash 8B first, then other OpenRouter models
+          const otherOpenRouterModels = openRouterModels.filter(m => 
+            m.openrouterModel !== 'google/gemini-flash-1.5-8b'
+          );
+          modelsToTry = [...modelsToTry, openRouterGeminiFlash, ...otherOpenRouterModels];
+        } else {
+          modelsToTry = [...modelsToTry, ...openRouterModels];
+        }
       }
       
       // Try each model in sequence until one succeeds
@@ -1152,26 +1455,37 @@ Format your response as a valid JSON object with the fields "title", "descriptio
                 .split(',')
                 .map(word => word.trim().toLowerCase())
                 .filter(word => word.length > 0);
-              
+            
               if (prohibitedWordsArray.length > 0) {
                 // Filter keywords
                 if (result.keywords && result.keywords.length > 0) {
                   result.keywords = result.keywords.filter(keyword => {
-                    const lowerKeyword = keyword.toLowerCase();
-                    return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
+                    const keywordLower = keyword.toLowerCase();
+                    return !prohibitedWordsArray.some(prohibited => keywordLower.includes(prohibited));
+                  });
+                }
+                
+                // If we need to add more keywords after filtering
+                if (result.keywords.length < minKeywords) {
+                  console.log('Not enough keywords after filtering prohibited words, generating more...');
+                  
+                  // Generate more keywords that don't contain prohibited words
+                  const contentForKeywords = [
+                    result.title || '',
+                    result.description || '',
+                    result.keywords.join(', ')
+                  ].join(' ');
+                  
+                  const additionalKeywords = getRelevantFreepikKeywords(contentForKeywords, singleWordKeywordsEnabled);
+                  
+                  // Filter out additional keywords containing prohibited words
+                  const filteredAdditionalKeywords = additionalKeywords.filter(keyword => {
+                    const keywordLower = keyword.toLowerCase();
+                    return !prohibitedWordsArray.some(prohibited => keywordLower.includes(prohibited));
                   });
                   
-                  // If we filtered too many keywords, generate replacements
-                  if (result.keywords.length < minKeywords) {
-                    const additionalKeywords = getRelevantFreepikKeywords(result.title || '' + ' ' + (result.description || ''), singleWordKeywordsEnabled);
-                    const filteredAdditionalKeywords = additionalKeywords.filter(keyword => {
-                      const lowerKeyword = keyword.toLowerCase();
-                      return !prohibitedWordsArray.some(prohibited => lowerKeyword.includes(prohibited));
-                    });
-                    
-                    // Add filtered additional keywords
-                    result.keywords = [...new Set([...result.keywords, ...filteredAdditionalKeywords])].slice(0, maxKeywords);
-                  }
+                  // Add filtered additional keywords
+                  result.keywords = [...new Set([...result.keywords, ...filteredAdditionalKeywords])].slice(0, maxKeywords);
                 }
               }
             }
