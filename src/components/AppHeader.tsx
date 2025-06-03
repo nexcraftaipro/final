@@ -53,8 +53,45 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   // Initialize only once after component mounts
   const initialized = useRef(false);
   
-  // Create a target date for the countdown (7 days from now)
-  const targetDate = useRef(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  // State to track if the countdown has expired
+  const [isCountdownExpired, setIsCountdownExpired] = useState(false);
+  
+  // Create a target date for the countdown that persists across refreshes
+  const targetDate = useRef<Date>(new Date());
+  
+  // Initialize the target date from localStorage or create a new one
+  useEffect(() => {
+    const storedTargetDate = localStorage.getItem('countdownTargetDate');
+    
+    if (storedTargetDate) {
+      const targetTimestamp = parseInt(storedTargetDate, 10);
+      const now = Date.now();
+      
+      // Check if the stored date is in the future
+      if (targetTimestamp > now) {
+        targetDate.current = new Date(targetTimestamp);
+        setIsCountdownExpired(false); // Ensure it's not marked as expired
+      } else {
+        // If the stored date is in the past, the countdown has expired
+        setIsCountdownExpired(true);
+      }
+    } else {
+      // Set a new target date (7 days from now) if none exists
+      const newTargetDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      targetDate.current = newTargetDate;
+      localStorage.setItem('countdownTargetDate', newTargetDate.getTime().toString());
+      setIsCountdownExpired(false); // Ensure it's not marked as expired
+    }
+    
+    // Log for debugging
+    console.log('Countdown target date:', targetDate.current);
+    console.log('Is countdown expired:', isCountdownExpired);
+  }, []);
+  
+  // Function to handle countdown expiration
+  const handleCountdownExpired = () => {
+    setIsCountdownExpired(true);
+  };
   
   // Update when authApiKey changes (e.g., when a user logs in)
   useEffect(() => {
@@ -217,13 +254,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const apiKeyInfo = getApiKeyInfo();
   
   return <>
-    {/* Static centered banner with countdown */}
+    {/* Banner with countdown - always visible for testing */}
     <div className="bg-yellow-400 w-full py-2">
       <div className="flex justify-center items-center h-6">
         <span className="text-black font-bold text-lg text-center">
           ঈদ মানে আনন্দ! এখন থেকে ইয়ারলি প্যাকেজ এর ওপরে থাকছে ৭২% ডিসকাউন্ট 🌙✨ 
           <span className="inline-block ml-2 bg-red-600 text-white px-2 py-0.5 rounded-md text-sm font-bold">
-            <CountdownTimer targetDate={targetDate.current} />
+            <CountdownTimer 
+              targetDate={targetDate.current} 
+              onExpire={handleCountdownExpired}
+            />
           </span>
         </span>
       </div>

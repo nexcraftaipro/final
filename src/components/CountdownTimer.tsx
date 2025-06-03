@@ -3,9 +3,10 @@ import React, { useState, useEffect } from 'react';
 interface CountdownTimerProps {
   targetDate: Date;
   className?: string;
+  onExpire?: () => void;
 }
 
-const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, className }) => {
+const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, className, onExpire }) => {
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -27,6 +28,11 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, className }
       } else {
         // Timer expired
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        
+        // Call the onExpire callback if provided
+        if (onExpire) {
+          onExpire();
+        }
       }
     };
 
@@ -36,7 +42,7 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, className }
     
     // Clean up interval on unmount
     return () => clearInterval(timerId);
-  }, [targetDate]);
+  }, [targetDate, onExpire]);
 
   const formatNumber = (num: number): string => {
     return num < 10 ? `0${num}` : `${num}`;
