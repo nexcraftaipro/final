@@ -880,11 +880,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                     
                     <div className="space-y-4">
                       <div>
-                        <h4 className="text-amber-500 flex items-center gap-2">Filename:
-                          <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(image.file.name, image.id + '-filename')} className="ml-1 p-1">
-                            {copiedId === image.id + '-filename' ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-gray-400" />}
-                          </Button>
-                        </h4>
+                        <h4 className="text-amber-500 flex items-center gap-2">Filename:</h4>
                         <p className="text-white">{image.file.name}</p>
                       </div>
                       
@@ -938,7 +934,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                       
                       {/* Show description for platforms other than Freepik and AdobeStock */}
                       {(!isFreepikOnly || isMultiplePlatformsSelected) && !isAdobeStock && <div>
-                          <h4 className="text-amber-500">Description:</h4>
+                          <h4 className="text-amber-500 flex items-center gap-2">
+                            Description:
+                            <Button variant="ghost" size="icon" onClick={() => handleCopyToClipboard(image.result?.description || '', image.id + '-description')} className="ml-1 p-1">
+                              {copiedId === image.id + '-description' ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4 text-gray-400" />}
+                            </Button>
+                          </h4>
                           {isVecteezy ? <div>
                               <p className="text-white">{image.result?.description ? removeCommasFromDescription(image.result.description) : ''}</p>
                             </div> : <p className="text-white">{image.result?.description || ''}</p>}

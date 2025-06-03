@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -40,7 +39,43 @@ const SettingRow: React.FC<SettingRowProps> = ({
   onChange,
   currentValue
 }) => {
-  return <div className="mb-4">
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Handle mouse wheel events to change the value
+  const handleWheel = useCallback((e: WheelEvent) => {
+    // Prevent default scrolling behavior
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Determine direction: negative deltaY means scrolling up, positive means scrolling down
+    const direction = e.deltaY < 0 ? 1 : -1;
+    // Calculate new value, ensuring it stays within min and max bounds
+    const newValue = Math.min(Math.max(value + direction, minValue), maxValue);
+    // Only update if the value actually changed
+    if (newValue !== value) {
+      onChange([newValue]);
+    }
+    
+    return false;
+  }, [value, minValue, maxValue, onChange]);
+
+  // Set up wheel event listeners with passive: false to prevent scrolling
+  useEffect(() => {
+    const container = containerRef.current;
+    
+    if (container) {
+      // Add wheel event listener to the entire container
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      
+      // Clean up event listener
+      return () => {
+        container.removeEventListener('wheel', handleWheel);
+      };
+    }
+  }, [handleWheel]);
+
+  return (
+    <div className="mb-4" ref={containerRef}>
       <div className="flex justify-between items-center mb-1">
         <div className="text-xs text-gray-400 flex items-center">
           {label}
@@ -55,12 +90,15 @@ const SettingRow: React.FC<SettingRowProps> = ({
             </Tooltip>
           </TooltipProvider>
         </div>
-        <span className="text-xs font-medium text-white bg-gray-700 px-2 py-0.5 rounded">{currentValue}</span>
+        <span className="text-xs font-medium text-white bg-gray-700 px-2 py-0.5 rounded cursor-ns-resize">
+          {currentValue}
+        </span>
       </div>
       <div className="flex items-center">
         <Slider value={[value]} min={minValue} max={maxValue} step={1} className="flex-1" onValueChange={onChange} />
       </div>
-    </div>;
+    </div>
+  );
 };
 
 const CustomizationControls: React.FC<CustomizationControlsProps> = ({

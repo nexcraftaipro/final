@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CreditCard, Video, RefreshCcw, LogIn, Diamond } from 'lucide-react';
+import { CreditCard, Video, RefreshCcw, LogIn, Diamond, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '@/components/UserProfile';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import md5 from 'crypto-js/md5';
 import { Input } from '@/components/ui/input';
@@ -39,6 +38,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     gemini: false,
     openrouter: false
   });
+  // Add state to track if profile dropdown is open
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+  
   const navigate = useNavigate();
   const {
     user,
@@ -81,6 +84,20 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       }
     }
   }, [authApiKey, apiKey, onApiKeyChange, deepseekApiKey, onDeepseekApiKeyChange, keyCleared]);
+  
+  // Close profile dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   
   const openWhatsAppSupport = () => {
     window.open("https://chat.whatsapp.com/HN6dQ5HfU2w5xQtvlE6YcT", "_blank");
@@ -206,8 +223,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     </div>
   
     <header className="bg-secondary border-b border-gray-700 py-2 px-4">
-      <div className="flex items-center justify-between w-full">
-        {/* Logo */}
+      <div className="grid grid-cols-3 items-center w-full">
+        {/* Logo - Left Section */}
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-logo.png" alt="Pixcraftai" className="h-10 w-auto mr-2" />
@@ -215,8 +232,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           </h1>
         </div>
         
-        {/* Navigation buttons */}
-        <div className="flex items-center space-x-2">
+        {/* Navigation buttons - Center Section */}
+        <div className="flex items-center justify-center space-x-3">
           <Button
             variant="outline"
             size="sm"
@@ -249,104 +266,131 @@ const AppHeader: React.FC<AppHeaderProps> = ({
             </svg>
             Community
           </Button>
-          
-          {/* API Key Input */}
-          <div className="flex items-center ml-4">
-            <span className="text-sm font-medium text-gray-400 mr-2">API Key:</span>
-            
-            <div className="flex flex-col">
-              <Tabs 
-                value={apiKeyType} 
-                onValueChange={(val) => handleApiKeyTypeChange(val as 'openrouter' | 'gemini')} 
-                className="mb-1"
-              >
-                <TabsList className="h-7 bg-gray-700/50">
-                  <TabsTrigger value="gemini" className="text-xs h-5 px-2">Gemini</TabsTrigger>
-                  <TabsTrigger value="openrouter" className="text-xs h-5 px-2">OpenRouter</TabsTrigger>
-                </TabsList>
-              </Tabs>
-              
-              <div className="relative">
-                <Input
-                  type={showApiKey ? "text" : "password"}
-                  placeholder={apiKeyInfo.placeholder}
-                  value={apiKeyType === 'openrouter' ? (deepseekApiKey || '') : (apiKey || '')}
-                  onChange={(e) => {
-                    if (apiKeyType === 'openrouter') {
-                      onDeepseekApiKeyChange && onDeepseekApiKeyChange(e.target.value);
-                    } else {
-                      onApiKeyChange(e.target.value);
-                    }
-                  }}
-                  className="w-48 h-8 text-xs"
-                />
-                {apiKeyInfo.infoText && (
-                  <div className="absolute -bottom-4 left-0 text-xs text-blue-400">
-                    {apiKeyInfo.infoText}
-                  </div>
-                )}
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="sm" 
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 p-0"
-                  onClick={toggleShowApiKey}
-                >
-                  {showApiKey ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex ml-2">
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-8"
-                onClick={handleSaveApiKey}
-              >
-                Save API
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                className="ml-1 h-8"
-                onClick={handleClearApiKey}
-              >
-                Clear
-              </Button>
-              <Button
-                size="sm"
-                variant="link"
-                className="ml-1 h-8 text-blue-400"
-                onClick={() => window.open(apiKeyType === 'openrouter' ? "https://openrouter.ai/keys" : "https://aistudio.google.com/app/apikey", "_blank")}
-              >
-                Get API
-              </Button>
-            </div>
-          </div>
-          
+        </div>
+        
+        {/* Right Section - User Profile */}
+        <div className="flex items-center justify-end">
           {/* User Profile */}
           {user && (
-            <HoverCard>
-              <HoverCardTrigger asChild>
-                <div className="relative h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden ml-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={getAvatarUrl()} alt={user.email} />
-                    <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
-                      {user.email.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {profile?.is_premium && (
-                    <div className="absolute -bottom-0.5 -right-0.5 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full p-0.5 border border-black shadow-md">
-                      <Diamond size={10} className="text-black" fill="black" />
+            <div className="relative" ref={profileRef}>
+              <div 
+                className="relative h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden ml-2"
+                onClick={() => setProfileOpen(!profileOpen)}
+              >
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={getAvatarUrl()} alt={user.email} />
+                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
+                    {user.email.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                {profile?.is_premium && (
+                  <div className="absolute -bottom-0.5 -right-0.5 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full p-0.5 border border-black shadow-md">
+                    <Diamond size={10} className="text-black" fill="black" />
+                  </div>
+                )}
+              </div>
+              
+              {profileOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-gray-900 rounded-lg shadow-lg border border-gray-700 z-50">
+                  <div className="p-1 flex justify-end">
+                    <button 
+                      className="p-1 hover:bg-gray-800 rounded-full" 
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      <X size={16} className="text-gray-400" />
+                    </button>
+                  </div>
+                  <div className="px-2 pb-2">
+                    <UserProfile />
+                    
+                    {/* API Key Section */}
+                    <div className="mt-4 bg-gray-800 rounded-lg p-2 border border-gray-700 shadow-inner">
+                      <h3 className="text-sm font-medium text-gray-300 mb-2">API Settings</h3>
+                      <div className="flex flex-col">
+                        <Tabs 
+                          value={apiKeyType} 
+                          onValueChange={(val) => handleApiKeyTypeChange(val as 'openrouter' | 'gemini')} 
+                          className="mb-1"
+                        >
+                          <TabsList className="h-8 bg-gray-700/70 p-1 rounded-md">
+                            <TabsTrigger 
+                              value="gemini" 
+                              className={`text-sm h-6 px-3 font-medium ${apiKeyType === 'gemini' ? 'bg-blue-600 text-white' : 'text-gray-300'}`}
+                            >
+                              Gemini
+                            </TabsTrigger>
+                            <TabsTrigger 
+                              value="openrouter" 
+                              className={`text-sm h-6 px-3 font-medium ${apiKeyType === 'openrouter' ? 'bg-orange-600 text-white' : 'text-gray-300'}`}
+                            >
+                              OpenRouter
+                            </TabsTrigger>
+                          </TabsList>
+                        </Tabs>
+                        
+                        <div className="relative">
+                          <div className="relative">
+                            <Input
+                              type={showApiKey ? "text" : "password"}
+                              placeholder={apiKeyInfo.placeholder}
+                              value={apiKeyType === 'openrouter' ? (deepseekApiKey || '') : (apiKey || '')}
+                              onChange={(e) => {
+                                if (apiKeyType === 'openrouter') {
+                                  onDeepseekApiKeyChange && onDeepseekApiKeyChange(e.target.value);
+                                } else {
+                                  onApiKeyChange(e.target.value);
+                                }
+                              }}
+                              className="w-full h-9 text-sm bg-gray-900 border-gray-700 focus:border-blue-500 pr-12"
+                            />
+                            <div 
+                              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-md bg-gray-800 cursor-pointer hover:bg-gray-700"
+                              onClick={toggleShowApiKey}
+                            >
+                              {showApiKey ? <EyeOff className="h-4 w-4 text-gray-300" /> : <Eye className="h-4 w-4 text-gray-300" />}
+                            </div>
+                          </div>
+                          {apiKeyInfo.infoText && (
+                            <div className="absolute -bottom-5 left-0 text-xs text-blue-400">
+                              {apiKeyInfo.infoText}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex justify-between mt-3">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="bg-gray-700 hover:bg-gray-600 text-white border-gray-600"
+                            onClick={handleSaveApiKey}
+                          >
+                            Save
+                          </Button>
+                          <div className="flex space-x-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs text-gray-400 hover:text-white px-2"
+                              onClick={handleClearApiKey}
+                            >
+                              Clear
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-xs text-blue-400 hover:text-blue-300 px-2"
+                              onClick={() => window.open(apiKeyType === 'openrouter' ? "https://openrouter.ai/keys" : "https://aistudio.google.com/app/apikey", "_blank")}
+                            >
+                              Get Key
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  </div>
                 </div>
-              </HoverCardTrigger>
-              <HoverCardContent className="w-80">
-                <UserProfile />
-              </HoverCardContent>
-            </HoverCard>
+              )}
+            </div>
           )}
           
           {/* Login Button */}
