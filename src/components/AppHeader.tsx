@@ -11,6 +11,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { getCurrentApiProvider, setApiProvider, getDefaultOpenRouterKey } from '@/utils/geminiApi';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import CountdownTimer from '@/components/CountdownTimer';
 
 interface AppHeaderProps {
   remainingCredits: string | number;
@@ -51,6 +52,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   // Initialize only once after component mounts
   const initialized = useRef(false);
+  
+  // Create a target date for the countdown (7 days from now)
+  const targetDate = useRef(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
   
   // Update when authApiKey changes (e.g., when a user logs in)
   useEffect(() => {
@@ -213,11 +217,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const apiKeyInfo = getApiKeyInfo();
   
   return <>
-    {/* Static centered banner */}
+    {/* Static centered banner with countdown */}
     <div className="bg-yellow-400 w-full py-2">
       <div className="flex justify-center items-center h-6">
         <span className="text-black font-bold text-lg text-center">
-          ঈদ মানে আনন্দ! এখন থেকে ইয়ারলি প্যাকেজ এর ওপরে থাকছে ৭২% ডিসকাউন্ট (Limited time offer) 🌙✨
+          ঈদ মানে আনন্দ! এখন থেকে ইয়ারলি প্যাকেজ এর ওপরে থাকছে ৭২% ডিসকাউন্ট 🌙✨ 
+          <span className="inline-block ml-2 bg-red-600 text-white px-2 py-0.5 rounded-md text-sm font-bold">
+            <CountdownTimer targetDate={targetDate.current} />
+          </span>
         </span>
       </div>
     </div>
