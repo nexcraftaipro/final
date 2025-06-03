@@ -100,7 +100,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // Check if user can generate metadata based on credits and premium status
     if (profile) {
-      const canGenerate = profile.is_premium || profile.credits_used < 10;
+      const canGenerate = profile.is_premium || profile.credits_used < 3;
       setCanGenerateMetadata(canGenerate);
     } else {
       setCanGenerateMetadata(false);
@@ -240,8 +240,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Premium users don't consume credits
     if (profile.is_premium) return true;
     
-    // Free users with 1 or more credits used can't generate more
-    if (profile.credits_used >= 1) {
+    // Free users with 3 or more credits used can't generate more
+    if (profile.credits_used >= 3) {
       toast.error('You have reached your free limit. Please upgrade to premium.');
       return false;
     }

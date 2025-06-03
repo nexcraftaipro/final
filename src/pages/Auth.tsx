@@ -1,22 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { Navigate, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Loader2, FileType } from 'lucide-react';
 import { GoogleLoginButton } from '@/components/GoogleLoginButton';
 import { toast } from 'sonner';
 
 const Auth: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [randomBgImage, setRandomBgImage] = useState<string>('');
   
   const {
-    signIn,
-    signUp,
     user,
     isLoading
   } = useAuth();
@@ -35,26 +27,6 @@ const Auth: React.FC = () => {
   if (!isLoading && user) {
     return <Navigate to="/" replace />;
   }
-  
-  const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await signIn(email, password);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      await signUp(email, password);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleGoogleError = (error: any) => {
     console.error('Google authentication error:', error);
@@ -99,140 +71,15 @@ const Auth: React.FC = () => {
           {/* Login Form */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
             <h2 className="text-2xl font-semibold text-center mb-2">
-              {mode === 'signin' ? 'Log in' : 'Sign up'}
+              Log in
             </h2>
             <h3 className="text-gray-500 dark:text-gray-400 text-center mb-8">
-              {mode === 'signin' ? 'Welcome back!' : 'Create your account'}
+              Welcome back!
             </h3>
             
-            {mode === 'signin' ? (
-              <form onSubmit={handleSignIn} className="space-y-5">
-                <div>
-                  <Input 
-                    id="signin-email" 
-                    type="email" 
-                    placeholder="Email" 
-                    value={email} 
-                    onChange={e => setEmail(e.target.value)} 
-                    required
-                    className="rounded-xl dark:bg-gray-700 p-4 h-12"
-                  />
-                </div>
-                
-                <div>
-                  <Input 
-                    id="signin-password" 
-                    type="password" 
-                    placeholder="Password" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    required
-                    className="rounded-xl dark:bg-gray-700 p-4 h-12"
-                  />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white h-12 text-md p-0" 
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 
-                    <Loader2 className="h-5 w-5 animate-spin" /> : 
-                    "Log in"
-                  }
-                </Button>
-                
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t dark:border-gray-700" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-white dark:bg-gray-800 px-4 text-gray-500 dark:text-gray-400">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-                
-                <GoogleLoginButton onError={handleGoogleError} />
-                
-                <div className="text-center mt-6">
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">
-                    Don't have an account? 
-                    <button 
-                      type="button" 
-                      onClick={() => setMode('signup')} 
-                      className="text-blue-600 font-semibold ml-1 hover:underline"
-                    >
-                      Sign up
-                    </button>
-                  </p>
-                </div>
-              </form>
-            ) : (
-              <form onSubmit={handleSignUp} className="space-y-5">
-                <div>
-                  <Input 
-                    id="signup-email" 
-                    type="email" 
-                    placeholder="Email" 
-                    value={email} 
-                    onChange={e => setEmail(e.target.value)} 
-                    required
-                    className="rounded-xl dark:bg-gray-700 p-4 h-12"
-                  />
-                </div>
-                
-                <div>
-                  <Input 
-                    id="signup-password" 
-                    type="password" 
-                    placeholder="Password (min. 6 characters)" 
-                    value={password} 
-                    onChange={e => setPassword(e.target.value)} 
-                    required 
-                    minLength={6}
-                    className="rounded-xl dark:bg-gray-700 p-4 h-12"
-                  />
-                </div>
-                
-                <Button 
-                  type="submit" 
-                  className="w-full rounded-xl bg-blue-600 hover:bg-blue-700 text-white h-12 text-md p-0" 
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 
-                    <Loader2 className="h-5 w-5 animate-spin" /> : 
-                    "Sign up"
-                  }
-                </Button>
-                
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t dark:border-gray-700" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="bg-white dark:bg-gray-800 px-4 text-gray-500 dark:text-gray-400">
-                      Or continue with
-                    </span>
-                  </div>
-                </div>
-                
-                <GoogleLoginButton onError={handleGoogleError} />
-                
-                <div className="text-center mt-6">
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">
-                    Already have an account? 
-                    <button 
-                      type="button" 
-                      onClick={() => setMode('signin')} 
-                      className="text-blue-600 font-semibold ml-1 hover:underline"
-                    >
-                      Log in
-                    </button>
-                  </p>
-                </div>
-              </form>
-            )}
+            <div className="space-y-5">
+              <GoogleLoginButton onError={handleGoogleError} />
+            </div>
           </div>
           
           <div className="mt-6 text-center">

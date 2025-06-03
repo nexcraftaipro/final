@@ -29,11 +29,11 @@ const PricingPage: React.FC = () => {
                   <span className="ml-1 text-slate-50 text-4xl">Tk</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">Limited features to get started</p>
-                <p className="text-xs text-yellow-400 mt-1">Now with 1 credit for lifetime</p>
+                <p className="text-xs text-yellow-400 mt-1">Now with 3 credits for lifetime</p>
               </CardHeader>
               <CardContent className="pt-6">
                 <ul className="space-y-4">
-                  <PricingItem included text="Limited Metadata Generation (1 Credit)" />
+                  <PricingItem included text="Limited Metadata Generation (3 Credits)" />
                   <PricingItem included text="Basic Image to Prompt Features" />
                   <PricingItem included text="Limited Access to Metadata Customization" />
                   <PricingItem included={false} text="More Fast Processing" />

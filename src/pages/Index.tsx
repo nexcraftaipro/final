@@ -66,7 +66,7 @@ const Index: React.FC = () => {
   const [prohibitedWordsEnabled, setProhibitedWordsEnabled] = useState(false);
   const [transparentBgEnabled, setTransparentBgEnabled] = useState(false);
   const [silhouetteEnabled, setSilhouetteEnabled] = useState(false);
-  const [singleWordKeywordsEnabled, setSingleWordKeywordsEnabled] = useState(true);
+  const [singleWordKeywordsEnabled, setSingleWordKeywordsEnabled] = useState(false);
   
   // Initialize API keys from localStorage
   useEffect(() => {
@@ -341,7 +341,7 @@ const Index: React.FC = () => {
   };
   
   const pendingCount = images.filter(img => img.status === 'pending').length;
-  const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 10 - (profile?.credits_used || 0));
+  const remainingCredits = profile?.is_premium ? '∞' : Math.max(0, 3 - (profile?.credits_used || 0));
   
   // Add a new function to handle image updates
   const handleImageUpdate = (updatedImage: ProcessedImage) => {
@@ -358,7 +358,7 @@ const Index: React.FC = () => {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <AppHeader 
-        remainingCredits={profile?.credits_used ? Math.max(0, 10 - profile.credits_used) : 0} 
+        remainingCredits={profile?.credits_used ? Math.max(0, 3 - profile.credits_used) : 0} 
         apiKey={apiKey} 
         onApiKeyChange={handleApiKeyChange}
         openaiApiKey={openaiApiKey}
@@ -436,7 +436,7 @@ const Index: React.FC = () => {
                       <LogIn className="mr-2 h-5 w-5" />
                       Login to Process {pendingCount} Image{pendingCount !== 1 ? 's' : ''}
                     </Button>
-                  ) : profile?.credits_used >= 1 && !profile?.is_premium ? (
+                  ) : profile?.credits_used >= 3 && !profile?.is_premium ? (
                     <Button
                       onClick={handleUpgradePlan}
                       className="glow-button bg-amber-500 hover:bg-amber-600 text-black px-8 py-3 text-lg rounded-md shadow-lg transition-all duration-300 border-none"
