@@ -127,12 +127,12 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const videoImages = images.filter(img => img.result?.isVideo);
     const regularImages = images.filter(img => !img.result?.isVideo);
     
-    // Use the downloadAllCSVsAsZip function to download all CSVs in a zip file
-    downloadAllCSVsAsZip(videoImages, regularImages, selectedPlatforms);
+    // Use the downloadCSVsDirectly function to download all CSVs without zipping
+    downloadCSVsDirectly(videoImages, regularImages, selectedPlatforms);
   };
 
-  // Function to download all CSVs in a zip file with folder structure
-  const downloadAllCSVsAsZip = async (
+  // Function to download CSVs directly without zipping
+  const downloadCSVsDirectly = (
     videoImages: ProcessedImage[], 
     regularImages: ProcessedImage[], 
     platforms: Platform[],
@@ -146,19 +146,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     toast.info('Preparing metadata CSV files for download...');
     
     try {
-      // Create a new JSZip instance
-      const zip = new JSZip();
-      
-      // Create a folder with date
-      const now = new Date();
-      const dateStr = now.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      const folderName = `Pixcraftai metadata with ${dateStr}`;
-      const folder = zip.folder(folderName);
-      
-      if (!folder) {
-        throw new Error('Failed to create folder in zip');
-      }
-      
       // Process videos if they exist
       if (videoImages.length > 0) {
         const isShutterstock = platforms.includes('Shutterstock');
@@ -169,7 +156,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
           ? `${filenamePrefix}-video-metadata.csv` 
           : 'videos-metadata.csv';
           
-        folder.file(videoFileName, videoCsvContent);
+        // Download video CSV directly
+        downloadCSV(videoCsvContent, videoFileName);
       }
       
       // Process regular images if they exist
@@ -216,38 +204,19 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             ? `${filenamePrefix}-${platform}-metadata.csv` 
             : `${platform}-metadata.csv`;
             
-          // Add CSV file to the folder in the zip
-          folder.file(csvFileName, csvContent);
+          // Download CSV directly
+          downloadCSV(csvContent, csvFileName, platform);
         }
       }
       
-      // Generate the zip file
-      const zipContent = await zip.generateAsync({ type: 'blob' });
-      
-      // Create download link
-      const url = URL.createObjectURL(zipContent);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Add filename prefix to the zip file name if processing a single image
-      const zipFileName = filenamePrefix 
-        ? `${filenamePrefix}-${folderName}.zip` 
-        : `${folderName}.zip`;
-        
-      link.download = zipFileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-      
       const successMessage = filenamePrefix 
         ? `Metadata CSV files for ${platforms.length} platforms downloaded for image "${filenamePrefix}"`
-        : `Metadata CSV files for ${platforms.length} platforms downloaded in "${folderName}" folder`;
+        : `Metadata CSV files for ${platforms.length} platforms downloaded`;
         
       toast.success(successMessage);
     } catch (error) {
-      console.error('Error creating zip archive with CSV files:', error);
-      toast.error('Failed to create zip archive with CSV files. Please try again.');
+      console.error('Error creating CSV files:', error);
+      toast.error('Failed to create CSV files. Please try again.');
     }
   };
 
@@ -280,8 +249,8 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     const videoImages = image.result?.isVideo ? imagesToProcess : [];
     const regularImages = !image.result?.isVideo ? imagesToProcess : [];
     
-    // Use the same zip-based download function
-    downloadAllCSVsAsZip(videoImages, regularImages, selectedPlatforms, image.file.name.split('.')[0]);
+    // Use the downloadCSVsDirectly function
+    downloadCSVsDirectly(videoImages, regularImages, selectedPlatforms, image.file.name.split('.')[0]);
   };
   
   const downloadPromptText = (text: string, filename: string) => {
@@ -718,6 +687,34 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }
   };
 
+  // Function to remove JSON formatting from prompt text
+  const cleanPromptText = (text: string) => {
+    if (!text) return '';
+    
+    // Remove markdown code block indicators
+    let cleanedText = text.replace(/```json|```/g, '').trim();
+    
+    // Check if the text appears to be JSON
+    if (cleanedText.startsWith('{') && cleanedText.endsWith('}')) {
+      try {
+        // Try to parse as JSON
+        const parsed = JSON.parse(cleanedText);
+        // Return just the description content
+        if (parsed.description) {
+          return parsed.description;
+        }
+      } catch (e) {
+        // If parsing fails, try to extract just the description part with regex
+        const match = cleanedText.match(/"description"\s*:\s*"([\s\S]*?)(?:"\s*}|\"\s*,)/);
+        if (match && match[1]) {
+          return match[1];
+        }
+      }
+    }
+    
+    return cleanedText;
+  };
+
   return <div className="w-full space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-medium">Generated Data</h2>
@@ -801,13 +798,13 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                   <h3 className="text-xl font-semibold mb-4">Generated Prompt:</h3>
                   <div className="bg-black border border-gray-800 rounded-lg p-6">
                     {image.result?.prompt ? (
-                      <div className="text-gray-200 whitespace-pre-wrap mb-2">{image.result.prompt}</div>
+                      <div className="text-gray-200 whitespace-pre-wrap mb-2">{cleanPromptText(image.result.prompt)}</div>
                     ) : (
                       <div className="text-gray-500 italic">Not provided</div>
                     )}
                   </div>
                   <div className="flex justify-end mt-4 gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(image.result?.description || '', image.id)} className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" onClick={() => handleCopyToClipboard(cleanPromptText(image.result?.description || ''), image.id)} className="flex items-center gap-1">
                       {copiedId === image.id ? <>
                           <Check className="h-4 w-4" />
                           <span>Copied</span>
@@ -816,7 +813,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
                           <span>Copy</span>
                         </>}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => downloadPromptText(image.result?.description || '', image.file.name)} className="flex items-center gap-1">
+                    <Button variant="outline" size="sm" onClick={() => downloadPromptText(cleanPromptText(image.result?.description || ''), image.file.name)} className="flex items-center gap-1">
                       <Download className="h-4 w-4" />
                       <span>Download</span>
                     </Button>

@@ -72,7 +72,7 @@ const PricingPage: React.FC = () => {
                 <Button 
                   size="lg" 
                   className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-                  onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
+                  onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
                 >
                   Upgrade to Basic
                 </Button>
@@ -115,7 +115,7 @@ const PricingPage: React.FC = () => {
                 <Button 
                   size="lg"
                   className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-                  onClick={() => window.open('https://pixcraftai.paymently.io/default/paymentlink/pay/E0PQXvAfeChDNE5Q5rohBGproO5NuPXHLYp4rbdz', '_blank')}
+                  onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/E0PQXvAfeChDNE5Q5rohBGproO5NuPXHLYp4rbdz', '_blank')}
                 >
                   Upgrade to Premium
                 </Button>
