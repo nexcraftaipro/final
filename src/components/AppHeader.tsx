@@ -12,6 +12,12 @@ import { toast } from 'sonner';
 import { getCurrentApiProvider, setApiProvider, getDefaultOpenRouterKey } from '@/utils/geminiApi';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import CountdownTimer from '@/components/CountdownTimer';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface AppHeaderProps {
   remainingCredits: string | number;
@@ -253,6 +259,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   
   const apiKeyInfo = getApiKeyInfo();
   
+  // Check if user has set a personal OpenRouter API key
+  const hasPersonalOpenRouterKey = () => {
+    const savedOpenRouterKey = localStorage.getItem('openrouter-api-key');
+    // Check if there's a saved key and it's different from the default key
+    const defaultKey = getDefaultOpenRouterKey();
+    return savedOpenRouterKey && 
+           savedOpenRouterKey.length > 0 && 
+           savedOpenRouterKey !== defaultKey;
+  };
+  
   return <>
     {/* Banner with countdown - always visible for testing */}
     <div className="bg-yellow-400 w-full py-2">
@@ -320,22 +336,37 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           {/* User Profile */}
           {user && (
             <div className="relative" ref={profileRef}>
-              <div 
-                className="relative h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden ml-2"
-                onClick={() => setProfileOpen(!profileOpen)}
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={getAvatarUrl()} alt={user.email} />
-                  <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
-                    {user.email.charAt(0).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                {profile?.is_premium && (
-                  <div className="absolute -bottom-0.5 -right-0.5 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full p-0.5 border border-black shadow-md">
-                    <Diamond size={10} className="text-black" fill="black" />
-                  </div>
-                )}
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className={`relative h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden ml-2 ${
+                        hasPersonalOpenRouterKey() 
+                          ? 'ring-2 ring-green-500' 
+                          : 'ring-2 ring-red-500'
+                      }`}
+                      onClick={() => setProfileOpen(!profileOpen)}
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={getAvatarUrl()} alt={user.email} />
+                        <AvatarFallback className="bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium">
+                          {user.email.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      {profile?.is_premium && (
+                        <div className="absolute -bottom-0.5 -right-0.5 bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full p-0.5 border border-black shadow-md">
+                          <Diamond size={10} className="text-black" fill="black" />
+                        </div>
+                      )}
+                    </div>
+                  </TooltipTrigger>
+                  {!hasPersonalOpenRouterKey() && (
+                    <TooltipContent>
+                      <p>Set your OPEN ROUTER API key</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
               
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-80 bg-gray-900 rounded-lg shadow-lg border border-gray-700 z-50">

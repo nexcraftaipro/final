@@ -48,38 +48,7 @@ const PricingPage: React.FC = () => {
               </CardFooter>
             </Card>
             
-            {/* Basic Plan */}
-            <Card className="bg-[#12151F] border-gray-800 shadow-xl relative overflow-hidden">
-              <CardHeader className="pb-0">
-                <h2 className="text-2xl font-bold text-white">Basic</h2>
-                <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">150</span>
-                  <span className="ml-1 text-slate-50 text-xl">Tk/Month</span>
-                </div>
-                <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <ul className="space-y-4">
-                  <PricingItem included text="Unlimited Metadata Generation" />
-                  <PricingItem included text="Full Image to Prompt Features" />
-                  <PricingItem included text="Full Access to Metadata Customization" />
-                  <PricingItem included text="More Fast Processing" />
-                  <PricingItem included text="Fully Custom Support" />
-                  <PricingItem included text="All Future Features" />
-                </ul>
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  size="lg" 
-                  className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
-                  onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
-                >
-                  Upgrade to Basic
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            {/* Premium Plan */}
+            {/* Premium Plan - Now in middle position */}
             <Card className="bg-[#12151F] border-gray-800 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 bg-amber-500 text-black px-3 py-1 text-xs font-semibold">
                 POPULAR
@@ -87,8 +56,8 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">499</span>
-                  <span className="ml-1 text-slate-50 text-xl">Tk/Yearly</span>
+                  <span className="text-5xl font-extrabold tracking-tight">42</span>
+                  <span className="ml-1 text-slate-50 text-xl">Tk/Month (Yearly)</span>
                 </div>
                 <div className="flex items-center mt-1">
                   <span className="text-sm text-amber-500 line-through">1800Tk</span>
@@ -118,6 +87,37 @@ const PricingPage: React.FC = () => {
                   onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/E0PQXvAfeChDNE5Q5rohBGproO5NuPXHLYp4rbdz', '_blank')}
                 >
                   Upgrade to Premium
+                </Button>
+              </CardFooter>
+            </Card>
+            
+            {/* Basic Plan - Now in last position */}
+            <Card className="bg-[#12151F] border-gray-800 shadow-xl relative overflow-hidden">
+              <CardHeader className="pb-0">
+                <h2 className="text-2xl font-bold text-white">Basic</h2>
+                <div className="flex items-baseline mt-2">
+                  <span className="text-5xl font-extrabold tracking-tight">150</span>
+                  <span className="ml-1 text-slate-50 text-xl">Tk/Month</span>
+                </div>
+                <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-4">
+                  <PricingItem included text="Unlimited Metadata Generation" />
+                  <PricingItem included text="Full Image to Prompt Features" />
+                  <PricingItem included text="Full Access to Metadata Customization" />
+                  <PricingItem included text="More Fast Processing" />
+                  <PricingItem included text="Fully Custom Support" />
+                  <PricingItem included text="All Future Features" />
+                </ul>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  size="lg" 
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+                  onClick={() => window.open('https://pixcraftai.paymently.io/paymentlink/pay/h7w3lr5WK9kO5cnYlIo9mYHTChODMOgABKxxRxRQ', '_blank')}
+                >
+                  Upgrade to Basic
                 </Button>
               </CardFooter>
             </Card>
