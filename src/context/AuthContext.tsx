@@ -6,6 +6,23 @@ import { toast } from 'sonner';
 import { checkActiveSession, setActiveSession, removeActiveSession } from '@/utils/supabaseUtils';
 import { UserProfile } from '@/types/supabase';
 
+// Define the list of API keys - export so it can be used elsewhere
+export const API_KEYS = [
+  'AIzaSyDml9XSTLPg83r9LYJytVWzB225PGjjZms',
+  'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
+  'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
+  'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
+  'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
+  'AIzaSyAIstbYpqJ09epoUw_Mf1IX3ilslqW7KKc',
+  'AIzaSyA_ALrz_Dq_Ng3NcIbMB1hO52xEoVtLsSw',
+  'AIzaSyAMiWClJZRIQFsPktNVXWKiKN-MSF4gQXY',
+  'AIzaSyBt-xmLLYomUmnlTRE1-NNyh4dpUHaDDlU',
+  'AIzaSyAGheV4z8nhuVtAIF9Skfg4xkVM1-ML638',
+  'AIzaSyD6wzrV3TGP6H2F0zBouHr0j3rWtC0HJ1k',
+  'AIzaSyAj5cj6uFO1lZqI6cPfc8s1nQFQs03PxAA',
+  'AIzaSyD3q-TvESGAf0UngLyh-H7sbieh3kUxHiI'
+];
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -31,23 +48,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [canGenerateMetadata, setCanGenerateMetadata] = useState<boolean>(false);
   const [apiKey, setApiKey] = useState<string>('');
   const navigate = useNavigate();
-
-  // Define the list of API keys
-  const API_KEYS = [
-    'AIzaSyDml9XSTLPg83r9LYJytVWzB225PGjjZms',
-    'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
-    'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
-    'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
-    'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
-    'AIzaSyAIstbYpqJ09epoUw_Mf1IX3ilslqW7KKc',
-    'AIzaSyA_ALrz_Dq_Ng3NcIbMB1hO52xEoVtLsSw',
-    'AIzaSyAMiWClJZRIQFsPktNVXWKiKN-MSF4gQXY',
-    'AIzaSyBt-xmLLYomUmnlTRE1-NNyh4dpUHaDDlU',
-    'AIzaSyAGheV4z8nhuVtAIF9Skfg4xkVM1-ML638',
-    'AIzaSyD6wzrV3TGP6H2F0zBouHr0j3rWtC0HJ1k',
-    'AIzaSyAj5cj6uFO1lZqI6cPfc8s1nQFQs03PxAA',
-    'AIzaSyD3q-TvESGAf0UngLyh-H7sbieh3kUxHiI'
-  ];
 
   // Function to get a random API key
   const getRandomApiKey = (): string => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CreditCard, Video, RefreshCcw, LogIn, Diamond, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, API_KEYS } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import UserProfile from '@/components/UserProfile';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -29,6 +29,21 @@ interface AppHeaderProps {
   onDeepseekApiKeyChange?: (key: string) => void;
 }
 
+// Default Gemini API keys - used to detect if a premium user is using a default key
+const DEFAULT_GEMINI_API_KEYS = [
+  'AIzaSyDml9XSTLPg83r9LYJytVWzB225PGjjZms',
+  'AIzaSyD6UM2-DYAcHWDk005-HAzBAFmZfus9fSA',
+  'AIzaSyCPBg14R8PY7rh48ovIoKmpT3LHyOiPvLI',
+  'AIzaSyAIstbYpqJ09epoUw_Mf1IX3ilslqW7KKc',
+  'AIzaSyA_ALrz_Dq_Ng3NcIbMB1hO52xEoVtLsSw',
+  'AIzaSyAMiWClJZRIQFsPktNVXWKiKN-MSF4gQXY',
+  'AIzaSyBt-xmLLYomUmnlTRE1-NNyh4dpUHaDDlU',
+  'AIzaSyAGheV4z8nhuVtAIF9Skfg4xkVM1-ML638',
+  'AIzaSyD6wzrV3TGP6H2F0zBouHr0j3rWtC0HJ1k',
+  'AIzaSyAj5cj6uFO1lZqI6cPfc8s1nQFQs03PxAA',
+  'AIzaSyD3q-TvESGAf0UngLyh-H7sbieh3kUxHiI'
+];
+
 const AppHeader: React.FC<AppHeaderProps> = ({
   remainingCredits,
   apiKey,
@@ -55,6 +70,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     apiKey: authApiKey,
     profile
   } = useAuth();
+  
+  // Check if user is premium
+  const isPremiumUser = profile?.is_premium ?? false;
   
   // Initialize only once after component mounts
   const initialized = useRef(false);
@@ -109,8 +127,25 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       setApiKeyType(getCurrentApiProvider() === 'gemini' ? 'gemini' : 'openrouter');
       
       // Initialize Gemini API key if not set and not cleared
-      if (authApiKey && !apiKey && !keyCleared.gemini) {
+      // Only for free users - premium users must set their own key
+      if (authApiKey && !apiKey && !keyCleared.gemini && !isPremiumUser) {
         onApiKeyChange(authApiKey);
+      }
+      
+      // If user is premium and using a default key, clear it and show a message
+      if (isPremiumUser) {
+        const storedGeminiKey = localStorage.getItem('gemini-api-key');
+        // Check if the key is likely a default key (from the auth context)
+        if (storedGeminiKey && DEFAULT_GEMINI_API_KEYS.includes(storedGeminiKey)) {
+          // Clear the default key for premium users
+          localStorage.removeItem('gemini-api-key');
+          onApiKeyChange('');
+          setKeyCleared(prev => ({ ...prev, gemini: true }));
+          toast.info('Premium users need to use their own Gemini API key', {
+            description: 'Please set your personal Gemini API key in the profile settings',
+            duration: 6000
+          });
+        }
       }
       
       // Initialize OpenRouter API key with the default random key if not set and not cleared
@@ -130,7 +165,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         }
       }
     }
-  }, [authApiKey, apiKey, onApiKeyChange, deepseekApiKey, onDeepseekApiKeyChange, keyCleared]);
+  }, [authApiKey, apiKey, onApiKeyChange, deepseekApiKey, onDeepseekApiKeyChange, keyCleared, isPremiumUser]);
   
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -220,6 +255,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
       setKeyCleared(prev => ({ ...prev, gemini: true }));
       onApiKeyChange('');
       toast.success('Gemini API key cleared');
+      
+      // Show a message for premium users that they need to set their own key
+      if (isPremiumUser) {
+        toast.info('Premium users need to use their own Gemini API key', {
+          description: 'Please set your personal Gemini API key to continue',
+          duration: 5000
+        });
+      }
     }
   };
   
@@ -250,6 +293,12 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         infoText: isDefaultKey ? "Random default key assigned" : undefined
       };
     } else {
+      if (isPremiumUser) {
+        return {
+          placeholder: "Enter your personal Gemini API key (required)",
+          infoText: "Premium users must use their own API key"
+        };
+      }
       return {
         placeholder: "Enter Gemini API key",
         infoText: undefined
@@ -267,6 +316,14 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     return savedOpenRouterKey && 
            savedOpenRouterKey.length > 0 && 
            savedOpenRouterKey !== defaultKey;
+  };
+  
+  // Check if premium user has set their own Gemini API key
+  const hasPersonalGeminiKey = () => {
+    if (!isPremiumUser) return true; // Free users don't need to set their own key
+    
+    const savedGeminiKey = localStorage.getItem('gemini-api-key');
+    return savedGeminiKey && savedGeminiKey.length > 0;
   };
   
   return <>
@@ -341,7 +398,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   <TooltipTrigger asChild>
                     <div 
                       className={`relative h-8 w-8 rounded-full flex items-center justify-center cursor-pointer overflow-hidden ml-2 ${
-                        hasPersonalOpenRouterKey() 
+                        (hasPersonalOpenRouterKey() && hasPersonalGeminiKey()) 
                           ? 'ring-2 ring-green-500' 
                           : 'ring-2 ring-red-500'
                       }`}
@@ -363,6 +420,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                   {!hasPersonalOpenRouterKey() && (
                     <TooltipContent>
                       <p>Set your OPEN ROUTER API key</p>
+                    </TooltipContent>
+                  )}
+                  {isPremiumUser && !hasPersonalGeminiKey() && (
+                    <TooltipContent>
+                      <p>Premium users must set their own Gemini API key</p>
                     </TooltipContent>
                   )}
                 </Tooltip>
@@ -419,7 +481,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                                   onApiKeyChange(e.target.value);
                                 }
                               }}
-                              className="w-full h-9 text-sm bg-gray-900 border-gray-700 focus:border-blue-500 pr-12"
+                              className={`w-full h-9 text-sm bg-gray-900 border-gray-700 focus:border-blue-500 pr-12 ${
+                                isPremiumUser && apiKeyType === 'gemini' && !apiKey 
+                                  ? 'border-red-500' 
+                                  : ''
+                              }`}
                             />
                             <div 
                               className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 flex items-center justify-center rounded-md bg-gray-800 cursor-pointer hover:bg-gray-700"
@@ -429,7 +495,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
                             </div>
                           </div>
                           {apiKeyInfo.infoText && (
-                            <div className="absolute -bottom-5 left-0 text-xs text-blue-400">
+                            <div className={`absolute -bottom-5 left-0 text-xs ${
+                              isPremiumUser && apiKeyType === 'gemini' 
+                                ? 'text-amber-400' 
+                                : 'text-blue-400'
+                            }`}>
                               {apiKeyInfo.infoText}
                             </div>
                           )}
