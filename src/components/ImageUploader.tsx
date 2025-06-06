@@ -47,12 +47,6 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     const promises: Promise<ProcessedImage>[] = [];
     const filesToProcess = Array.from(files);
     
-    // Check if the number of files exceeds the limit
-    if (filesToProcess.length > 200) {
-      toast.error(`You can select a maximum of 200 files at once. ${filesToProcess.length - 200} files will not be processed.`);
-      filesToProcess.splice(200); // Truncate the array to 200 files
-    }
-    
     let videoCount = 0;
     let imageCount = 0;
     let epsCount = 0;
@@ -237,7 +231,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
           
           <p className="text-gray-400 text-sm text-center mb-2 max-w-md">We process your files directly on your device. All data is automatically removed after metadata extraction.</p>
           
-          <p className="text-blue-400 text-sm font-semibold mt-1">Process multiple images in Single Action (max 200 files)</p>
+          <p className="text-blue-400 text-sm font-semibold mt-1">Process Unlimited images in a Single Action</p>
           
           <input 
             type="file" 
