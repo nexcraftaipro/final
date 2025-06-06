@@ -47,6 +47,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
     const promises: Promise<ProcessedImage>[] = [];
     const filesToProcess = Array.from(files);
     
+    // No file limit - users can upload unlimited files
+    
     let videoCount = 0;
     let imageCount = 0;
     let epsCount = 0;
