@@ -8,10 +8,15 @@ const STORAGE_KEY = "notice_dismissed_time";
 const DISMISS_DURATION = 60 * 60 * 1000; // 1 hour in milliseconds
 
 export function NoticeBox() {
+  // Set isVisible to false by default
   const [isVisible, setIsVisible] = useState(false);
   const { profile } = useAuth();
   const isPremiumUser = profile?.is_premium ?? false;
 
+  // Always return null to never show the notification
+  return null;
+
+  /* Original implementation below - commented out
   useEffect(() => {
     // Only check visibility if user is premium
     if (!isPremiumUser) return;
@@ -68,4 +73,5 @@ export function NoticeBox() {
       </div>
     </div>
   );
+  */
 } 
