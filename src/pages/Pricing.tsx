@@ -56,17 +56,11 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">42</span>
-                  <span className="ml-1 text-slate-50 text-xl">Tk/Month (Yearly)</span>
-                </div>
-                <div className="flex items-center mt-1">
-                  <span className="text-sm text-amber-500 line-through">1800Tk</span>
-                  <span className="ml-2 rounded-full bg-amber-500/20 px-2 py-0.5 text-xs font-medium text-amber-500">
-                    72% OFF
-                  </span>
+                  <span className="text-5xl font-extrabold tracking-tight">1000</span>
+                  <span className="ml-1 text-slate-50 text-xl">Tk/Yearly</span>
                 </div>
                 <div className="mt-1">
-                  <span className="text-sm bg-yellow-400 text-black px-2 py-0.5 rounded font-medium">Limited Time Offer!</span>
+                  <span className="text-sm bg-yellow-400 text-black px-2 py-0.5 rounded font-medium">Best Value!</span>
                 </div>
                 <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
               </CardHeader>
@@ -96,10 +90,10 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Basic</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">150</span>
+                  <span className="text-5xl font-extrabold tracking-tight">200</span>
                   <span className="ml-1 text-slate-50 text-xl">Tk/Month</span>
                 </div>
-                <p className="text-sm text-gray-400 mt-3">All features, unlimited access</p>
+                <p className="text-sm text-gray-400 mt-3">All features, monthly access</p>
               </CardHeader>
               <CardContent className="pt-6">
                 <ul className="space-y-4">
@@ -124,8 +118,9 @@ const PricingPage: React.FC = () => {
           </div>
           
           <div className="text-center mt-12 text-sm text-gray-400">
-            <p>* All prices are one-time payments for Premium plan</p>
-            <p className="mt-1">* Premium and Basic features are available immediately after payment</p>
+            <p>* Premium plan is billed annually (1000 Tk per year)</p>
+            <p className="mt-1">* Basic plan is billed monthly (200 Tk per month)</p>
+            <p className="mt-1">* All features are available immediately after payment</p>
           </div>
         </div>
       </div>

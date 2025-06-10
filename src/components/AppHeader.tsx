@@ -335,19 +335,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="relative text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300"
+            className="text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300"
             onClick={() => navigate('/pricing')}
           >
             <CreditCard className="h-4 w-4 mr-1" />
             Pricing
-            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-1 py-0.5 transform scale-90 animate-pulse">
-              <CountdownTimer 
-                storageKey="pricingCountdownTargetDate"
-                onExpire={handlePricingCountdownExpired}
-                className="text-xs whitespace-nowrap"
-                compact={true}
-              />
-            </span>
           </Button>
           
           <Button
