@@ -83,8 +83,9 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   // Create a target date for the countdown that persists across refreshes
   const targetDate = useRef<Date>(new Date());
   
-  // Initialize the target date from localStorage or create a new one
+  // Initialize the target dates from localStorage or create new ones
   useEffect(() => {
+    // For the main countdown
     const storedTargetDate = localStorage.getItem('countdownTargetDate');
     
     if (storedTargetDate) {
@@ -115,6 +116,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   // Function to handle countdown expiration
   const handleCountdownExpired = () => {
     setIsCountdownExpired(true);
+  };
+  
+  // Function to handle pricing countdown expiration
+  const handlePricingCountdownExpired = () => {
+    console.log('Pricing countdown expired, will reset automatically');
   };
   
   // Update when authApiKey changes (e.g., when a user logs in)
@@ -202,7 +208,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   };
   
   const navigateToHome = () => {
-    navigate('/');
+    window.location.href = '/';
   };
   
   const handleRefresh = () => {
@@ -217,130 +223,102 @@ const AppHeader: React.FC<AppHeaderProps> = ({
     if (apiKeyType === 'openrouter') {
       if (deepseekApiKey) {
         localStorage.setItem('openrouter-api-key', deepseekApiKey);
-        if (onDeepseekApiKeyChange) onDeepseekApiKeyChange(deepseekApiKey);
-        setApiProvider('openrouter');
-        // Reset the cleared state when saving a key
-        setKeyCleared(prev => ({ ...prev, openrouter: false }));
-        toast.success('OpenRouter API key saved successfully');
+        toast.success('OpenRouter API key saved', {
+          description: 'Your API key has been saved and will be used for future sessions',
+          duration: 3000
+        });
       } else {
-        toast.error('Please enter an OpenRouter API key');
+        toast.error('Please enter an OpenRouter API key', {
+          description: 'A valid API key is required',
+          duration: 3000
+        });
       }
     } else {
       if (apiKey) {
         localStorage.setItem('gemini-api-key', apiKey);
-        onApiKeyChange(apiKey);
-        setApiProvider('gemini');
-        // Reset the cleared state when saving a key
-        setKeyCleared(prev => ({ ...prev, gemini: false }));
-        toast.success('Gemini API key saved successfully');
+        toast.success('Gemini API key saved', {
+          description: 'Your API key has been saved and will be used for future sessions',
+          duration: 3000
+        });
       } else {
-        toast.error('Please enter a Gemini API key');
+        toast.error('Please enter a Gemini API key', {
+          description: 'A valid API key is required',
+          duration: 3000
+        });
       }
     }
+    
+    // Update the current API provider
+    setApiProvider(apiKeyType);
   };
   
   const handleClearApiKey = () => {
     if (apiKeyType === 'openrouter') {
+      onDeepseekApiKeyChange && onDeepseekApiKeyChange('');
       localStorage.removeItem('openrouter-api-key');
-      // Mark as cleared to prevent auto-reassignment
       setKeyCleared(prev => ({ ...prev, openrouter: true }));
-      // Clear the OpenRouter API key field completely
-      if (onDeepseekApiKeyChange) {
-        onDeepseekApiKeyChange('');
-        toast.success('OpenRouter API key cleared');
-      }
+      toast.info('OpenRouter API key cleared', {
+        description: 'You will need to set a new key for OpenRouter models',
+        duration: 3000
+      });
     } else {
-      localStorage.removeItem('gemini-api-key');
-      // Mark as cleared to prevent auto-reassignment
-      setKeyCleared(prev => ({ ...prev, gemini: true }));
       onApiKeyChange('');
-      toast.success('Gemini API key cleared');
-      
-      // Show a message for premium users that they need to set their own key
-      if (isPremiumUser) {
-        toast.info('Premium users need to use their own Gemini API key', {
-          description: 'Please set your personal Gemini API key to continue',
-          duration: 5000
-        });
-      }
+      localStorage.removeItem('gemini-api-key');
+      setKeyCleared(prev => ({ ...prev, gemini: true }));
+      toast.info('Gemini API key cleared', {
+        description: 'You will need to set a new key for Gemini models',
+        duration: 3000
+      });
     }
   };
   
   const handleApiKeyTypeChange = (type: 'openrouter' | 'gemini') => {
     setApiKeyType(type);
-    if (type === 'gemini') {
-      // When switching to Gemini, ensure Gemini is set as the provider
-      setApiProvider('gemini');
+    // Also update the current API provider
+    setApiProvider(type);
+    
+    // Show a toast about the change
+    toast.info(`Switched to ${type === 'gemini' ? 'Gemini' : 'OpenRouter'} API`, {
+      description: `Now using ${type === 'gemini' ? 'Google Gemini' : 'OpenRouter'} as the AI provider`,
+      duration: 3000
+    });
+  };
+  
+  const getApiKeyInfo = () => {
+    if (apiKeyType === 'openrouter') {
+      return {
+        placeholder: "Enter your OpenRouter API key",
+        infoText: deepseekApiKey ? "Using custom OpenRouter key" : "Using shared OpenRouter key"
+      };
     } else {
-      // When switching to OpenRouter, set OpenRouter as the provider
-      setApiProvider('openrouter');
-      
-      // Initialize with default key if not set and not cleared
-      if (!deepseekApiKey && onDeepseekApiKeyChange && !keyCleared.openrouter) {
-        const defaultKey = getDefaultOpenRouterKey();
-        onDeepseekApiKeyChange(defaultKey);
+      // Gemini
+      if (isPremiumUser) {
+        return {
+          placeholder: "Enter your Gemini API key (required for premium)",
+          infoText: apiKey ? "Valid premium Gemini key" : "Premium users must set their own key"
+        };
+      } else {
+        // Free user
+        return {
+          placeholder: "Enter your Gemini API key (optional)",
+          infoText: apiKey ? "Using custom Gemini key" : "Using shared Gemini key"
+        };
       }
     }
   };
   
-  // Get information about the API key status
-  const getApiKeyInfo = () => {
-    if (apiKeyType === 'openrouter') {
-      const isSavedKey = localStorage.getItem('openrouter-api-key') === deepseekApiKey;
-      const isDefaultKey = !isSavedKey && deepseekApiKey && !keyCleared.openrouter;
-      return {
-        placeholder: isDefaultKey ? "Using default OpenRouter API key" : "Enter OpenRouter API key",
-        infoText: isDefaultKey ? "Random default key assigned" : undefined
-      };
-    } else {
-      if (isPremiumUser) {
-        return {
-          placeholder: "Enter your personal Gemini API key (required)",
-          infoText: "Premium users must use their own API key"
-        };
-      }
-      return {
-        placeholder: "Enter Gemini API key",
-        infoText: undefined
-      };
-    }
+  const hasPersonalOpenRouterKey = () => {
+    return !!deepseekApiKey;
+  };
+  
+  const hasPersonalGeminiKey = () => {
+    return !!apiKey;
   };
   
   const apiKeyInfo = getApiKeyInfo();
   
-  // Check if user has set a personal OpenRouter API key
-  const hasPersonalOpenRouterKey = () => {
-    const savedOpenRouterKey = localStorage.getItem('openrouter-api-key');
-    // Check if there's a saved key and it's different from the default key
-    const defaultKey = getDefaultOpenRouterKey();
-    return savedOpenRouterKey && 
-           savedOpenRouterKey.length > 0 && 
-           savedOpenRouterKey !== defaultKey;
-  };
-  
-  // Check if premium user has set their own Gemini API key
-  const hasPersonalGeminiKey = () => {
-    if (!isPremiumUser) return true; // Free users don't need to set their own key
-    
-    const savedGeminiKey = localStorage.getItem('gemini-api-key');
-    return savedGeminiKey && savedGeminiKey.length > 0;
-  };
-  
   return <>
-    {/* Banner with countdown - always visible for testing */}
-    <div className="bg-yellow-400 w-full py-2">
-      <div className="flex justify-center items-center h-6">
-        <span className="text-black font-bold text-lg text-center">
-          ঈদ মানে আনন্দ! এখন থেকে ইয়ারলি প্যাকেজ এর ওপরে থাকছে ৭২% ডিসকাউন্ট 🌙✨ 
-          <span className="inline-block ml-2 bg-red-600 text-white px-2 py-0.5 rounded-md text-sm font-bold">
-            <CountdownTimer 
-              targetDate={targetDate.current} 
-              onExpire={handleCountdownExpired}
-            />
-          </span>
-        </span>
-      </div>
-    </div>
+    {/* Banner removed */}
   
     <header className="bg-secondary border-b border-gray-700 py-2 px-4">
       <div className="grid grid-cols-3 items-center w-full">
@@ -357,12 +335,19 @@ const AppHeader: React.FC<AppHeaderProps> = ({
           <Button
             variant="outline"
             size="sm"
-            className="text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300"
+            className="relative text-amber-500 border-amber-700 hover:bg-amber-900/50 hover:text-amber-400 transition-all duration-300"
             onClick={() => navigate('/pricing')}
           >
             <CreditCard className="h-4 w-4 mr-1" />
             Pricing
-            <span className="absolute -top-2 -right-2 bg-amber-500 text-black text-xs font-bold rounded-full px-1 transform scale-90 animate-pulse">-72%</span>
+            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full px-1 py-0.5 transform scale-90 animate-pulse">
+              <CountdownTimer 
+                storageKey="pricingCountdownTargetDate"
+                onExpire={handlePricingCountdownExpired}
+                className="text-xs whitespace-nowrap"
+                compact={true}
+              />
+            </span>
           </Button>
           
           <Button
