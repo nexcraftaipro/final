@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import NotFound from "./pages/NotFound";
 import Pricing from "./pages/Pricing";
+import SupabaseTestPage from "./pages/SupabaseTestPage";
+import SupabaseTablesPage from "./pages/SupabaseTablesPage";
 import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { NoticeBox } from "./components/NoticeBox";
@@ -30,6 +32,8 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/auth/callback" element={<AuthCallback />} />
                 <Route path="/pricing" element={<Pricing />} />
+                <Route path="/supabase-test" element={<SupabaseTestPage />} />
+                <Route path="/supabase-tables" element={<SupabaseTablesPage />} />
                 <Route path="/terms" element={<Navigate to="/terms-of-service.html" />} />
                 <Route path="/privacy" element={<Navigate to="/privacy-policy.html" />} />
                 <Route path="*" element={<NotFound />} />

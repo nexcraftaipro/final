@@ -1,5 +1,6 @@
 import { Button } from './ui/button';
 import { supabase } from '@/integrations/supabase/client';
+import { getOAuthRedirectUrl } from '@/utils/authUtils';
 
 interface GoogleLoginButtonProps {
   onSuccess?: (token: string) => void;
@@ -9,10 +10,15 @@ interface GoogleLoginButtonProps {
 export function GoogleLoginButton({ onSuccess, onError }: GoogleLoginButtonProps) {
   const handleGoogleLogin = async () => {
     try {
+      // Get the appropriate redirect URL for the current environment
+      const redirectUrl = getOAuthRedirectUrl();
+      
+      console.log(`OAuth login with redirect to: ${redirectUrl}`);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`
+          redirectTo: redirectUrl
         }
       });
 
