@@ -323,7 +323,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
             <img src="/new-logo.png" alt="Pixcraftai" className="h-10 w-auto mr-2" />
-            <span className="text-[#f14010] text-xl font-bold">Pixcraftai</span>
+            <span className="text-[#f14010] text-xl font-bold">NexCraftAI</span>
           </h1>
         </div>
         
