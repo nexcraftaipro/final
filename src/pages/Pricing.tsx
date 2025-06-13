@@ -56,7 +56,7 @@ const PricingPage: React.FC = () => {
               <CardHeader className="pb-0">
                 <h2 className="text-2xl font-bold text-white">Premium</h2>
                 <div className="flex items-baseline mt-2">
-                  <span className="text-5xl font-extrabold tracking-tight">2000</span>
+                  <span className="text-5xl font-extrabold tracking-tight">1000</span>
                   <span className="ml-1 text-slate-50 text-xl">Tk/Yearly</span>
                 </div>
                 <div className="mt-1">
@@ -118,7 +118,7 @@ const PricingPage: React.FC = () => {
           </div>
           
           <div className="text-center mt-12 text-sm text-gray-400">
-            <p>* Premium plan is billed annually (1000 Tk per year)</p>
+            <p>* Premium plan is billed annually (2000 Tk per year)</p>
             <p className="mt-1">* Basic plan is billed monthly (200 Tk per month)</p>
             <p className="mt-1">* All features are available immediately after payment</p>
           </div>
