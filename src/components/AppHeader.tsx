@@ -185,11 +185,11 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   }, []);
   
   const openWhatsAppSupport = () => {
-    window.open("https://chat.whatsapp.com/HN6dQ5HfU2w5xQtvlE6YcT", "_blank");
+    window.open("https://wa.me/+8801819916454", "_blank");
   };
   
   const openTutorialVideo = () => {
-    window.open("https://youtu.be/MZ17lLPe9mE?si=Ep8U175PzODWq4G3", "_blank");
+    window.open("https://www.youtube.com/@nexitbd", "_blank");
   };
 
   // Get user profile photo URL
@@ -322,7 +322,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Logo - Left Section */}
         <div className="flex items-center">
           <h1 onClick={navigateToHome} className="text-xl font-bold flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-            <img src="/new-logo.png" alt="Pixcraftai" className="h-10 w-auto mr-2" />
+            <img src="/new-logo.png" alt="NexCraftAI" className="h-10 w-auto mr-2" />
             <span className="text-[#f14010] text-xl font-bold">NexCraftAI</span>
           </h1>
         </div>
