@@ -46,7 +46,7 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
   useEffect(() => {
     const savedKey = localStorage.getItem('gemini-api-key') || authApiKey;
     const savedOpenaiKey = localStorage.getItem('openai-api-key');
-    const savedDeepseekKey = localStorage.getItem('openrouter-api-key') || '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';
+    const savedDeepseekKey = localStorage.getItem('openrouter-api-key');
 
     if (savedKey) {
       setInputKey(savedKey);
@@ -61,9 +61,6 @@ const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
     if (savedDeepseekKey && onDeepseekApiKeyChange) {
       setInputDeepseekKey(savedDeepseekKey);
       onDeepseekApiKeyChange(savedDeepseekKey);
-    } else if (onDeepseekApiKeyChange) {
-      // Set default OpenRouter API key if not saved
-      onDeepseekApiKeyChange('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');
     }
 
     // Set active tab based on the current provider

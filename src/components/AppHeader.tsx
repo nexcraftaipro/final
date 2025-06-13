@@ -154,18 +154,15 @@ const AppHeader: React.FC<AppHeaderProps> = ({
         }
       }
       
-      // Initialize OpenRouter API key with the default random key if not set and not cleared
-      if (onDeepseekApiKeyChange && !deepseekApiKey && !keyCleared.openrouter) {
+      // Initialize OpenRouter API key from localStorage if available
+      if (onDeepseekApiKeyChange) {
         const savedOpenRouterKey = localStorage.getItem('openrouter-api-key');
         if (savedOpenRouterKey) {
           onDeepseekApiKeyChange(savedOpenRouterKey);
         } else {
-          // Use the random default key
-          const defaultKey = getDefaultOpenRouterKey();
-          onDeepseekApiKeyChange(defaultKey);
-          // Show a toast to inform the user about the default key
-          toast.info('A random OpenRouter API key has been assigned for you', {
-            description: 'You can change it anytime or use your own',
+          // Show a toast to inform the user they need to set their own key
+          toast.info('OpenRouter API key required', {
+            description: 'Please set your OpenRouter API key to use the service',
             duration: 5000
           });
         }
@@ -287,8 +284,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({
   const getApiKeyInfo = () => {
     if (apiKeyType === 'openrouter') {
       return {
-        placeholder: "Enter your OpenRouter API key",
-        infoText: deepseekApiKey ? "Using custom OpenRouter key" : "Using shared OpenRouter key"
+        placeholder: "Enter your OpenRouter API key (required)",
+        infoText: deepseekApiKey ? "Using custom OpenRouter key" : "OpenRouter API key required"
       };
     } else {
       // Gemini

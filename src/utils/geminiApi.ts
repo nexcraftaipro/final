@@ -31,26 +31,15 @@ import { determineVideoCategory } from './categorySelector';
 import { toast } from 'sonner';
 
 // List of default OpenRouter API keys
-const DEFAULT_OPENROUTER_KEYS = [
-  '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',
-  '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',
-  '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',
-  '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',
-  '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',
-  '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',
-  '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',
-  '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',
-  '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'
-];
+const DEFAULT_OPENROUTER_KEYS: string[] = [];
 
 // Function to get a random default OpenRouter API key
 export function getRandomOpenRouterKey(): string {
-  const randomIndex = Math.floor(Math.random() * DEFAULT_OPENROUTER_KEYS.length);
-  return DEFAULT_OPENROUTER_KEYS[randomIndex];
+  return ''; // Return empty string since we no longer provide default keys
 }
 
 // Generate and cache a random API key for this session
-let sessionOpenRouterKey = getRandomOpenRouterKey();
+let sessionOpenRouterKey = '';
 
 // Function to get the current default OpenRouter key for this session
 export function getDefaultOpenRouterKey(): string {
@@ -61,7 +50,7 @@ export function getDefaultOpenRouterKey(): string {
 export function ensureApiKeyConfig(apiKeyConfig: ApiKeyConfig): ApiKeyConfig {
   return {
     ...apiKeyConfig,
-    deepseekApiKey: apiKeyConfig.deepseekApiKey || getDefaultOpenRouterKey()
+    deepseekApiKey: apiKeyConfig.deepseekApiKey || ''
   };
 }
 
